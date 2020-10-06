@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="GraphView">
+        <attr name="zoom" format="float"/>
+        <attr name="xOffset" format="integer"/>
+        <attr name="yOffset" format="integer"/>
+    </declare-styleable>
+</resources>

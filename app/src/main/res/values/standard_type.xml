@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="standard_types">
+        <item>void</item>
+        <item>byte</item>
+        <item>short</item>
+        <item>int</item>
+        <item>long</item>
+        <item>float</item>
+        <item>double</item>
+        <item>char</item>
+        <item>boolean</item>
+        <item>Byte</item>
+        <item>Short</item>
+        <item>Integer</item>
+        <item>Long</item>
+        <item>Float</item>
+        <item>Double</item>
+        <item>Character</item>
+        <item>Boolean</item>
+        <item>String</item>
+        <item>Object</item>
+    </array>
+</resources>

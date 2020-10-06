@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".view.ClassEditorFragment"
+    android:layout_margin="5dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/edit_attribute_text"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginBottom="20sp"
+        android:textSize="20sp"
+        android:text="Edit attribute" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/attribute_name_text"
+        android:layout_alignStart="@id/edit_attribute_text"
+        android:layout_below="@id/edit_attribute_text"
+        android:layout_marginBottom="20sp"
+        android:textSize="18sp"
+        android:text="Name :"/>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/attribute_name_input"
+        android:layout_alignBaseline="@id/attribute_name_text"
+        android:layout_toEndOf="@id/attribute_name_text"
+        android:gravity="start"
+        android:textSize="18sp"
+        android:hint="Enter a name"/>
+
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/visibility_radio_group"
+        android:layout_alignStart="@id/attribute_name_text"
+        android:layout_below="@id/attribute_name_text"
+        android:layout_marginBottom="20sp"
+        android:orientation="horizontal">
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/public_radio"
+            android:textSize="18sp"
+            android:layout_marginEnd="20sp"
+            android:checked="true"
+            android:text="Public"/>
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/protected_radio"
+            android:textSize="18sp"
+            android:layout_marginEnd="20sp"
+            android:text="Protected"/>
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/private_radio"
+            android:textSize="18sp"
+            android:layout_marginEnd="20sp"
+            android:text="Private"/>
+    </RadioGroup>
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/static_check"
+        android:textSize="18sp"
+        android:layout_marginBottom="20sp"
+        android:layout_marginEnd="20sp"
+        android:layout_alignStart="@id/visibility_radio_group"
+        android:layout_below="@id/visibility_radio_group"
+        android:text="Static"/>
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/final_check"
+        android:textSize="18sp"
+        android:layout_marginBottom="20sp"
+        android:layout_marginEnd="20sp"
+        android:layout_toRightOf="@id/static_check"
+        android:layout_alignBaseline="@id/static_check"
+        android:text="Final"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/type_text"
+        android:textSize="18sp"
+        android:layout_marginBottom="20sp"
+        android:layout_alignStart="@id/static_check"
+        android:layout_below="@id/static_check"
+        android:text="Type :"/>
+
+    <Spinner
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/type_spinner"
+        android:layout_marginBottom="20sp"
+        android:layout_toRightOf="@id/type_text"
+        android:layout_alignTop="@id/type_text"/>
+
+    <RadioGroup
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/multiplicity_radio_group"
+        android:layout_marginBottom="20sp"
+        android:layout_alignStart="@id/type_text"
+        android:layout_below="@id/type_text"
+        android:orientation="vertical">
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/simple_radio"
+            android:layout_marginBottom="20sp"
+            android:textSize="18sp"
+            android:checked="true"
+            android:text="Single"/>
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/collection_radio"
+            android:layout_marginBottom="20sp"
+            android:textSize="18sp"
+            android:text="Collection"/>
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/array_radio"
+            android:layout_marginBottom="20sp"
+            android:textSize="18sp"
+            android:text="Array"/>
+    </RadioGroup>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/dimension_text"
+        android:layout_toEndOf="@id/multiplicity_radio_group"
+        android:layout_alignBottom="@id/multiplicity_radio_group"
+        android:paddingBottom="24sp"
+        android:textSize="18sp"
+        android:text="dimension :"/>
+
+    <EditText
+        android:layout_width="50sp"
+        android:layout_height="wrap_content"
+        android:id="@+id/dimension_input"
+        android:layout_toEndOf="@id/dimension_text"
+        android:layout_alignBaseline="@id/dimension_text"
+        android:textSize="18sp"
+        android:layout_marginBottom="20sp"
+        android:inputType="number"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/multiplicity_radio_group"
+        android:gravity="center_horizontal">
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/ok_button"
+            android:textSize="18sp"
+            android:text="OK"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/cancel_button"
+            android:textSize="18sp"
+            android:text="CANCEL"/>
+    </LinearLayout>
+
+</RelativeLayout>
