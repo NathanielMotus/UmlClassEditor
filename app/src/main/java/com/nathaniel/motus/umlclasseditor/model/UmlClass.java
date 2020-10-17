@@ -127,6 +127,14 @@ public class UmlClass extends UmlType {
         return mValueList;
     }
 
+    public float getNormalRightEnd() {
+        return mUmlClassNormalXPos+mUmlClassNormalWidth;
+    }
+
+    public float getNormalBottomEnd() {
+        return mUmlClassNormalYPos+mUmlClassNormalHeight;
+    }
+
 //    **********************************************************************************************
 //    Modifiers
 //    **********************************************************************************************
@@ -154,4 +162,44 @@ public class UmlClass extends UmlType {
     public void removeValue(String value) {
         mValueList.remove(value);
     }
+
+//    **********************************************************************************************
+//    Test methods
+//    **********************************************************************************************
+
+    public boolean containsPoint(float absoluteX, float absoluteY) {
+        return  (absoluteX<=mUmlClassNormalXPos+mUmlClassNormalWidth &&
+                absoluteX >= mUmlClassNormalXPos &&
+                absoluteY<=mUmlClassNormalYPos+mUmlClassNormalHeight &&
+                absoluteY>=mUmlClassNormalYPos);
+    }
+
+    public boolean isSouthOf(UmlClass umlClass) {
+        //is this in South quarter of umlClass ?
+        return (this.getUmlClassNormalYPos()>=umlClass.getNormalBottomEnd() &&
+                this.getNormalRightEnd()>=umlClass.getUmlClassNormalXPos()-this.getUmlClassNormalYPos()+umlClass.getNormalBottomEnd() &&
+                this.getUmlClassNormalXPos()<=umlClass.getNormalRightEnd()+this.getUmlClassNormalYPos()-umlClass.getNormalBottomEnd());
+    }
+
+    public boolean isNorthOf(UmlClass umlClass) {
+        //is this in North quarter of umlClass ?
+        return (this.getNormalBottomEnd()<=umlClass.getUmlClassNormalYPos() &&
+                this.getNormalRightEnd()>=umlClass.getUmlClassNormalXPos()-umlClass.getUmlClassNormalYPos()+this.getNormalBottomEnd() &&
+                this.getUmlClassNormalXPos()<=umlClass.getNormalRightEnd()+umlClass.getUmlClassNormalYPos()-this.getNormalBottomEnd());
+    }
+
+    public boolean isWestOf(UmlClass umlClass) {
+        //is this in West quarter of umlClass ?
+        return (this.getNormalRightEnd()<=umlClass.getUmlClassNormalXPos() &&
+                this.getNormalBottomEnd()>=umlClass.getUmlClassNormalYPos()-umlClass.getUmlClassNormalXPos()+this.getNormalRightEnd() &&
+                this.getUmlClassNormalYPos()<=umlClass.getNormalBottomEnd()+umlClass.getUmlClassNormalXPos()-this.getNormalRightEnd());
+    }
+
+    public boolean isEastOf(UmlClass umlClass) {
+        //is this in East Quarter of umlClass ?
+        return (this.getUmlClassNormalXPos()>=umlClass.getNormalRightEnd() &&
+                this.getNormalBottomEnd()>=umlClass.getUmlClassNormalYPos()-this.getUmlClassNormalXPos()+umlClass.getNormalRightEnd() &&
+                this.getUmlClassNormalYPos()<=umlClass.getNormalBottomEnd()+this.getUmlClassNormalXPos()-umlClass.getNormalRightEnd());
+    }
+
 }

@@ -78,4 +78,12 @@ public class UmlProject {
     public void removeUmlClass(UmlClass umlClass) {
         mUmlClasses.remove(umlClass);
     }
+
+    public void addUmlRelation(UmlRelation umlRelation) {
+        mUmlRelations.add(umlRelation);
+    }
+
+    public void removeUmlRelation(UmlRelation umlRelation) {
+        mUmlRelations.remove(umlRelation);
+    }
 }

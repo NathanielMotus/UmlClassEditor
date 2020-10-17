@@ -4,8 +4,10 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
-import android.graphics.Rect;
+import android.graphics.Path;
+import android.graphics.PathEffect;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -17,6 +19,7 @@ import com.nathaniel.motus.umlclasseditor.model.UmlClass;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassAttribute;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassMethod;
 import com.nathaniel.motus.umlclasseditor.model.UmlProject;
+import com.nathaniel.motus.umlclasseditor.model.UmlRelation;
 
 public class GraphView extends View implements View.OnTouchListener{
 
@@ -37,7 +40,11 @@ public class GraphView extends View implements View.OnTouchListener{
     private float mOldXMidPoint;
     private float mOldYMidPoint;
     private Paint textPaint;
-    private Paint framePaint;
+    private Paint linePaint;
+    private Paint dashPaint;
+    private Paint solidBlackPaint;
+    private Paint solidWhitePaint;
+    private UmlClass mMovingClass;
 
 //    **********************************************************************************************
 //    Standard drawing dimensions (in dp)
@@ -45,6 +52,7 @@ public class GraphView extends View implements View.OnTouchListener{
 
     private static final float FONT_SIZE=20;
     private static final float INTERLINE=10;
+    private static final float ARROW_SIZE=10;
 
 
 //    **********************************************************************************************
@@ -90,9 +98,22 @@ public class GraphView extends View implements View.OnTouchListener{
         textPaint=new Paint();
         textPaint.setColor(Color.DKGRAY);
 
-        framePaint=new Paint();
-        framePaint.setColor(Color.DKGRAY);
-        framePaint.setStyle(Paint.Style.STROKE);
+        linePaint =new Paint();
+        linePaint.setColor(Color.DKGRAY);
+        linePaint.setStyle(Paint.Style.STROKE);
+
+        dashPaint=new Paint();
+        dashPaint.setColor(Color.DKGRAY);
+        dashPaint.setStyle(Paint.Style.STROKE);
+        dashPaint.setPathEffect(new DashPathEffect(new float[]{10f,10f},0));
+
+        solidBlackPaint=new Paint();
+        solidBlackPaint.setColor(Color.DKGRAY);
+        solidBlackPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+
+        solidWhitePaint=new Paint();
+        solidWhitePaint.setColor(Color.WHITE);
+        solidWhitePaint.setStyle(Paint.Style.FILL);
 
         setOnTouchListener(this);
     }
@@ -125,8 +146,12 @@ public class GraphView extends View implements View.OnTouchListener{
         super.onDraw(canvas);
 
         displaySomeText(canvas);
+
         for (UmlClass c:mUmlProject.getUmlClasses())
             drawUmlClass(canvas,c);
+
+        for (UmlRelation r:mUmlProject.getUmlRelations())
+            drawRelation(canvas,r);
     }
 
 //    **********************************************************************************************
@@ -161,21 +186,21 @@ public class GraphView extends View implements View.OnTouchListener{
                 visibleY(umlClass.getUmlClassNormalYPos()),
                 visibleX(umlClass.getUmlClassNormalXPos())+umlClass.getUmlClassWidth(),
                 visibleY(umlClass.getUmlClassNormalYPos())+umlClass.getUmlClassHeight(),
-                framePaint);
+                linePaint);
 
         //separation under title
         canvas.drawLine(visibleX(umlClass.getUmlClassNormalXPos()),
                 visibleY(umlClass.getUmlClassNormalYPos())+(INTERLINE*2f+FONT_SIZE)*mZoom,
                 visibleX(umlClass.getUmlClassNormalXPos())+umlClass.getUmlClassWidth(),
                 visibleY(umlClass.getUmlClassNormalYPos())+(INTERLINE*2f+FONT_SIZE)*mZoom,
-                framePaint);
+                linePaint);
 
         //separation under attributes
         canvas.drawLine(visibleX(umlClass.getUmlClassNormalXPos()),
                 visibleY(umlClass.getUmlClassNormalYPos())+(INTERLINE*2f+(1f+umlClass.getAttributeList().size())*(INTERLINE+FONT_SIZE))*mZoom,
                 visibleX(umlClass.getUmlClassNormalXPos())+umlClass.getUmlClassWidth(),
                 visibleY(umlClass.getUmlClassNormalYPos())+(INTERLINE*2f+(1f+umlClass.getAttributeList().size())*(INTERLINE+FONT_SIZE))*mZoom,
-                framePaint);
+                linePaint);
     }
 
     private void drawUmlClassName(Canvas canvas, UmlClass umlClass) {
@@ -220,6 +245,160 @@ public class GraphView extends View implements View.OnTouchListener{
         }
     }
 
+    private void drawRelation(Canvas canvas,UmlRelation umlRelation) {
+
+        float originAbsoluteLeft=umlRelation.getRelationOriginClass().getUmlClassNormalXPos();
+        float originAbsoluteRight=umlRelation.getRelationOriginClass().getNormalRightEnd();
+        float originAbsoluteTop=umlRelation.getRelationOriginClass().getUmlClassNormalYPos();
+        float originAbsoluteBottom=umlRelation.getRelationOriginClass().getNormalBottomEnd();
+        float endAbsoluteLeft=umlRelation.getRelationEndClass().getUmlClassNormalXPos();
+        float endAbsoluteRight=umlRelation.getRelationEndClass().getNormalRightEnd();
+        float endAbsoluteTop=umlRelation.getRelationEndClass().getUmlClassNormalYPos();
+        float endAbsoluteBottom=umlRelation.getRelationEndClass().getNormalBottomEnd();
+        float absoluteXOrigin=0;
+        float absoluteYOrigin=0;
+        float absoluteXEnd=0;
+        float absoluteYEnd=0;
+
+        //End in South quarter of Origin
+        if (umlRelation.getRelationEndClass().isSouthOf(umlRelation.getRelationOriginClass())) {
+            float lowerXLimit= originAbsoluteLeft-endAbsoluteTop+originAbsoluteBottom-umlRelation.getRelationEndClass().getUmlClassNormalWidth();
+            float upperXLimit=originAbsoluteRight+endAbsoluteTop-originAbsoluteBottom;
+
+            absoluteXEnd=endAbsoluteRight-
+                   umlRelation.getRelationEndClass().getUmlClassNormalWidth()/(upperXLimit-lowerXLimit)*
+                           (endAbsoluteLeft-lowerXLimit);
+            absoluteYEnd=endAbsoluteTop;
+
+            absoluteXOrigin=originAbsoluteLeft+
+                   umlRelation.getRelationOriginClass().getUmlClassNormalWidth()/(upperXLimit-lowerXLimit)*
+                           (endAbsoluteLeft-lowerXLimit);
+
+            absoluteYOrigin=originAbsoluteBottom;
+        }
+
+        //End in North quarter or Origin
+        if (umlRelation.getRelationEndClass().isNorthOf(umlRelation.getRelationOriginClass())) {
+            float lowerXLimit=originAbsoluteLeft-originAbsoluteTop+endAbsoluteBottom-umlRelation.getRelationEndClass().getUmlClassNormalWidth();
+            float upperXLimit=originAbsoluteRight+originAbsoluteTop-endAbsoluteBottom;
+
+            absoluteXEnd=endAbsoluteRight-
+                    umlRelation.getRelationEndClass().getUmlClassNormalWidth()/(upperXLimit-lowerXLimit)*
+                            (endAbsoluteLeft-lowerXLimit);
+
+            absoluteYEnd=endAbsoluteBottom;
+
+            absoluteXOrigin=originAbsoluteLeft+
+                    umlRelation.getRelationOriginClass().getUmlClassNormalWidth()/(upperXLimit-lowerXLimit)*
+                            (endAbsoluteLeft-lowerXLimit);
+
+            absoluteYOrigin=originAbsoluteTop;
+        }
+
+        //End in West quarter of Origin
+        if (umlRelation.getRelationEndClass().isWestOf(umlRelation.getRelationOriginClass())) {
+            float lowerYLimit=originAbsoluteTop-originAbsoluteLeft+endAbsoluteRight-umlRelation.getRelationEndClass().getUmlClassNormalHeight();
+            float upperYLimit=originAbsoluteBottom+originAbsoluteLeft-endAbsoluteRight;
+
+            absoluteXEnd=endAbsoluteRight;
+
+            absoluteYEnd=endAbsoluteBottom-
+                    umlRelation.getRelationEndClass().getUmlClassNormalHeight()/(upperYLimit-lowerYLimit)*
+                            (endAbsoluteTop-lowerYLimit);
+
+            absoluteXOrigin=originAbsoluteLeft;
+
+            absoluteYOrigin=originAbsoluteTop+
+                    umlRelation.getRelationOriginClass().getUmlClassNormalHeight()/(upperYLimit-lowerYLimit)*
+                            (endAbsoluteTop-lowerYLimit);
+        }
+
+        //End in East quarter of Origin
+        if (umlRelation.getRelationEndClass().isEastOf(umlRelation.getRelationOriginClass())) {
+            float lowerYLimit=originAbsoluteTop-endAbsoluteLeft+originAbsoluteRight-umlRelation.getRelationEndClass().getUmlClassNormalHeight();
+            float upperYLimit=originAbsoluteBottom+endAbsoluteLeft-originAbsoluteRight;
+
+            absoluteXEnd=endAbsoluteLeft;
+
+            absoluteYEnd=endAbsoluteBottom-
+                    umlRelation.getRelationEndClass().getUmlClassNormalHeight()/(upperYLimit-lowerYLimit)*
+                            (endAbsoluteTop-lowerYLimit);
+
+            absoluteXOrigin=originAbsoluteRight;
+
+            absoluteYOrigin=originAbsoluteTop+
+                    umlRelation.getRelationOriginClass().getUmlClassNormalHeight()/(upperYLimit-lowerYLimit)*
+                            (endAbsoluteTop-lowerYLimit);
+        }
+
+        Path path=new Path();
+        path.moveTo(visibleX(absoluteXOrigin),visibleY(absoluteYOrigin));
+        path.lineTo(visibleX(absoluteXEnd),visibleY(absoluteYEnd));
+        canvas.drawPath(path,linePaint);
+        drawArrow(canvas,visibleX(absoluteXOrigin),visibleY(absoluteYOrigin),visibleX(absoluteXEnd),visibleY(absoluteYEnd));
+        canvas.drawText(Float.toString(getAngle(absoluteXOrigin,absoluteYOrigin,absoluteXEnd,absoluteYEnd)),300,200,linePaint);
+    }
+
+    private void drawArrow(Canvas canvas,float xOrigin, float yOrigin, float xEnd, float yEnd) {
+        //draw an arrow at the end of the segment
+
+        canvas.save();
+        canvas.rotate(getAngle(xEnd,yEnd,xOrigin,yOrigin),xEnd,yEnd);
+        Path path=new Path();
+        path.moveTo(xEnd+ARROW_SIZE*mZoom,yEnd-ARROW_SIZE*1.414f/2f*mZoom);
+        path.lineTo(xEnd,yEnd);
+        path.lineTo(xEnd+ARROW_SIZE*mZoom,yEnd+ARROW_SIZE*1.414f/2f*mZoom);
+        canvas.drawPath(path,linePaint);
+        canvas.restore();
+    }
+
+    private void drawSolidWhiteArrow(Canvas canvas,float xOrigin, float yOrigin, float xEnd, float yEnd) {
+        //draw a solid white arrow at the end of the segment
+
+        canvas.save();
+        canvas.rotate(getAngle(xEnd,yEnd,xOrigin,yOrigin),xEnd,yEnd);
+        Path path=new Path();
+        path.moveTo(xEnd,yEnd);
+        path.lineTo(xEnd+ARROW_SIZE*mZoom,yEnd-ARROW_SIZE*1.414f/2f*mZoom);
+        path.lineTo(xEnd+ARROW_SIZE*mZoom,yEnd+ARROW_SIZE*1.414f/2f*mZoom);
+        path.close();
+        canvas.drawPath(path,solidWhitePaint);
+        canvas.drawPath(path,linePaint);
+        canvas.restore();
+    }
+
+    private void drawSolidWhiteRhombus(Canvas canvas, float xOrigin, float yOrigin, float xEnd, float yEnd) {
+        //draw a solid white rhombus at the end of the segment
+
+        canvas.save();
+        canvas.rotate(getAngle(xEnd,yEnd,xOrigin,yOrigin),xEnd,yEnd);
+        Path path=new Path();
+        path.moveTo(xEnd,yEnd);
+        path.lineTo(xEnd+ARROW_SIZE*mZoom,yEnd-ARROW_SIZE*1.414f/2f*mZoom);
+        path.lineTo(xEnd+ARROW_SIZE*2f*mZoom,yEnd);
+        path.lineTo(xEnd+ARROW_SIZE*mZoom,yEnd+ARROW_SIZE*1.414f/2f*mZoom);
+        path.close();
+        canvas.drawPath(path,solidWhitePaint);
+        canvas.drawPath(path,linePaint);
+        canvas.restore();
+    }
+
+    private void drawSolidBlackRhombus(Canvas canvas, float xOrigin, float yOrigin, float xEnd, float yEnd) {
+        //draw a solid black rhombus at the end of the segment
+
+        canvas.save();
+        canvas.rotate(getAngle(xEnd,yEnd,xOrigin,yOrigin),xEnd,yEnd);
+        Path path=new Path();
+        path.moveTo(xEnd,yEnd);
+        path.lineTo(xEnd+ARROW_SIZE*mZoom,yEnd-ARROW_SIZE*1.414f/2f*mZoom);
+        path.lineTo(xEnd+ARROW_SIZE*2f*mZoom,yEnd);
+        path.lineTo(xEnd+ARROW_SIZE*mZoom,yEnd+ARROW_SIZE*1.414f/2f*mZoom);
+        path.close();
+        canvas.drawPath(path,solidBlackPaint);
+        canvas.restore();
+    }
+
+
 //    **********************************************************************************************
 //    Test methods
 //    **********************************************************************************************
@@ -249,6 +428,7 @@ public class GraphView extends View implements View.OnTouchListener{
             case (MotionEvent.ACTION_DOWN):
                 mLastTouchX=event.getX();
                 mLastTouchY=event.getY();
+                mMovingClass=getTouchedClass(mLastTouchX,mLastTouchY);
                 mTouchMode=TouchMode.DRAG;
                 mPrimaryPointerIndex=0;
                 break;
@@ -258,14 +438,21 @@ public class GraphView extends View implements View.OnTouchListener{
                 calculateMidPoint(event);
                 mOldXMidPoint=mXMidPoint;
                 mOldYMidPoint=mYMidpoint;
-                if (mOldDist>10f)
-                    mTouchMode=TouchMode.ZOOM;
+                if (mOldDist>10f) {
+                    mTouchMode = TouchMode.ZOOM;
+                    mMovingClass = null;
+                }
                 break;
 
             case (MotionEvent.ACTION_MOVE):
                 if (mTouchMode==TouchMode.DRAG) {
-                    mXOffset=mXOffset+event.getX()-mLastTouchX;
-                    mYOffset=mYOffset+event.getY()-mLastTouchY;
+                    if (mMovingClass == null) {
+                        mXOffset = mXOffset + event.getX() - mLastTouchX;
+                        mYOffset = mYOffset + event.getY() - mLastTouchY;
+                    } else {
+                        mMovingClass.setUmlClassNormalXPos(mMovingClass.getUmlClassNormalXPos()+(event.getX()-mLastTouchX)/mZoom);
+                        mMovingClass.setUmlClassNormalYPos(mMovingClass.getUmlClassNormalYPos()+(event.getY()-mLastTouchY)/mZoom);
+                    }
                     mLastTouchX=event.getX();
                     mLastTouchY=event.getY();
 
@@ -341,9 +528,17 @@ public class GraphView extends View implements View.OnTouchListener{
     }
 
     private void updateUmlClassNormalDimensions(UmlClass umlClass) {
-        textPaint.setTextSize(FONT_SIZE);
-        umlClass.setUmlClassNormalWidth(getUmlClassMaxTextWidth(umlClass,textPaint)+INTERLINE*2f);
+        //you must use the actual dimension normalized at zoom=1
+        //because text width is not a linear function of zoom
+        textPaint.setTextSize(FONT_SIZE*mZoom);
+        umlClass.setUmlClassNormalWidth((getUmlClassMaxTextWidth(umlClass,textPaint)+INTERLINE*2f*mZoom)/mZoom);
         umlClass.setUmlClassNormalHeight(INTERLINE*3f+(FONT_SIZE+INTERLINE)*(1f+umlClass.getAttributeList().size()+umlClass.getMethodList().size()));
+    }
+
+    private float getAngle(float xOrigin, float yOrigin, float xEnd, float yEnd) {
+        //calculate angle between segment and horizontal
+        return (float)(Math.copySign(Math.abs(Math.acos((xEnd-xOrigin)/Math.sqrt((xEnd-xOrigin)*(xEnd-xOrigin)+(yEnd-yOrigin)*(yEnd-yOrigin)))),yEnd-yOrigin)/
+                Math.PI*180f);
     }
 
 //    **********************************************************************************************
@@ -366,5 +561,19 @@ public class GraphView extends View implements View.OnTouchListener{
 
     private float absoluteY(float visibleY) {
         return (visibleY-mYOffset)/mZoom;
+    }
+
+//    **********************************************************************************************
+//    Other methods
+//    **********************************************************************************************
+
+    private UmlClass getTouchedClass(float visibleX, float visibleY) {
+        UmlClass currentClass=null;
+
+        for (UmlClass c:mUmlProject.getUmlClasses())
+            if (c.containsPoint(absoluteX(visibleX),absoluteY(visibleY)))
+                currentClass=c;
+
+        return currentClass;
     }
 }

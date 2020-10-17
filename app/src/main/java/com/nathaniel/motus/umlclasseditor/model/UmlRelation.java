@@ -2,47 +2,47 @@ package com.nathaniel.motus.umlclasseditor.model;
 
 public class UmlRelation {
 
-    enum UmlAssociation{INHERITANCE,IMPLEMENTATION,AGGREGATION,COMPOSITION,ASSOCIATION,DEPENDENCY}
+    public enum UmlRelationType {INHERITANCE,IMPLEMENTATION,AGGREGATION,COMPOSITION,ASSOCIATION,DEPENDENCY}
 
-    private UmlClass mAssociationRootClass; //arrow starts from this
-    private UmlClass mAssociationEndClass; //to this
-    private UmlAssociation mAssociation;
+    private UmlClass mRelationOriginClass; //arrow starts from this
+    private UmlClass mRelationEndClass; //to this
+    private UmlRelationType mUmlRelationType;
 
 //    **********************************************************************************************
 //    Constructors
 //    **********************************************************************************************
 
-    public UmlRelation(UmlClass associationRootClass, UmlClass associationEndClass, UmlAssociation association) {
-        mAssociationRootClass = associationRootClass;
-        mAssociationEndClass = associationEndClass;
-        mAssociation = association;
+    public UmlRelation(UmlClass relationOriginClass, UmlClass relationEndClass, UmlRelationType umlRelationType) {
+        mRelationOriginClass = relationOriginClass;
+        mRelationEndClass = relationEndClass;
+        mUmlRelationType = umlRelationType;
     }
 
 //    **********************************************************************************************
 //    Getters and setters
 //    **********************************************************************************************
 
-    public UmlClass getAssociationRootClass() {
-        return mAssociationRootClass;
+    public UmlClass getRelationOriginClass() {
+        return mRelationOriginClass;
     }
 
-    public void setAssociationRootClass(UmlClass associationRootClass) {
-        mAssociationRootClass = associationRootClass;
+    public void setRelationOriginClass(UmlClass relationOriginClass) {
+        mRelationOriginClass = relationOriginClass;
     }
 
-    public UmlClass getAssociationEndClass() {
-        return mAssociationEndClass;
+    public UmlClass getRelationEndClass() {
+        return mRelationEndClass;
     }
 
-    public void setAssociationEndClass(UmlClass associationEndClass) {
-        mAssociationEndClass = associationEndClass;
+    public void setRelationEndClass(UmlClass relationEndClass) {
+        mRelationEndClass = relationEndClass;
     }
 
-    public UmlAssociation getAssociation() {
-        return mAssociation;
+    public UmlRelationType getUmlRelationType() {
+        return mUmlRelationType;
     }
 
-    public void setAssociation(UmlAssociation association) {
-        mAssociation = association;
+    public void setUmlRelationType(UmlRelationType umlRelationType) {
+        mUmlRelationType = umlRelationType;
     }
 }

@@ -10,6 +10,7 @@ import com.nathaniel.motus.umlclasseditor.model.UmlClass;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassAttribute;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassMethod;
 import com.nathaniel.motus.umlclasseditor.model.UmlProject;
+import com.nathaniel.motus.umlclasseditor.model.UmlRelation;
 import com.nathaniel.motus.umlclasseditor.model.UmlType;
 import com.nathaniel.motus.umlclasseditor.model.Visibility;
 import com.nathaniel.motus.umlclasseditor.view.AttributeEditorFragment;
@@ -136,6 +137,10 @@ public class MainActivity extends AppCompatActivity implements GraphFragment.Gra
         someInterface.setUmlClassNormalXPos(300);
         someInterface.setUmlClassNormalYPos(300);
         mProject.addUmlClass(someInterface);
+
+        //Relation
+        UmlRelation someRelation=new UmlRelation(someJavaClass,someInterface, UmlRelation.UmlRelationType.ASSOCIATION);
+        mProject.addUmlRelation(someRelation);
 
 
     }
