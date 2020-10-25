@@ -7,7 +7,6 @@ import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.PathEffect;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -45,6 +44,9 @@ public class GraphView extends View implements View.OnTouchListener{
     private Paint solidBlackPaint;
     private Paint solidWhitePaint;
     private UmlClass mMovingClass;
+    private GraphViewObserver mCallback;
+    private long mActionDownEventTime;
+    private static final long CLICK_DELAY=200;
 
 //    **********************************************************************************************
 //    Standard drawing dimensions (in dp)
@@ -116,6 +118,7 @@ public class GraphView extends View implements View.OnTouchListener{
         solidWhitePaint.setStyle(Paint.Style.FILL);
 
         setOnTouchListener(this);
+        createCallbackToParentActivity();
     }
 
     private void init(AttributeSet attrs) {
@@ -125,6 +128,15 @@ public class GraphView extends View implements View.OnTouchListener{
         int yOffset=attr.getInt(R.styleable.GraphView_yOffset,-1);
 
         init(zoom,xOffset,yOffset);
+    }
+
+//    **********************************************************************************************
+//    Callback interface
+//    **********************************************************************************************
+
+    public interface GraphViewObserver{
+        public boolean isExpectingTouchLocation();
+        public void notifyTouchLocation(float xLocation, float yLocation);
     }
 
 //    **********************************************************************************************
@@ -144,8 +156,6 @@ public class GraphView extends View implements View.OnTouchListener{
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-
-        displaySomeText(canvas);
 
         for (UmlClass c:mUmlProject.getUmlClasses())
             drawUmlClass(canvas,c);
@@ -175,7 +185,6 @@ public class GraphView extends View implements View.OnTouchListener{
 
         //Draw methods
         drawUmlClassMethods(canvas,umlClass);
-
     }
 
     private void drawFrame(Canvas canvas,UmlClass umlClass) {
@@ -330,13 +339,63 @@ public class GraphView extends View implements View.OnTouchListener{
                     umlRelation.getRelationOriginClass().getUmlClassNormalHeight()/(upperYLimit-lowerYLimit)*
                             (endAbsoluteTop-lowerYLimit);
         }
-
         Path path=new Path();
         path.moveTo(visibleX(absoluteXOrigin),visibleY(absoluteYOrigin));
         path.lineTo(visibleX(absoluteXEnd),visibleY(absoluteYEnd));
-        canvas.drawPath(path,linePaint);
-        drawArrow(canvas,visibleX(absoluteXOrigin),visibleY(absoluteYOrigin),visibleX(absoluteXEnd),visibleY(absoluteYEnd));
-        canvas.drawText(Float.toString(getAngle(absoluteXOrigin,absoluteYOrigin,absoluteXEnd,absoluteYEnd)),300,200,linePaint);
+
+        switch (umlRelation.getUmlRelationType()) {
+            case INHERITANCE:
+                canvas.drawPath(path,linePaint);
+                drawSolidWhiteArrow(canvas,
+                        visibleX(absoluteXOrigin),
+                        visibleY(absoluteYOrigin),
+                        visibleX(absoluteXEnd),
+                        visibleY(absoluteYEnd));
+                break;
+
+            case ASSOCIATION:
+                canvas.drawPath(path,linePaint);
+                break;
+
+            case AGGREGATION:
+                canvas.drawPath(path,linePaint);
+                drawSolidWhiteRhombus(canvas,
+                        visibleX(absoluteXOrigin),
+                        visibleY(absoluteYOrigin),
+                        visibleX(absoluteXEnd),
+                        visibleY(absoluteYEnd));
+                break;
+
+            case COMPOSITION:
+                canvas.drawPath(path,linePaint);
+                drawSolidBlackRhombus(canvas,
+                        visibleX(absoluteXOrigin),
+                        visibleY(absoluteYOrigin),
+                        visibleX(absoluteXEnd),
+                        visibleY(absoluteYEnd));
+                break;
+
+            case DEPENDENCY:
+                canvas.drawPath(path,dashPaint);
+                drawArrow(canvas,
+                        visibleX(absoluteXOrigin),
+                        visibleY(absoluteYOrigin),
+                        visibleX(absoluteXEnd),
+                        visibleY(absoluteYEnd));
+                break;
+
+            case REALIZATION:
+                canvas.drawPath(path,dashPaint);
+                drawSolidWhiteArrow(canvas,
+                        visibleX(absoluteXOrigin),
+                        visibleY(absoluteYOrigin),
+                        visibleX(absoluteXEnd),
+                        visibleY(absoluteYEnd));
+                break;
+
+            default:
+                break;
+        }
     }
 
     private void drawArrow(Canvas canvas,float xOrigin, float yOrigin, float xEnd, float yEnd) {
@@ -426,6 +485,7 @@ public class GraphView extends View implements View.OnTouchListener{
 
         switch (action) {
             case (MotionEvent.ACTION_DOWN):
+                mActionDownEventTime=event.getEventTime();
                 mLastTouchX=event.getX();
                 mLastTouchY=event.getY();
                 mMovingClass=getTouchedClass(mLastTouchX,mLastTouchY);
@@ -478,6 +538,12 @@ public class GraphView extends View implements View.OnTouchListener{
                 mLastTouchY=event.getY(mPrimaryPointerIndex);
                 break;
 
+            case (MotionEvent.ACTION_UP):
+                if (event.getEventTime()-mActionDownEventTime<=CLICK_DELAY && mCallback.isExpectingTouchLocation()) {
+                    mCallback.notifyTouchLocation(absoluteX(mLastTouchX),absoluteY(mLastTouchY));
+                }
+                break;
+
             default:
                 return false;
         }
@@ -485,6 +551,16 @@ public class GraphView extends View implements View.OnTouchListener{
         return true;
 
     }
+
+//    **********************************************************************************************
+//    Initialization methods
+//    **********************************************************************************************
+
+    private void createCallbackToParentActivity() {
+        mCallback=(GraphViewObserver)this.getContext();
+    }
+
+
 
 //    **********************************************************************************************
 //    Calculation methods

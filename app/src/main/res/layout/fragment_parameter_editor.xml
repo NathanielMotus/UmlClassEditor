@@ -39,7 +39,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/type_text"
+        android:id="@+id/parameter_type_text"
         android:textSize="18sp"
         android:layout_marginBottom="20sp"
         android:layout_alignStart="@id/parameter_name_text"
@@ -49,23 +49,23 @@
     <Spinner
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/type_spinner"
+        android:id="@+id/parameter_type_spinner"
         android:layout_marginBottom="20sp"
-        android:layout_toRightOf="@id/type_text"
-        android:layout_alignTop="@id/type_text"/>
+        android:layout_toRightOf="@id/parameter_type_text"
+        android:layout_alignTop="@id/parameter_type_text"/>
 
     <RadioGroup
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/multiplicity_radio_group"
+        android:id="@+id/parameter_multiplicity_radio_group"
         android:layout_marginBottom="20sp"
-        android:layout_alignStart="@id/type_text"
-        android:layout_below="@id/type_text"
+        android:layout_alignStart="@id/parameter_type_text"
+        android:layout_below="@id/parameter_type_text"
         android:orientation="vertical">
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/simple_radio"
+            android:id="@+id/parameter_simple_radio"
             android:layout_marginBottom="20sp"
             android:textSize="18sp"
             android:checked="true"
@@ -73,14 +73,14 @@
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/collection_radio"
+            android:id="@+id/parameter_collection_radio"
             android:layout_marginBottom="20sp"
             android:textSize="18sp"
             android:text="Collection"/>
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/array_radio"
+            android:id="@+id/parameter_array_radio"
             android:layout_marginBottom="20sp"
             android:textSize="18sp"
             android:text="Array"/>
@@ -89,9 +89,9 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/dimension_text"
-        android:layout_toEndOf="@id/multiplicity_radio_group"
-        android:layout_alignBottom="@id/multiplicity_radio_group"
+        android:id="@+id/parameter_dimension_text"
+        android:layout_toEndOf="@id/parameter_multiplicity_radio_group"
+        android:layout_alignBottom="@id/parameter_multiplicity_radio_group"
         android:paddingBottom="24sp"
         android:textSize="18sp"
         android:text="dimension :"/>
@@ -99,9 +99,9 @@
     <EditText
         android:layout_width="50sp"
         android:layout_height="wrap_content"
-        android:id="@+id/dimension_input"
-        android:layout_toEndOf="@id/dimension_text"
-        android:layout_alignBaseline="@id/dimension_text"
+        android:id="@+id/parameter_dimension_input"
+        android:layout_toEndOf="@id/parameter_dimension_text"
+        android:layout_alignBaseline="@id/parameter_dimension_text"
         android:textSize="18sp"
         android:layout_marginBottom="20sp"
         android:inputType="number"/>
@@ -109,19 +109,19 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/multiplicity_radio_group"
+        android:layout_below="@id/parameter_multiplicity_radio_group"
         android:gravity="center_horizontal">
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/ok_button"
+            android:id="@+id/parameter_ok_button"
             android:textSize="18sp"
             android:text="OK"/>
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/cancel_button"
+            android:id="@+id/parameter_cancel_button"
             android:textSize="18sp"
             android:text="CANCEL"/>
     </LinearLayout>

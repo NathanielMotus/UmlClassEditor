@@ -1,6 +1,7 @@
 package com.nathaniel.motus.umlclasseditor.controller;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 
 import android.os.Bundle;
 import android.widget.FrameLayout;
@@ -11,7 +12,6 @@ import com.nathaniel.motus.umlclasseditor.model.UmlClassAttribute;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassMethod;
 import com.nathaniel.motus.umlclasseditor.model.UmlProject;
 import com.nathaniel.motus.umlclasseditor.model.UmlRelation;
-import com.nathaniel.motus.umlclasseditor.model.UmlType;
 import com.nathaniel.motus.umlclasseditor.model.Visibility;
 import com.nathaniel.motus.umlclasseditor.view.AttributeEditorFragment;
 import com.nathaniel.motus.umlclasseditor.view.ClassEditorFragment;
@@ -21,9 +21,14 @@ import com.nathaniel.motus.umlclasseditor.view.MethodEditorFragment;
 import com.nathaniel.motus.umlclasseditor.view.ParameterEditorFragment;
 import com.nathaniel.motus.umlclasseditor.R;
 
-public class MainActivity extends AppCompatActivity implements GraphFragment.GraphFragmentNewClassButtonClickListener {
+public class MainActivity extends AppCompatActivity implements FragmentObserver,
+        GraphView.GraphViewObserver {
 
     private UmlProject mProject;
+    private boolean mExpectingTouchLocation=false;
+    private Purpose mPurpose= FragmentObserver.Purpose.NONE;
+    private float mXLocationFromGraphView;
+    private float mYLocationFromGraphView;
 
 //    **********************************************************************************************
 //    Fragments declaration
@@ -64,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements GraphFragment.Gra
         mGraphView.setUmlProject(mProject);
     }
 
-    //    **********************************************************************************************
+//    **********************************************************************************************
 //    Fragment management
 //    **********************************************************************************************
     private void configureAndDisplayGraphFragment(int viewContainerId){
@@ -77,23 +82,123 @@ public class MainActivity extends AppCompatActivity implements GraphFragment.Gra
                 .commit();
     }
 
-    private void configureAndDisplayClassEditorFragment(int viewContainerId) {
+    private void configureAndDisplayClassEditorFragment(int viewContainerId,float xLocation,float yLocation,int classIndex) {
         //handle class editor fragment
 
-        mClassEditorFragment=new ClassEditorFragment();
+        mClassEditorFragment=ClassEditorFragment.newInstance(xLocation,yLocation,classIndex);
         getSupportFragmentManager().beginTransaction()
-                .replace(viewContainerId,mClassEditorFragment)
+                .hide(mGraphFragment)
+                .add(viewContainerId,mClassEditorFragment)
                 .addToBackStack("CLASS_EDITOR_FRAGMENT")
                 .commit();
     }
+
+    private void configureAndDisplayAttributeEditorFragment(int viewContainerId,int attributeIndex) {
+
+        mAttributeEditorFragment=AttributeEditorFragment.newInstance(mClassEditorFragment.getId(),attributeIndex);
+        getSupportFragmentManager().beginTransaction()
+                .hide(mClassEditorFragment)
+                .add(viewContainerId,mAttributeEditorFragment)
+                .addToBackStack("ATTRIBUTE_EDITOR_FRAGMENT")
+                .commit();
+    }
+
+//    **********************************************************************************************
+//    Getters and setters
+//    **********************************************************************************************
+
+    public void setProject(UmlProject project) {
+        mProject = project;
+    }
+
 
 //    **********************************************************************************************
 //    Callback methods
 //    **********************************************************************************************
 
+//    GraphFragmentObserver
+
     @Override
-    public void onNewClassButtonClicked() {
-        configureAndDisplayClassEditorFragment(R.id.activity_main_frame);
+    public void setExpectingTouchLocation(boolean b) {
+        mExpectingTouchLocation=b;
+    }
+
+    @Override
+    public void setPurpose(Purpose purpose) {
+        mPurpose=purpose;
+    }
+
+    @Override
+    public void closeFragment(Fragment fragment) {
+        getSupportFragmentManager().beginTransaction()
+                .remove(fragment)
+                .commit();
+        getSupportFragmentManager().popBackStackImmediate();
+        mGraphView.invalidate();
+    }
+
+    @Override
+    public void openClassEditorFragment() {
+        switch (mPurpose){
+
+            case CREATE_CLASS:
+                setExpectingTouchLocation(false);
+                setPurpose(FragmentObserver.Purpose.NONE);
+                mGraphFragment.setPrompt("");
+                configureAndDisplayClassEditorFragment(R.id.activity_main_frame,mXLocationFromGraphView,mYLocationFromGraphView,-1);
+                break;
+
+            case EDIT_CLASS:
+                setPurpose(Purpose.NONE);
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    @Override
+    public void openAttributeEditorFragment(int attributeIndex) {
+        switch (mPurpose) {
+
+            case CREATE_ATTRIBUTE:
+                setPurpose(Purpose.NONE);
+                configureAndDisplayAttributeEditorFragment(R.id.activity_main_frame,-1);
+                break;
+
+            default:
+                break;
+        }
+
+    }
+
+    @Override
+    public void openMethodEditorFragment(int methodIndex) {
+
+    }
+
+    @Override
+    public void openParameterEditorFragment(int parameterIndex) {
+
+    }
+
+    @Override
+    public UmlProject getProject() {
+        return this.mProject;
+    }
+
+//    GraphViewObserver
+
+    @Override
+    public boolean isExpectingTouchLocation() {
+        return mExpectingTouchLocation;
+    }
+
+    @Override
+    public void notifyTouchLocation(float xLocation, float yLocation) {
+        mXLocationFromGraphView=xLocation;
+        mYLocationFromGraphView=yLocation;
+        openClassEditorFragment();
     }
 
 //    **********************************************************************************************
@@ -138,9 +243,21 @@ public class MainActivity extends AppCompatActivity implements GraphFragment.Gra
         someInterface.setUmlClassNormalYPos(300);
         mProject.addUmlClass(someInterface);
 
+        //Abstract class
+        UmlClass someAbstractClass=new UmlClass("UneClasseAbstraite", UmlClass.UmlClassType.ABSTRACT_CLASS);
+        someAbstractClass.setUmlClassNormalXPos(400);
+        someAbstractClass.setUmlClassNormalYPos(400);
+        mProject.addUmlClass(someAbstractClass);
+
         //Relation
-        UmlRelation someRelation=new UmlRelation(someJavaClass,someInterface, UmlRelation.UmlRelationType.ASSOCIATION);
+        UmlRelation someRelation=new UmlRelation(someJavaClass,someInterface, UmlRelation.UmlRelationType.REALIZATION);
         mProject.addUmlRelation(someRelation);
+
+        UmlRelation otherRelation=new UmlRelation(someAbstractClass,someInterface, UmlRelation.UmlRelationType.INHERITANCE);
+        mProject.addUmlRelation(otherRelation);
+
+        UmlRelation lastRelation=new UmlRelation(someJavaClass,someAbstractClass, UmlRelation.UmlRelationType.COMPOSITION);
+        mProject.addUmlRelation(lastRelation);
 
 
     }

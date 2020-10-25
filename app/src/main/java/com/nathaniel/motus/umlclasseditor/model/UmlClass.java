@@ -39,7 +39,26 @@ public class UmlClass extends UmlType {
         mValueList=new ArrayList<>();
     }
 
-//    **********************************************************************************************
+    public UmlClass(String name, UmlClassType umlClassType, ArrayList<UmlClassAttribute> attributeList, ArrayList<UmlClassMethod> methodList, float umlClassNormalXPos, float umlClassNormalYPos) {
+        super(name);
+        mUmlClassType = umlClassType;
+        mAttributeList = attributeList;
+        mMethodList = methodList;
+        mUmlClassNormalXPos = umlClassNormalXPos;
+        mUmlClassNormalYPos = umlClassNormalYPos;
+    }
+
+    public UmlClass(String name, UmlClassType umlClassType, ArrayList<UmlClassAttribute> attributeList, ArrayList<UmlClassMethod> methodList, ArrayList<String> valueList, float umlClassNormalXPos, float umlClassNormalYPos) {
+        super(name);
+        mUmlClassType = umlClassType;
+        mAttributeList = attributeList;
+        mMethodList = methodList;
+        mValueList = valueList;
+        mUmlClassNormalXPos = umlClassNormalXPos;
+        mUmlClassNormalYPos = umlClassNormalYPos;
+    }
+
+    //    **********************************************************************************************
 //    Getters and setters
 //    **********************************************************************************************
 
@@ -135,7 +154,19 @@ public class UmlClass extends UmlType {
         return mUmlClassNormalYPos+mUmlClassNormalHeight;
     }
 
-//    **********************************************************************************************
+    public void setAttributeList(ArrayList<UmlClassAttribute> attributeList) {
+        mAttributeList = attributeList;
+    }
+
+    public void setMethodList(ArrayList<UmlClassMethod> methodList) {
+        mMethodList = methodList;
+    }
+
+    public void setValueList(ArrayList<String> valueList) {
+        mValueList = valueList;
+    }
+
+    //    **********************************************************************************************
 //    Modifiers
 //    **********************************************************************************************
 

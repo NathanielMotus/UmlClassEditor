@@ -2,7 +2,7 @@ package com.nathaniel.motus.umlclasseditor.model;
 
 public class UmlRelation {
 
-    public enum UmlRelationType {INHERITANCE,IMPLEMENTATION,AGGREGATION,COMPOSITION,ASSOCIATION,DEPENDENCY}
+    public enum UmlRelationType {INHERITANCE, REALIZATION,AGGREGATION,COMPOSITION,ASSOCIATION,DEPENDENCY}
 
     private UmlClass mRelationOriginClass; //arrow starts from this
     private UmlClass mRelationEndClass; //to this

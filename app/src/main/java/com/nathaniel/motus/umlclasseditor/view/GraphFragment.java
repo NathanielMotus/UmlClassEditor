@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.nathaniel.motus.umlclasseditor.R;
+import com.nathaniel.motus.umlclasseditor.controller.FragmentObserver;
 
 public class GraphFragment extends Fragment implements View.OnClickListener {
 
@@ -37,7 +38,9 @@ public class GraphFragment extends Fragment implements View.OnClickListener {
     public static final int DEPENDENCY_BUTTON_TAG =180;
     public static final int COMPOSITION_BUTTON_TAG=190;
 
-    private GraphFragmentNewClassButtonClickListener mCallBack;
+    private FragmentObserver mCallBack;
+
+
 
 //    **********************************************************************************************
 //    Constructors
@@ -53,13 +56,12 @@ public class GraphFragment extends Fragment implements View.OnClickListener {
         return fragment;
     }
 
-    //    **********************************************************************************************
-//    Callback interface
 //    **********************************************************************************************
-    public interface GraphFragmentNewClassButtonClickListener{
+//    Getters and setters
+//    **********************************************************************************************
 
-        public void onNewClassButtonClicked();
-
+    public FragmentObserver getCallBack() {
+        return mCallBack;
     }
 
 //    **********************************************************************************************
@@ -130,7 +132,19 @@ public class GraphFragment extends Fragment implements View.OnClickListener {
     }
 
     private void createCallbackToParentActivity() {
-        mCallBack=(GraphFragmentNewClassButtonClickListener)getActivity();
+        mCallBack=(FragmentObserver)getActivity();
+    }
+
+//    **********************************************************************************************
+//    Modifiers
+//    **********************************************************************************************
+
+    public void setPrompt(String prompt) {
+        mGraphText.setText(prompt);
+    }
+
+    public void clearPrompt() {
+        mGraphText.setText("");
     }
 
 //    **********************************************************************************************
@@ -142,7 +156,18 @@ public class GraphFragment extends Fragment implements View.OnClickListener {
 
         int tag=(int)v.getTag();
 
-        if (tag==NEW_CLASS_BUTTON_TAG) mCallBack.onNewClassButtonClicked();
+        switch (tag) {
+
+            case NEW_CLASS_BUTTON_TAG:
+                mCallBack.setExpectingTouchLocation(true);
+                mCallBack.setPurpose(FragmentObserver.Purpose.CREATE_CLASS);
+                this.setPrompt("Locate the new class");
+                break;
+
+            default:
+                break;
+
+        }
     }
 
 }
