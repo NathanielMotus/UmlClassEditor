@@ -46,7 +46,9 @@ public class GraphView extends View implements View.OnTouchListener{
     private UmlClass mMovingClass;
     private GraphViewObserver mCallback;
     private long mActionDownEventTime;
+    private long mFirstClickTime=0;
     private static final long CLICK_DELAY=200;
+    private static final long DOUBLE_CLICK_DELAY=500;
 
 //    **********************************************************************************************
 //    Standard drawing dimensions (in dp)
@@ -136,7 +138,8 @@ public class GraphView extends View implements View.OnTouchListener{
 
     public interface GraphViewObserver{
         public boolean isExpectingTouchLocation();
-        public void notifyTouchLocation(float xLocation, float yLocation);
+        public void createClass(float xLocation, float yLocation);
+        public void editClass(UmlClass umlClass);
     }
 
 //    **********************************************************************************************
@@ -539,8 +542,18 @@ public class GraphView extends View implements View.OnTouchListener{
                 break;
 
             case (MotionEvent.ACTION_UP):
-                if (event.getEventTime()-mActionDownEventTime<=CLICK_DELAY && mCallback.isExpectingTouchLocation()) {
-                    mCallback.notifyTouchLocation(absoluteX(mLastTouchX),absoluteY(mLastTouchY));
+
+                //double click
+                if (event.getEventTime() - mActionDownEventTime <= CLICK_DELAY && event.getEventTime() - mFirstClickTime <= DOUBLE_CLICK_DELAY) {
+                    if (getTouchedClass(mLastTouchX, mLastTouchY) != null) mCallback.editClass(getTouchedClass(mLastTouchX,mLastTouchY));
+                }
+
+                //simple click
+                if (event.getEventTime()-mActionDownEventTime<=CLICK_DELAY) {
+                    mFirstClickTime = event.getEventTime();
+                    if (mCallback.isExpectingTouchLocation()) {
+                        mCallback.createClass(absoluteX(mLastTouchX), absoluteY(mLastTouchY));
+                    }
                 }
                 break;
 

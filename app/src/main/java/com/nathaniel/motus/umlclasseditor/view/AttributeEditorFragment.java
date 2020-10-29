@@ -6,10 +6,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -25,6 +27,7 @@ import com.nathaniel.motus.umlclasseditor.model.UmlType;
 import com.nathaniel.motus.umlclasseditor.model.Visibility;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -36,6 +39,7 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
     private static final String ATTRIBUTE_INDEX_KEY = "attributeIndex";
     private static final String CLASS_EDITOR_FRAGMENT_ID_KEY="classEditorFragmentId";
     private int mAttributeIndex;
+    private UmlClassAttribute mUmlClassAttribute;
     private int mClassEditorFragmentId;
     private ArrayList<UmlClassAttribute> mUmlClassAttributes;
     private FragmentObserver mCallback;
@@ -49,7 +53,7 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
     private Spinner mTypeSpinner;
     private RadioButton mSimpleRadio;
     private RadioButton mCollectionRadio;
-    private RadioButton mArrayRadion;
+    private RadioButton mArrayRadio;
     private EditText mDimEdit;
     private Button mOKButton;
     private Button mCancelButton;
@@ -74,6 +78,11 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
         fragment.setArguments(args);
         return fragment;
     }
+
+//    **********************************************************************************************
+//    Getters and setters
+//    **********************************************************************************************
+
 
 //    **********************************************************************************************
 //    Fragment events
@@ -102,9 +111,12 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
 
         configureViews();
         createCallbackToParentActivity();
+        initializeMembers();
+        initializeFields();
+        populateTypeSpinner();
     }
 
-    //    **********************************************************************************************
+//    **********************************************************************************************
 //    Configuration methods
 //    **********************************************************************************************
 
@@ -117,6 +129,10 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
 
         mPrivateRadio=getActivity().findViewById(R.id.attribute_private_radio);
 
+        mStaticCheck=getActivity().findViewById(R.id.attribute_static_check);
+
+        mFinalCheck=getActivity().findViewById(R.id.attribute_final_check);
+
         mTypeSpinner=getActivity().findViewById(R.id.attribute_type_spinner);
         mTypeSpinner.setTag(TYPE_SPINNER_TAG);
         mTypeSpinner.setOnItemSelectedListener(this);
@@ -125,7 +141,7 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
 
         mCollectionRadio=getActivity().findViewById(R.id.attribute_collection_radio);
 
-        mArrayRadion=getActivity().findViewById(R.id.attribute_array_radio);
+        mArrayRadio =getActivity().findViewById(R.id.attribute_array_radio);
 
         mDimEdit=getActivity().findViewById(R.id.attribute_dimension_input);
 
@@ -143,6 +159,57 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
         mCallback=(FragmentObserver)getActivity();
     }
 
+    private void initializeMembers() {
+        if (mAttributeIndex != -1) {
+            mUmlClassAttribute=mUmlClassAttributes.get(mAttributeIndex);
+        }
+    }
+
+    private void initializeFields() {
+        if (mAttributeIndex != -1) {
+            mAttributeNameEdit.setText(mUmlClassAttribute.getName());
+
+            switch (mUmlClassAttribute.getVisibility()) {
+                case PUBLIC:
+                    mPublicRadio.setChecked(true);
+                    break;
+                case PROTECTED:
+                    mProtectedRadio.setChecked(true);
+                    break;
+                default:
+                    mPrivateRadio.setChecked(true);
+                    break;
+            }
+
+            mStaticCheck.setChecked(mUmlClassAttribute.isStatic());
+            mFinalCheck.setChecked(mUmlClassAttribute.isFinal());
+
+            switch (mUmlClassAttribute.getTypeMultiplicity()) {
+                case SINGLE:
+                    mSimpleRadio.setChecked(true);
+                    break;
+                case COLLECTION:
+                    mCollectionRadio.setChecked(true);
+                    break;
+                default:
+                    mArrayRadio.setChecked(true);
+                    break;
+            }
+            mDimEdit.setText(Integer.toString(mUmlClassAttribute.getTableDimension()));
+        }
+    }
+
+    private void populateTypeSpinner() {
+        List<String> spinnerArray=new ArrayList<>();
+        for (UmlType t:mCallback.getProject().getUmlTypes())
+            spinnerArray.add(t.getName());
+        ArrayAdapter<String> adapter=new ArrayAdapter<>(getContext(),android.R.layout.simple_spinner_item,spinnerArray);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mTypeSpinner.setAdapter(adapter);
+        if (mAttributeIndex!=-1)
+            mTypeSpinner.setSelection(mCallback.getProject().getUmlTypes().indexOf(mUmlClassAttribute.getUmlType()));
+    }
+
 //    **********************************************************************************************
 //    UI events
 //    **********************************************************************************************
@@ -156,7 +223,8 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
         switch (tag) {
 
             case OK_BUTTON_TAG:
-                mCallback.closeFragment(this);
+                createOrUpdateAttribute();
+                mCallback.closeAttributeEditorFragment(this);
                 break;
 
             default:
@@ -173,5 +241,60 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
 
+    }
+
+//    **********************************************************************************************
+//    Edition methods
+//    **********************************************************************************************
+
+    private void createOrUpdateAttribute() {
+        if (getAttributeName().equals("")) {
+            Toast.makeText(getContext(), "Attribute name cannot be blank", Toast.LENGTH_SHORT).show();
+        } else {
+            if (mAttributeIndex == -1) {
+                mUmlClassAttributes.add(new UmlClassAttribute(getAttributeName(), getVisibility(), isStatic(), isFinal(), getType(), getMultiplicity(), getArrayDimension()));
+            } else {
+                mUmlClassAttribute.setName(getAttributeName());
+                mUmlClassAttribute.setVisibility(getVisibility());
+                mUmlClassAttribute.setStatic(isStatic());
+                mUmlClassAttribute.setFinal(isFinal());
+                mUmlClassAttribute.setUmlType(getType());
+                mUmlClassAttribute.setTypeMultiplicity(getMultiplicity());
+                mUmlClassAttribute.setTableDimension(getArrayDimension());
+            }
+        }
+    }
+
+    private String getAttributeName() {
+        return mAttributeNameEdit.getText().toString();
+    }
+
+    private Visibility getVisibility() {
+        if (mPublicRadio.isChecked()) return Visibility.PUBLIC;
+        if (mProtectedRadio.isChecked()) return Visibility.PROTECTED;
+        return Visibility.PRIVATE;
+    }
+
+    private boolean isStatic() {
+        return mStaticCheck.isChecked();
+    }
+
+    private boolean isFinal() {
+        return mFinalCheck.isChecked();
+    }
+
+    private UmlType getType() {
+        return mCallback.getProject().getUmlTypes().get(mTypeSpinner.getSelectedItemPosition());
+    }
+
+    private TypeMultiplicity getMultiplicity() {
+        if (mSimpleRadio.isChecked()) return TypeMultiplicity.SINGLE;
+        if (mCollectionRadio.isChecked()) return TypeMultiplicity.COLLECTION;
+        return TypeMultiplicity.ARRAY;
+    }
+
+    private int getArrayDimension() {
+        if (mDimEdit.getText()==null) return 0;
+        return Integer.parseInt(mDimEdit.getText().toString());
     }
 }

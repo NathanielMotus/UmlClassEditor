@@ -19,6 +19,7 @@
         android:layout_alignParentTop="true"
         android:layout_marginBottom="20sp"
         android:textSize="20sp"
+        android:inputType="number"
         android:text="Edit class" />
 
     <TextView

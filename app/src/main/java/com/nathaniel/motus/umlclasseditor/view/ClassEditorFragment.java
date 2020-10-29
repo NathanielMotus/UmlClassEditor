@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -23,8 +24,9 @@ import com.nathaniel.motus.umlclasseditor.model.UmlClassAttribute;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassMethod;
 
 import java.util.ArrayList;
+import java.util.List;
 
-public class ClassEditorFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemClickListener {
+public class ClassEditorFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
 
     private EditText mClassNameEdit;
     private RadioButton mJavaRadio;
@@ -53,6 +55,7 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
     private float mXPos;
     private float mYPos;
     private int mClassIndex;
+    private UmlClass mUmlClass;
     //class index in current project, -1 if new class
 
     private static final String XPOS_KEY="xPos";
@@ -107,8 +110,11 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         mValues = values;
     }
 
+    public ListView getAttributeList() {
+        return mAttributeList;
+    }
 
-//    **********************************************************************************************
+    //    **********************************************************************************************
 //    Fragment events
 //    **********************************************************************************************
 
@@ -136,6 +142,8 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
 
         configureViews();
         createCallbackToParentActivity();
+        initializeMembers();
+        initializeFields();
     }
 
 //    **********************************************************************************************
@@ -182,6 +190,63 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         mCallback=(FragmentObserver)getActivity();
     }
 
+    private void initializeMembers() {
+        if (mClassIndex!=-1) {
+            mUmlClass = mCallback.getProject().getUmlClasses().get(mClassIndex);
+            mUmlClassAttributes = mUmlClass.getAttributeList();
+            mUmlClassMethods=mUmlClass.getMethodList();
+            mValues=mUmlClass.getValueList();
+        }
+    }
+
+    private void initializeFields() {
+        if (mClassIndex != -1) {
+
+            mClassNameEdit.setText(mUmlClass.getName());
+
+            switch (mUmlClass.getUmlClassType()) {
+                case JAVA_CLASS:
+                    mJavaRadio.setChecked(true);
+                    break;
+                case ABSTRACT_CLASS:
+                    mAbstractRadio.setChecked(true);
+                    break;
+                case INTERFACE:
+                    mInterfaceRadio.setChecked(true);
+                    break;
+                default:
+                    mEnumRadio.setChecked(true);
+                    break;
+            }
+            populateAttributeListView();
+            populateMethodListView();
+        }
+    }
+
+    private void populateAttributeListView() {
+        List<String> listViewArray=new ArrayList<String>();
+        for (UmlClassAttribute a : mUmlClassAttributes)
+            listViewArray.add(a.getName());
+        ArrayAdapter<String> arrayAdapter=new ArrayAdapter<String>(this.getContext(),android.R.layout.simple_list_item_1,listViewArray);
+        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mAttributeList.setAdapter(arrayAdapter);
+    }
+
+    private void populateMethodListView() {
+        List<String> listViewArray=new ArrayList<String>();
+        for (UmlClassMethod m : mUmlClassMethods)
+            listViewArray.add(m.getName());
+        ArrayAdapter<String> arrayAdapter=new ArrayAdapter<String>(this.getContext(),android.R.layout.simple_list_item_1,listViewArray);
+        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mMethodList.setAdapter(arrayAdapter);
+    }
+
+    public void updateLists() {
+        populateAttributeListView();
+        populateMethodListView();
+    }
+
+
 //    **********************************************************************************************
 //    UI events
 //    **********************************************************************************************
@@ -198,7 +263,7 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
                 break;
 
             case CANCEL_BUTTON_TAG:
-                mCallback.closeFragment(this);
+                mCallback.closeClassEditorFragment(this);
                 break;
 
             case NEW_ATTRIBUTE_BUTTON_TAG:
@@ -211,7 +276,20 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        int tag=(int)parent.getTag();
 
+        switch (tag) {
+            case ATTRIBUTE_LIST_TAG:
+                mCallback.openAttributeEditorFragment(position);
+                break;
+            default:
+                break;
+        }
+    }
+
+    @Override
+    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+        return false;
     }
 
 //    **********************************************************************************************
@@ -232,7 +310,7 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
                 mCallback.getProject().getUmlClasses().get(mClassIndex).setMethodList(mUmlClassMethods);
                 mCallback.getProject().getUmlClasses().get(mClassIndex).setValueList(mValues);
             }
-            mCallback.closeFragment(this);
+            mCallback.closeClassEditorFragment(this);
         }
     }
 
@@ -241,14 +319,10 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
     }
 
     private UmlClass.UmlClassType getClassType() {
-        UmlClass.UmlClassType type= UmlClass.UmlClassType.JAVA_CLASS;
-
-        if (mJavaRadio.isChecked()) type= UmlClass.UmlClassType.JAVA_CLASS;
-        if (mAbstractRadio.isChecked()) type= UmlClass.UmlClassType.ABSTRACT_CLASS;
-        if (mInterfaceRadio.isChecked()) type= UmlClass.UmlClassType.INTERFACE;
-        if (mEnumRadio.isChecked()) type= UmlClass.UmlClassType.ENUM;
-
-        return type;
+        if (mJavaRadio.isChecked()) return UmlClass.UmlClassType.JAVA_CLASS;
+        if (mAbstractRadio.isChecked()) return UmlClass.UmlClassType.ABSTRACT_CLASS;
+        if (mInterfaceRadio.isChecked()) return UmlClass.UmlClassType.INTERFACE;
+        return UmlClass.UmlClassType.ENUM;
     }
 
 }

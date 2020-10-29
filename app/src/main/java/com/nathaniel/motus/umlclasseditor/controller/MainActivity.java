@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import android.os.Bundle;
+import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 
 import com.nathaniel.motus.umlclasseditor.model.TypeMultiplicity;
@@ -103,6 +104,13 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
                 .commit();
     }
 
+    private void closeFragment(Fragment fragment) {
+        getSupportFragmentManager().beginTransaction()
+                .remove(fragment)
+                .commit();
+        getSupportFragmentManager().popBackStackImmediate();
+    }
+
 //    **********************************************************************************************
 //    Getters and setters
 //    **********************************************************************************************
@@ -129,46 +137,37 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     }
 
     @Override
-    public void closeFragment(Fragment fragment) {
-        getSupportFragmentManager().beginTransaction()
-                .remove(fragment)
-                .commit();
-        getSupportFragmentManager().popBackStackImmediate();
+    public void closeClassEditorFragment(Fragment fragment) {
+        closeFragment(fragment);
         mGraphView.invalidate();
     }
 
     @Override
-    public void openClassEditorFragment() {
-        switch (mPurpose){
+    public void closeAttributeEditorFragment(Fragment fragment) {
+        closeFragment(fragment);
+        mClassEditorFragment.updateLists();
+    }
 
-            case CREATE_CLASS:
-                setExpectingTouchLocation(false);
-                setPurpose(FragmentObserver.Purpose.NONE);
-                mGraphFragment.setPrompt("");
-                configureAndDisplayClassEditorFragment(R.id.activity_main_frame,mXLocationFromGraphView,mYLocationFromGraphView,-1);
-                break;
+    @Override
+    public void closeMethodEditorFragment(Fragment fragment) {
+        closeFragment(fragment);
+        mClassEditorFragment.updateLists();
+    }
 
-            case EDIT_CLASS:
-                setPurpose(Purpose.NONE);
-                break;
+    @Override
+    public void closeParameterEditorFragment(Fragment fragment) {
 
-            default:
-                break;
-        }
+    }
+
+    @Override
+    public void closeValueEditorFragment(Fragment fragment) {
+        closeFragment(fragment);
+        mClassEditorFragment.updateLists();
     }
 
     @Override
     public void openAttributeEditorFragment(int attributeIndex) {
-        switch (mPurpose) {
-
-            case CREATE_ATTRIBUTE:
-                setPurpose(Purpose.NONE);
-                configureAndDisplayAttributeEditorFragment(R.id.activity_main_frame,-1);
-                break;
-
-            default:
-                break;
-        }
+        configureAndDisplayAttributeEditorFragment(R.id.activity_main_frame,attributeIndex);
 
     }
 
@@ -195,18 +194,22 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     }
 
     @Override
-    public void notifyTouchLocation(float xLocation, float yLocation) {
-        mXLocationFromGraphView=xLocation;
-        mYLocationFromGraphView=yLocation;
-        openClassEditorFragment();
+    public void createClass(float xLocation, float yLocation) {
+        configureAndDisplayClassEditorFragment(R.id.activity_main_frame,xLocation,yLocation,-1);
     }
+
+    @Override
+    public void editClass(UmlClass umlClass) {
+        configureAndDisplayClassEditorFragment(R.id.activity_main_frame,0,0,mProject.getUmlClasses().indexOf(umlClass));
+    }
+
+
 
 //    **********************************************************************************************
 //    Test methods
 //    **********************************************************************************************
 
     private void populateProject() {
-        mProject.initializeStandardTypes(getApplicationContext());
         //JavaClass
         UmlClass someJavaClass=new UmlClass("UneClasseJava", UmlClass.UmlClassType.JAVA_CLASS);
         //Attributes

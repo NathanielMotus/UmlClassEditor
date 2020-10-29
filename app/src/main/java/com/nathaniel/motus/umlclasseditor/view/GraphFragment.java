@@ -160,7 +160,6 @@ public class GraphFragment extends Fragment implements View.OnClickListener {
 
             case NEW_CLASS_BUTTON_TAG:
                 mCallBack.setExpectingTouchLocation(true);
-                mCallBack.setPurpose(FragmentObserver.Purpose.CREATE_CLASS);
                 this.setPrompt("Locate the new class");
                 break;
 
