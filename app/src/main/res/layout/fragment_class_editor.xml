@@ -22,12 +22,22 @@
         android:inputType="number"
         android:text="Edit class" />
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/delete_class_button"
+        android:textSize="18sp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:text="DELETE"
+        android:drawableLeft="@drawable/baseline_delete_forever_black_18dp"/>
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/class_name_text"
         android:layout_alignStart="@id/edit_class_text"
-        android:layout_below="@id/edit_class_text"
+        android:layout_alignBaseline="@id/class_name_input"
         android:layout_marginBottom="20sp"
         android:textSize="18sp"
         android:text="Name :"/>
@@ -36,7 +46,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/class_name_input"
-        android:layout_alignBaseline="@id/class_name_text"
+        android:layout_below="@id/delete_class_button"
         android:layout_toEndOf="@id/class_name_text"
         android:gravity="start"
         android:textSize="18sp"
@@ -47,7 +57,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/class_type_radio_group"
         android:layout_alignStart="@id/class_name_text"
-        android:layout_below="@id/class_name_text"
+        android:layout_below="@id/class_name_input"
         android:layout_marginBottom="20sp"
         android:orientation="vertical">
         <RadioButton
@@ -150,24 +160,63 @@
 
     </RelativeLayout>
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:id="@+id/class_values_relative"
+        android:layout_alignStart="@id/class_attributes_relative"
         android:layout_below="@id/class_methods_relative"
-        android:gravity="center_horizontal">
+        android:layout_marginBottom="20sp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/class_values_text"
+            android:layout_marginBottom="20sp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:textSize="18sp"
+            android:text="Values"/>
+
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/class_ok_button"
+            android:id="@+id/class_add_value_button"
+            android:layout_alignBaseline="@id/class_values_text"
+            android:layout_alignParentEnd="true"
             android:textSize="18sp"
-            android:text="OK"/>
+            android:text="+"/>
 
+        <ListView
+            android:layout_width="wrap_content"
+            android:layout_height="150dp"
+            android:id="@+id/class_values_list"
+            android:layout_alignStart="@id/class_values_text"
+            android:layout_below="@id/class_values_text"/>
+
+    </RelativeLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/class_values_relative"
+        android:paddingBottom="18sp"
+        android:gravity="center_horizontal">
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/class_cancel_button"
             android:textSize="18sp"
-            android:text="CANCEL"/>
+            android:text="CANCEL"
+            android:drawableLeft="@drawable/baseline_cancel_black_18dp"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/class_ok_button"
+            android:textSize="18sp"
+            android:text="OK"
+            android:drawableLeft="@drawable/baseline_check_black_18dp"/>
     </LinearLayout>
 
 </RelativeLayout>

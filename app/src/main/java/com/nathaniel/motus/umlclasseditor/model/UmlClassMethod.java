@@ -7,7 +7,6 @@ public class UmlClassMethod {
     private String mName;
     private Visibility mVisibility=Visibility.PRIVATE;
     private boolean mStatic =false;
-    private boolean mFinal =false;
     private UmlType mUmlType;
     private TypeMultiplicity mTypeMultiplicity=TypeMultiplicity.SINGLE;
     private int mTableDimension=1;
@@ -17,11 +16,10 @@ public class UmlClassMethod {
 //    Constructors
 //    **********************************************************************************************
 
-    public UmlClassMethod(String name, Visibility visibility, boolean aStatic, boolean aFinal, UmlType umlType, TypeMultiplicity typeMultiplicity, int tableDimension) {
+    public UmlClassMethod(String name, Visibility visibility, boolean aStatic, UmlType umlType, TypeMultiplicity typeMultiplicity, int tableDimension) {
         mName = name;
         mVisibility = visibility;
         mStatic = aStatic;
-        mFinal = aFinal;
         mUmlType = umlType;
         mTypeMultiplicity = typeMultiplicity;
         mTableDimension = tableDimension;
@@ -56,14 +54,6 @@ public class UmlClassMethod {
         mStatic = aStatic;
     }
 
-    public boolean isFinal() {
-        return mFinal;
-    }
-
-    public void setFinal(boolean aFinal) {
-        mFinal = aFinal;
-    }
-
     public UmlType getUmlType() {
         return mUmlType;
     }
@@ -88,7 +78,11 @@ public class UmlClassMethod {
         mTableDimension = tableDimension;
     }
 
-//    **********************************************************************************************
+    public ArrayList<MethodParameter> getParameters() {
+        return mParameters;
+    }
+
+    //    **********************************************************************************************
 //    Modifiers
 //    **********************************************************************************************
 

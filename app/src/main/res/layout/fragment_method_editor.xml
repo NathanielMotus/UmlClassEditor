@@ -3,11 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".view.ClassEditorFragment">
+    tools:context=".view.MethodEditorFragment">
 <RelativeLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    tools:context=".view.ClassEditorFragment"
+    tools:context=".view.MethodEditorFragment"
     android:layout_margin="5dp">
 
     <TextView
@@ -20,12 +20,22 @@
         android:textSize="20sp"
         android:text="Edit method" />
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:id="@+id/delete_method_button"
+        android:textSize="18sp"
+        android:drawableLeft="@drawable/baseline_delete_forever_black_18dp"
+        android:text="DELETE"/>
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/method_name_text"
         android:layout_alignStart="@id/edit_method_text"
-        android:layout_below="@id/edit_method_text"
+        android:layout_alignBaseline="@id/method_name_input"
         android:layout_marginBottom="20sp"
         android:textSize="18sp"
         android:text="Name :"/>
@@ -34,7 +44,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/method_name_input"
-        android:layout_alignBaseline="@id/method_name_text"
+        android:layout_below="@id/delete_method_button"
         android:layout_toEndOf="@id/method_name_text"
         android:gravity="start"
         android:textSize="18sp"
@@ -45,7 +55,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/method_visibility_radio_group"
         android:layout_alignStart="@id/method_name_text"
-        android:layout_below="@id/method_name_text"
+        android:layout_below="@id/method_name_input"
         android:layout_marginBottom="20sp"
         android:orientation="horizontal">
         <RadioButton
@@ -198,16 +208,17 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/method_ok_button"
+            android:id="@+id/method_cancel_button"
             android:textSize="18sp"
-            android:text="OK"/>
-
+            android:drawableLeft="@drawable/baseline_cancel_black_18dp"
+            android:text="CANCEL"/>
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/method_cancel_button"
+            android:id="@+id/method_ok_button"
             android:textSize="18sp"
-            android:text="CANCEL"/>
+            android:drawableLeft="@drawable/baseline_check_black_18dp"
+            android:text="OK"/>
     </LinearLayout>
 
 </RelativeLayout>

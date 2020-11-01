@@ -1,5 +1,7 @@
 package com.nathaniel.motus.umlclasseditor.view;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -16,7 +18,9 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.nathaniel.motus.umlclasseditor.R;
@@ -34,16 +38,18 @@ import java.util.List;
  * Use the {@link AttributeEditorFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class AttributeEditorFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemSelectedListener {
+public class AttributeEditorFragment extends Fragment implements View.OnClickListener, RadioGroup.OnCheckedChangeListener {
 
     private static final String ATTRIBUTE_INDEX_KEY = "attributeIndex";
-    private static final String CLASS_EDITOR_FRAGMENT_ID_KEY="classEditorFragmentId";
+    private static final String CLASS_EDITOR_FRAGMENT_TAG_KEY="classEditorFragmentTag";
     private int mAttributeIndex;
     private UmlClassAttribute mUmlClassAttribute;
-    private int mClassEditorFragmentId;
+    private String mClassEditorFragmentTag;
     private ArrayList<UmlClassAttribute> mUmlClassAttributes;
     private FragmentObserver mCallback;
 
+    private TextView mEditAttributeText;
+    private Button mDeleteAttributeButton;
     private EditText mAttributeNameEdit;
     private RadioButton mPublicRadio;
     private RadioButton mProtectedRadio;
@@ -51,9 +57,11 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
     private CheckBox mStaticCheck;
     private CheckBox mFinalCheck;
     private Spinner mTypeSpinner;
+    private RadioGroup mMultiplicityRadioGroup;
     private RadioButton mSimpleRadio;
     private RadioButton mCollectionRadio;
     private RadioButton mArrayRadio;
+    private TextView mDimText;
     private EditText mDimEdit;
     private Button mOKButton;
     private Button mCancelButton;
@@ -61,6 +69,7 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
     private static final int TYPE_SPINNER_TAG=310;
     private static final int OK_BUTTON_TAG=320;
     private static final int CANCEL_BUTTON_TAG=330;
+    private static final int DELETE_ATTRIBUTE_BUTTON_TAG=340;
 
 //    **********************************************************************************************
 //    Constructors
@@ -70,11 +79,11 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
         // Required empty public constructor
     }
 
-    public static AttributeEditorFragment newInstance(int classEditorFragmentId, int attributeIndex) {
+    public static AttributeEditorFragment newInstance(String classEditorFragmentTag, int attributeIndex) {
         AttributeEditorFragment fragment = new AttributeEditorFragment();
         Bundle args = new Bundle();
         args.putInt(ATTRIBUTE_INDEX_KEY,attributeIndex);
-        args.putInt(CLASS_EDITOR_FRAGMENT_ID_KEY,classEditorFragmentId);
+        args.putString(CLASS_EDITOR_FRAGMENT_TAG_KEY,classEditorFragmentTag);
         fragment.setArguments(args);
         return fragment;
     }
@@ -93,9 +102,8 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mAttributeIndex=getArguments().getInt(ATTRIBUTE_INDEX_KEY,-1);
-            mClassEditorFragmentId=getArguments().getInt(CLASS_EDITOR_FRAGMENT_ID_KEY);
+            mClassEditorFragmentTag=getArguments().getString(CLASS_EDITOR_FRAGMENT_TAG_KEY);
         }
-        mUmlClassAttributes=((ClassEditorFragment)getFragmentManager().findFragmentById(mClassEditorFragmentId)).getUmlClassAttributes();
     }
 
     @Override
@@ -113,7 +121,10 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
         createCallbackToParentActivity();
         initializeMembers();
         initializeFields();
-        populateTypeSpinner();
+        if (mAttributeIndex==-1) setOnCreateDisplay();
+        else setOnEditDisplay();
+        if (mAttributeIndex!=-1 && mUmlClassAttribute.getTypeMultiplicity()==TypeMultiplicity.ARRAY) setOnArrayDisplay();
+        else setOnSingleDisplay();
     }
 
 //    **********************************************************************************************
@@ -121,7 +132,16 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
 //    **********************************************************************************************
 
     public void configureViews() {
+        mEditAttributeText=getActivity().findViewById(R.id.edit_attribute_text);
+
+        mDeleteAttributeButton=getActivity().findViewById(R.id.delete_attribute_button);
+        mDeleteAttributeButton.setTag(DELETE_ATTRIBUTE_BUTTON_TAG);
+        mDeleteAttributeButton.setOnClickListener(this);
+
         mAttributeNameEdit=getActivity().findViewById(R.id.attribute_name_input);
+
+        mMultiplicityRadioGroup=getActivity().findViewById(R.id.attribute_multiplicity_radio_group);
+        mMultiplicityRadioGroup.setOnCheckedChangeListener(this);
 
         mPublicRadio=getActivity().findViewById(R.id.attribute_public_radio);
 
@@ -135,13 +155,14 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
 
         mTypeSpinner=getActivity().findViewById(R.id.attribute_type_spinner);
         mTypeSpinner.setTag(TYPE_SPINNER_TAG);
-        mTypeSpinner.setOnItemSelectedListener(this);
 
         mSimpleRadio =getActivity().findViewById(R.id.attribute_simple_radio);
 
         mCollectionRadio=getActivity().findViewById(R.id.attribute_collection_radio);
 
         mArrayRadio =getActivity().findViewById(R.id.attribute_array_radio);
+
+        mDimText=getActivity().findViewById(R.id.attribute_dimension_text);
 
         mDimEdit=getActivity().findViewById(R.id.attribute_dimension_input);
 
@@ -160,6 +181,8 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
     }
 
     private void initializeMembers() {
+        mUmlClassAttributes=((ClassEditorFragment)getFragmentManager().findFragmentByTag(mClassEditorFragmentTag)).getUmlClassAttributes();
+
         if (mAttributeIndex != -1) {
             mUmlClassAttribute=mUmlClassAttributes.get(mAttributeIndex);
         }
@@ -197,6 +220,7 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
             }
             mDimEdit.setText(Integer.toString(mUmlClassAttribute.getTableDimension()));
         }
+        populateTypeSpinner();
     }
 
     private void populateTypeSpinner() {
@@ -208,6 +232,26 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
         mTypeSpinner.setAdapter(adapter);
         if (mAttributeIndex!=-1)
             mTypeSpinner.setSelection(mCallback.getProject().getUmlTypes().indexOf(mUmlClassAttribute.getUmlType()));
+    }
+
+    private void setOnEditDisplay() {
+        mDeleteAttributeButton.setVisibility(View.VISIBLE);
+        mEditAttributeText.setText("Edit attribute");
+    }
+
+    private void setOnCreateDisplay() {
+        mDeleteAttributeButton.setVisibility(View.INVISIBLE);
+        mEditAttributeText.setText("Create attribute");
+    }
+
+    private void setOnArrayDisplay() {
+        mDimText.setVisibility(View.VISIBLE);
+        mDimEdit.setVisibility(View.VISIBLE);
+    }
+
+    private void setOnSingleDisplay() {
+        mDimText.setVisibility(View.INVISIBLE);
+        mDimEdit.setVisibility(View.INVISIBLE);
     }
 
 //    **********************************************************************************************
@@ -227,6 +271,32 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
                 mCallback.closeAttributeEditorFragment(this);
                 break;
 
+            case CANCEL_BUTTON_TAG:
+                mCallback.closeAttributeEditorFragment(this);
+                break;
+
+            case DELETE_ATTRIBUTE_BUTTON_TAG:
+                final Fragment fragment=this;
+                AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
+                builder.setTitle("Delete attribute")
+                        .setMessage("Are you sure you want to delete this attribute ?")
+                        .setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                            }
+                        })
+                        .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                mUmlClassAttributes.remove(mUmlClassAttribute);
+                                mCallback.closeAttributeEditorFragment(fragment);
+                            }
+                        });
+                AlertDialog dialog=builder.create();
+                dialog.show();
+                break;
+
             default:
                 break;
         }
@@ -234,13 +304,9 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
     }
 
     @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
-    }
-
-    @Override
-    public void onNothingSelected(AdapterView<?> parent) {
-
+    public void onCheckedChanged(RadioGroup group, int checkedId) {
+        if (checkedId==R.id.attribute_array_radio) setOnArrayDisplay();
+        else setOnSingleDisplay();
     }
 
 //    **********************************************************************************************
@@ -294,7 +360,7 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
     }
 
     private int getArrayDimension() {
-        if (mDimEdit.getText()==null) return 0;
+        if (mDimEdit.getText().toString().equals("")) return 0;
         return Integer.parseInt(mDimEdit.getText().toString());
     }
 }

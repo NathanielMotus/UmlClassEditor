@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".view.ClassEditorFragment"
+    tools:context=".view.ParameterEditorFragment"
     android:layout_margin="5dp">
 
     <TextView
@@ -14,14 +14,24 @@
         android:layout_alignParentTop="true"
         android:layout_marginBottom="20sp"
         android:textSize="20sp"
-        android:text="Edit attribute" />
+        android:text="Edit parameter" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/delete_parameter_button"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:textSize="18sp"
+        android:drawableLeft="@drawable/baseline_delete_forever_black_18dp"
+        android:text="DELETE"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/parameter_name_text"
         android:layout_alignStart="@id/edit_parameter_text"
-        android:layout_below="@id/edit_parameter_text"
+        android:layout_alignBaseline="@id/parameter_name_input"
         android:layout_marginBottom="20sp"
         android:textSize="18sp"
         android:text="Name :"/>
@@ -30,7 +40,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/parameter_name_input"
-        android:layout_alignBaseline="@id/parameter_name_text"
+        android:layout_below="@id/delete_parameter_button"
         android:layout_toEndOf="@id/parameter_name_text"
         android:gravity="start"
         android:textSize="18sp"
@@ -114,16 +124,17 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/parameter_ok_button"
+            android:id="@+id/parameter_cancel_button"
             android:textSize="18sp"
-            android:text="OK"/>
-
+            android:drawableLeft="@drawable/baseline_cancel_black_18dp"
+            android:text="CANCEL"/>
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/parameter_cancel_button"
+            android:id="@+id/parameter_ok_button"
             android:textSize="18sp"
-            android:text="CANCEL"/>
+            android:drawableLeft="@drawable/baseline_check_black_18dp"
+            android:text="OK"/>
     </LinearLayout>
 
 </RelativeLayout>

@@ -1,5 +1,7 @@
 package com.nathaniel.motus.umlclasseditor.view;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -15,6 +17,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.nathaniel.motus.umlclasseditor.R;
@@ -26,17 +31,25 @@ import com.nathaniel.motus.umlclasseditor.model.UmlClassMethod;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClassEditorFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
+public class ClassEditorFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, RadioGroup.OnCheckedChangeListener {
 
+    private TextView mEditClassText;
     private EditText mClassNameEdit;
+    private Button mDeleteClassButton;
+    private RadioGroup mClassTypeRadioGroup;
     private RadioButton mJavaRadio;
     private RadioButton mAbstractRadio;
     private RadioButton mInterfaceRadio;
     private RadioButton mEnumRadio;
+    private RelativeLayout mAttributeRelative;
     private Button mNewAttributeButton;
     private ListView mAttributeList;
+    private RelativeLayout mMethodRelative;
     private Button mNewMethodButton;
     private ListView mMethodList;
+    private RelativeLayout mValueRelative;
+    private Button mNewValueButton;
+    private ListView mValueList;
     private Button mOKButton;
     private Button mCancelButton;
 
@@ -46,6 +59,8 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
     private static final int METHOD_LIST_TAG=240;
     private static final int OK_BUTTON_TAG=250;
     private static final int CANCEL_BUTTON_TAG=260;
+    private static final int DELETE_CLASS_BUTTON_TAG=270;
+    private static final int NEW_VALUE_BUTTON_TAG=280;
 
     private FragmentObserver mCallback;
 
@@ -110,11 +125,7 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         mValues = values;
     }
 
-    public ListView getAttributeList() {
-        return mAttributeList;
-    }
-
-    //    **********************************************************************************************
+//    **********************************************************************************************
 //    Fragment events
 //    **********************************************************************************************
 
@@ -144,6 +155,10 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         createCallbackToParentActivity();
         initializeMembers();
         initializeFields();
+        if (mClassIndex==-1) setOnCreateDisplay();
+        else setOnEditDisplay();
+        if (mClassIndex!=-1 && mUmlClass.getUmlClassType()== UmlClass.UmlClassType.ENUM) setOnEnumDisplay();
+        else setOnJavaClassDisplay();
     }
 
 //    **********************************************************************************************
@@ -151,12 +166,23 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
 //    **********************************************************************************************
 
     private void configureViews() {
+        mEditClassText =getActivity().findViewById(R.id.edit_class_text);
+
         mClassNameEdit=getActivity().findViewById(R.id.class_name_input);
+
+        mDeleteClassButton=getActivity().findViewById(R.id.delete_class_button);
+        mDeleteClassButton.setTag(DELETE_CLASS_BUTTON_TAG);
+        mDeleteClassButton.setOnClickListener(this);
+
+        mClassTypeRadioGroup=getActivity().findViewById(R.id.class_type_radio_group);
+        mClassTypeRadioGroup.setOnCheckedChangeListener(this);
 
         mJavaRadio=getActivity().findViewById(R.id.class_java_radio);
         mAbstractRadio=getActivity().findViewById(R.id.class_abstract_radio);
         mInterfaceRadio=getActivity().findViewById(R.id.class_interface_radio);
         mEnumRadio=getActivity().findViewById(R.id.class_enum_radio);
+
+        mAttributeRelative=getActivity().findViewById(R.id.class_attributes_relative);
 
         mNewAttributeButton=getActivity().findViewById(R.id.class_add_attribute_button);
         mNewAttributeButton.setTag(NEW_ATTRIBUTE_BUTTON_TAG);
@@ -166,6 +192,8 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         mAttributeList.setTag(ATTRIBUTE_LIST_TAG);
         mAttributeList.setOnItemClickListener(this);
 
+        mMethodRelative=getActivity().findViewById(R.id.class_methods_relative);
+
         mNewMethodButton=getActivity().findViewById(R.id.class_add_method_button);
         mNewMethodButton.setTag(NEW_METHOD_BUTTON_TAG);
         mNewMethodButton.setOnClickListener(this);
@@ -173,6 +201,12 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         mMethodList=getActivity().findViewById(R.id.class_methods_list);
         mMethodList.setTag(METHOD_LIST_TAG);
         mMethodList.setOnItemClickListener(this);
+
+        mValueRelative=getActivity().findViewById(R.id.class_values_relative);
+
+        mNewValueButton=getActivity().findViewById(R.id.class_add_value_button);
+        mNewValueButton.setTag(NEW_VALUE_BUTTON_TAG);
+        mNewValueButton.setOnClickListener(this);
 
         mOKButton=getActivity().findViewById(R.id.class_ok_button);
         mOKButton.setTag(OK_BUTTON_TAG);
@@ -246,6 +280,28 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         populateMethodListView();
     }
 
+    private void setOnEditDisplay() {
+        mEditClassText.setText("Edit class");
+        mDeleteClassButton.setVisibility(View.VISIBLE);
+    }
+
+    private void setOnCreateDisplay() {
+        mEditClassText.setText("Create class");
+        mDeleteClassButton.setVisibility(View.INVISIBLE);
+    }
+
+    private void setOnJavaClassDisplay() {
+        mAttributeRelative.setVisibility(View.VISIBLE);
+        mMethodRelative.setVisibility(View.VISIBLE);
+        mValueRelative.setVisibility(View.GONE);
+    }
+
+    private void setOnEnumDisplay() {
+        mAttributeRelative.setVisibility(View.GONE);
+        mMethodRelative.setVisibility(View.GONE);
+        mValueRelative.setVisibility(View.VISIBLE);
+    }
+
 
 //    **********************************************************************************************
 //    UI events
@@ -260,6 +316,7 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
 
             case OK_BUTTON_TAG:
                 createOrUpdateClass();
+                mCallback.closeClassEditorFragment(this);
                 break;
 
             case CANCEL_BUTTON_TAG:
@@ -267,8 +324,33 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
                 break;
 
             case NEW_ATTRIBUTE_BUTTON_TAG:
-                mCallback.setPurpose(FragmentObserver.Purpose.CREATE_ATTRIBUTE);
                 mCallback.openAttributeEditorFragment(-1);
+                break;
+
+            case NEW_METHOD_BUTTON_TAG:
+                mCallback.openMethodEditorFragment(-1);
+                break;
+
+            case DELETE_CLASS_BUTTON_TAG:
+                final Fragment fragment=this;
+                AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
+                builder.setTitle("Delete class ?")
+                        .setMessage("Are you sure you want to delete this class ?");
+                builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                });
+                builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mCallback.getProject().removeUmlClass(mUmlClass);
+                        mCallback.closeClassEditorFragment(fragment);
+                    }
+                });
+                AlertDialog dialog=builder.create();
+                dialog.show();
                 break;
         }
 
@@ -282,6 +364,9 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
             case ATTRIBUTE_LIST_TAG:
                 mCallback.openAttributeEditorFragment(position);
                 break;
+            case METHOD_LIST_TAG:
+                mCallback.openMethodEditorFragment(position);
+                break;
             default:
                 break;
         }
@@ -290,6 +375,12 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
         return false;
+    }
+
+    @Override
+    public void onCheckedChanged(RadioGroup group, int checkedId) {
+        if (checkedId==R.id.class_enum_radio) setOnEnumDisplay();
+        else setOnJavaClassDisplay();
     }
 
 //    **********************************************************************************************
@@ -310,7 +401,6 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
                 mCallback.getProject().getUmlClasses().get(mClassIndex).setMethodList(mUmlClassMethods);
                 mCallback.getProject().getUmlClasses().get(mClassIndex).setValueList(mValues);
             }
-            mCallback.closeClassEditorFragment(this);
         }
     }
 

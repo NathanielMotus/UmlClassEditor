@@ -79,6 +79,7 @@ public class UmlProject {
     public void removeUmlClass(UmlClass umlClass) {
         mUmlClasses.remove(umlClass);
         mUmlTypes.remove(umlClass);
+        removeRelationsInvolving(umlClass);
     }
 
     public void addUmlRelation(UmlRelation umlRelation) {
@@ -87,5 +88,15 @@ public class UmlProject {
 
     public void removeUmlRelation(UmlRelation umlRelation) {
         mUmlRelations.remove(umlRelation);
+    }
+
+    public void removeRelationsInvolving(UmlClass umlClass) {
+        ArrayList<UmlRelation> umlRelations=new ArrayList<>();
+        for (UmlRelation r : mUmlRelations) {
+            if (umlClass.isInvolvedInRelation(r)) umlRelations.add(r);
+        }
+        for (UmlRelation r : umlRelations) {
+            removeUmlRelation(r);
+        }
     }
 }

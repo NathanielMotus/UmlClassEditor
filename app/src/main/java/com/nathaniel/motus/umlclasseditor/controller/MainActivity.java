@@ -40,6 +40,12 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     private MethodEditorFragment mMethodEditorFragment;
     private ParameterEditorFragment mParameterEditorFragment;
 
+    private static final String GRAPH_FRAGMENT_TAG="graphFragment";
+    private static final String CLASS_EDITOR_FRAGMENT_TAG="classEditorFragment";
+    private static final String ATTRIBUTE_EDITOR_FRAGMENT_TAG="attributeEditorFragment";
+    private static final String METHOD_EDITOR_FRAGMENT_TAG="methodEditorFragment";
+    private static final String PARAMETER_EDITOR_FRAGMENT_TAG="parameterEditorFragment";
+
 //    **********************************************************************************************
 //    Views declaration
 //    **********************************************************************************************
@@ -78,8 +84,8 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
         mGraphFragment=new GraphFragment();
         getSupportFragmentManager().beginTransaction()
-                .replace(viewContainerId,mGraphFragment)
-                .addToBackStack("GRAPH_FRAGMENT")
+                .replace(viewContainerId,mGraphFragment,GRAPH_FRAGMENT_TAG)
+                .addToBackStack(GRAPH_FRAGMENT_TAG)
                 .commit();
     }
 
@@ -89,18 +95,27 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         mClassEditorFragment=ClassEditorFragment.newInstance(xLocation,yLocation,classIndex);
         getSupportFragmentManager().beginTransaction()
                 .hide(mGraphFragment)
-                .add(viewContainerId,mClassEditorFragment)
-                .addToBackStack("CLASS_EDITOR_FRAGMENT")
+                .add(viewContainerId,mClassEditorFragment,CLASS_EDITOR_FRAGMENT_TAG)
+                .addToBackStack(CLASS_EDITOR_FRAGMENT_TAG)
                 .commit();
     }
 
     private void configureAndDisplayAttributeEditorFragment(int viewContainerId,int attributeIndex) {
 
-        mAttributeEditorFragment=AttributeEditorFragment.newInstance(mClassEditorFragment.getId(),attributeIndex);
+        mAttributeEditorFragment=AttributeEditorFragment.newInstance(mClassEditorFragment.getTag(),attributeIndex);
         getSupportFragmentManager().beginTransaction()
                 .hide(mClassEditorFragment)
-                .add(viewContainerId,mAttributeEditorFragment)
-                .addToBackStack("ATTRIBUTE_EDITOR_FRAGMENT")
+                .add(viewContainerId,mAttributeEditorFragment,ATTRIBUTE_EDITOR_FRAGMENT_TAG)
+                .addToBackStack(ATTRIBUTE_EDITOR_FRAGMENT_TAG)
+                .commit();
+    }
+
+    private void configureAndDisplayMethodEditorFragment(int viewContainerId, int methodIndex) {
+        mMethodEditorFragment=MethodEditorFragment.newInstance(mClassEditorFragment.getTag(),methodIndex);
+        getSupportFragmentManager().beginTransaction()
+                .hide(mClassEditorFragment)
+                .add(viewContainerId,mMethodEditorFragment,METHOD_EDITOR_FRAGMENT_TAG)
+                .addToBackStack(METHOD_EDITOR_FRAGMENT_TAG)
                 .commit();
     }
 
@@ -168,12 +183,11 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     @Override
     public void openAttributeEditorFragment(int attributeIndex) {
         configureAndDisplayAttributeEditorFragment(R.id.activity_main_frame,attributeIndex);
-
     }
 
     @Override
     public void openMethodEditorFragment(int methodIndex) {
-
+        configureAndDisplayMethodEditorFragment(R.id.activity_main_frame,methodIndex);
     }
 
     @Override
@@ -195,6 +209,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
     @Override
     public void createClass(float xLocation, float yLocation) {
+        setExpectingTouchLocation(false);
         configureAndDisplayClassEditorFragment(R.id.activity_main_frame,xLocation,yLocation,-1);
     }
 
@@ -220,8 +235,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         someJavaClass.addAttribute(new UmlClassAttribute("unAttributStaticFinal",Visibility.PROTECTED,
                 true,true,mProject.getUmlTypes().get(3),TypeMultiplicity.ARRAY,3));
         //Methods
-        someJavaClass.addMethod(new UmlClassMethod("uneMéthodePublic",Visibility.PUBLIC,false,
-                false,mProject.getUmlTypes().get(0),TypeMultiplicity.SINGLE,0));
+        someJavaClass.addMethod(new UmlClassMethod("uneMéthodePublic",Visibility.PUBLIC,false,mProject.getUmlTypes().get(0),TypeMultiplicity.SINGLE,0));
         //Coordinates
         someJavaClass.setUmlClassNormalXPos(150);
         someJavaClass.setUmlClassNormalYPos(200);
@@ -238,9 +252,9 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
                 true,true,mProject.getUmlTypes().get(3),TypeMultiplicity.ARRAY,3));
         //Methods
         someInterface.addMethod(new UmlClassMethod("uneMéthodePublic",Visibility.PUBLIC,false,
-                false,mProject.getUmlTypes().get(0),TypeMultiplicity.SINGLE,0));
+                mProject.getUmlTypes().get(0),TypeMultiplicity.SINGLE,0));
         someInterface.addMethod(new UmlClassMethod("encoreUneMéthodePublic",Visibility.PUBLIC,false,
-                false,mProject.getUmlTypes().get(0),TypeMultiplicity.SINGLE,0));
+                mProject.getUmlTypes().get(0),TypeMultiplicity.SINGLE,0));
         //Coordinates
         someInterface.setUmlClassNormalXPos(300);
         someInterface.setUmlClassNormalYPos(300);

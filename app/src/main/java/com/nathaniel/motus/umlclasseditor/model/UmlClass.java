@@ -58,7 +58,7 @@ public class UmlClass extends UmlType {
         mUmlClassNormalYPos = umlClassNormalYPos;
     }
 
-    //    **********************************************************************************************
+//    **********************************************************************************************
 //    Getters and setters
 //    **********************************************************************************************
 
@@ -166,7 +166,7 @@ public class UmlClass extends UmlType {
         mValueList = valueList;
     }
 
-    //    **********************************************************************************************
+//    **********************************************************************************************
 //    Modifiers
 //    **********************************************************************************************
 
@@ -231,6 +231,10 @@ public class UmlClass extends UmlType {
         return (this.getUmlClassNormalXPos()>=umlClass.getNormalRightEnd() &&
                 this.getNormalBottomEnd()>=umlClass.getUmlClassNormalYPos()-this.getUmlClassNormalXPos()+umlClass.getNormalRightEnd() &&
                 this.getUmlClassNormalYPos()<=umlClass.getNormalBottomEnd()+this.getUmlClassNormalXPos()-umlClass.getNormalRightEnd());
+    }
+
+    public boolean isInvolvedInRelation(UmlRelation umlRelation) {
+        return (this==umlRelation.getRelationOriginClass()||this==umlRelation.getRelationEndClass());
     }
 
 }
