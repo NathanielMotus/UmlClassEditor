@@ -1,6 +1,7 @@
 package com.nathaniel.motus.umlclasseditor.view;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 
@@ -61,6 +62,7 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
     private static final int CANCEL_BUTTON_TAG=260;
     private static final int DELETE_CLASS_BUTTON_TAG=270;
     private static final int NEW_VALUE_BUTTON_TAG=280;
+    private static final int VALUE_LIST_TAG=290;
 
     private FragmentObserver mCallback;
 
@@ -208,6 +210,11 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         mNewValueButton.setTag(NEW_VALUE_BUTTON_TAG);
         mNewValueButton.setOnClickListener(this);
 
+        mValueList=getActivity().findViewById(R.id.class_values_list);
+        mValueList.setTag(VALUE_LIST_TAG);
+        mValueList.setOnItemClickListener(this);
+        mValueList.setOnItemLongClickListener(this);
+
         mOKButton=getActivity().findViewById(R.id.class_ok_button);
         mOKButton.setTag(OK_BUTTON_TAG);
         mOKButton.setOnClickListener(this);
@@ -215,9 +222,6 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         mCancelButton=getActivity().findViewById(R.id.class_cancel_button);
         mCancelButton.setTag(CANCEL_BUTTON_TAG);
         mCancelButton.setOnClickListener(this);
-
-        mUmlClassAttributes=new ArrayList<>();
-        mUmlClassMethods=new ArrayList<>();
     }
 
     private void createCallbackToParentActivity() {
@@ -225,6 +229,10 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
     }
 
     private void initializeMembers() {
+        mUmlClassAttributes=new ArrayList<>();
+        mUmlClassMethods=new ArrayList<>();
+        mValues=new ArrayList<>();
+
         if (mClassIndex!=-1) {
             mUmlClass = mCallback.getProject().getUmlClasses().get(mClassIndex);
             mUmlClassAttributes = mUmlClass.getAttributeList();
@@ -252,8 +260,7 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
                     mEnumRadio.setChecked(true);
                     break;
             }
-            populateAttributeListView();
-            populateMethodListView();
+            updateLists();
         }
     }
 
@@ -275,9 +282,18 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         mMethodList.setAdapter(arrayAdapter);
     }
 
+    private void populateValueListView() {
+        List<String> listViewArray=new ArrayList<>();
+        listViewArray.addAll(mValues);
+        ArrayAdapter<String> arrayAdapter=new ArrayAdapter<>(getContext(),android.R.layout.simple_list_item_1,listViewArray);
+        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mValueList.setAdapter(arrayAdapter);
+    }
+
     public void updateLists() {
         populateAttributeListView();
         populateMethodListView();
+        populateValueListView();
     }
 
     private void setOnEditDisplay() {
@@ -351,6 +367,29 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
                 });
                 AlertDialog dialog=builder.create();
                 dialog.show();
+            case NEW_VALUE_BUTTON_TAG:
+                AlertDialog.Builder adb=new AlertDialog.Builder(getContext());
+                adb.setTitle("Add a value")
+                        .setMessage("Enter value :");
+                final EditText input=new EditText(getContext());
+                adb.setView(input)
+                        .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                            }
+                        })
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                mValues.add(input.getText().toString());
+                                updateLists();
+                            }
+                        });
+                Dialog inputDialog=adb.create();
+                inputDialog.show();
+                break;
+            default:
                 break;
         }
 
@@ -373,7 +412,26 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
     }
 
     @Override
-    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+    public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
+            AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
+            builder.setTitle("Delete value")
+                    .setMessage("Are you sure you want to delete this value ?")
+                    .setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                        }
+                    })
+                    .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            mValues.remove(position);
+                            updateLists();
+                        }
+                    });
+            AlertDialog dialog=builder.create();
+            dialog.show();
+
         return false;
     }
 

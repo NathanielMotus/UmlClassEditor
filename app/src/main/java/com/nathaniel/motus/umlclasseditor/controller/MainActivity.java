@@ -119,6 +119,15 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
                 .commit();
     }
 
+    private void configureAndDisplayParameterEditorFragment(int viewContainerId, int parameterIndex) {
+        mParameterEditorFragment=ParameterEditorFragment.newInstance(mMethodEditorFragment.getTag(),parameterIndex);
+        getSupportFragmentManager().beginTransaction()
+                .hide(mMethodEditorFragment)
+                .add(viewContainerId,mParameterEditorFragment,PARAMETER_EDITOR_FRAGMENT_TAG)
+                .addToBackStack(PARAMETER_EDITOR_FRAGMENT_TAG)
+                .commit();
+    }
+
     private void closeFragment(Fragment fragment) {
         getSupportFragmentManager().beginTransaction()
                 .remove(fragment)
@@ -171,7 +180,8 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
     @Override
     public void closeParameterEditorFragment(Fragment fragment) {
-
+        closeFragment(fragment);
+        mMethodEditorFragment.updateLists();
     }
 
     @Override
@@ -192,7 +202,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
     @Override
     public void openParameterEditorFragment(int parameterIndex) {
-
+        configureAndDisplayParameterEditorFragment(R.id.activity_main_frame,parameterIndex);
     }
 
     @Override

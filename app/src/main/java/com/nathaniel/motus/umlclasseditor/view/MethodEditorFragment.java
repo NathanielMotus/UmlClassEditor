@@ -65,12 +65,14 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
     private TextView mDimText;
     private EditText mDimEdit;
     private ListView mParameterList;
+    private Button mAddParameterButton;
     private Button mCancelButton;
     private Button mOKButton;
 
     private static final int DELETE_METHOD_BUTTON_TAG=410;
     private static final int CANCEL_BUTTON_TAG=420;
     private static final int OK_BUTTON_TAG=430;
+    private static final int ADD_PARAMETER_BUTTON_TAG=440;
 
 
 //    **********************************************************************************************
@@ -171,6 +173,11 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
         mDimEdit=getActivity().findViewById(R.id.method_dimension_input);
 
         mParameterList=getActivity().findViewById(R.id.method_parameters_list);
+        mParameterList.setOnItemClickListener(this);
+
+        mAddParameterButton=getActivity().findViewById(R.id.method_add_parameter_button);
+        mAddParameterButton.setTag(ADD_PARAMETER_BUTTON_TAG);
+        mAddParameterButton.setOnClickListener(this);
 
         mCancelButton=getActivity().findViewById(R.id.method_cancel_button);
         mCancelButton.setOnClickListener(this);
@@ -307,6 +314,9 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
                 AlertDialog dialog=builder.create();
                 dialog.show();
                 break;
+            case ADD_PARAMETER_BUTTON_TAG:
+                mCallback.openParameterEditorFragment(-1);
+                break;
             default:
                 break;
         }
@@ -320,7 +330,7 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
+        mCallback.openParameterEditorFragment(position);
     }
 
 //    **********************************************************************************************
@@ -371,5 +381,9 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
     private int getArrayDimension() {
         if (mDimEdit.getText().toString().equals("")) return 0;
         return Integer.parseInt(mDimEdit.getText().toString());
+    }
+
+    public void updateLists() {
+        populateParameterListView();
     }
 }

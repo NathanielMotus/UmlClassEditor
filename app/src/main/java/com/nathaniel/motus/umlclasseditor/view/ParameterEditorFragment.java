@@ -1,5 +1,7 @@
 package com.nathaniel.motus.umlclasseditor.view;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -9,6 +11,7 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
@@ -19,8 +22,11 @@ import android.widget.TextView;
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.controller.FragmentObserver;
 import com.nathaniel.motus.umlclasseditor.model.MethodParameter;
+import com.nathaniel.motus.umlclasseditor.model.TypeMultiplicity;
+import com.nathaniel.motus.umlclasseditor.model.UmlType;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -94,6 +100,12 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
         initializeMembers();
         createCallbackToParentActivity();
         configureViews();
+        initializeFields();
+        if (mParameterIndex==-1) setOnCreateDisplay();
+        else setOnEditDisplay();
+        if (mParameterIndex!=-1 && mMethodParameter.getTypeMultiplicity()==TypeMultiplicity.ARRAY)
+            setOnArrayDisplay();
+        else setOnSingleDisplay();
     }
 
 //    **********************************************************************************************
@@ -102,12 +114,43 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
 
     @Override
     public void onClick(View v) {
+        int tag=(int)v.getTag();
+        switch (tag) {
+            case CANCEL_BUTTON_TAG:
+                mCallback.closeParameterEditorFragment(this);
+                break;
+            case OK_BUTTON_TAG:
+                updateOrCreateParameter();
+                mCallback.closeParameterEditorFragment(this);
+                break;
+            case DELETE_PARAMETER_BUTTON_TAG:
+                final Fragment fragment=this;
+                AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
+                builder.setTitle("Delete Parameter")
+                        .setMessage("Are you sure you to delete this parameter ?")
+                        .setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
 
+                            }
+                        })
+                        .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                mMethodParameters.remove(mMethodParameter);
+                                mCallback.closeParameterEditorFragment(fragment);
+                            }
+                        });
+                AlertDialog dialog=builder.create();
+                dialog.show();
+                break;
+        }
     }
 
     @Override
     public void onCheckedChanged(RadioGroup group, int checkedId) {
-
+        if (checkedId==R.id.parameter_array_radio) setOnArrayDisplay();
+        else setOnSingleDisplay();
     }
 
 
@@ -143,7 +186,7 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
 
         mSingleRadio=getActivity().findViewById(R.id.parameter_simple_radio);
 
-        mCollectionRadio=getActivity().findViewById(R.id.method_collection_radio);
+        mCollectionRadio=getActivity().findViewById(R.id.parameter_collection_radio);
 
         mArrayRadio=getActivity().findViewById(R.id.parameter_array_radio);
 
@@ -158,5 +201,80 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
         mOKButton=getActivity().findViewById(R.id.parameter_ok_button);
         mOKButton.setTag(OK_BUTTON_TAG);
         mOKButton.setOnClickListener(this);
+    }
+
+    private void initializeFields() {
+        if (mParameterIndex != -1) {
+            mParameterNameEdit.setText(mMethodParameter.getName());
+            if (mMethodParameter.getTypeMultiplicity()== TypeMultiplicity.SINGLE) mSingleRadio.setChecked(true);
+            if (mMethodParameter.getTypeMultiplicity()==TypeMultiplicity.COLLECTION) mCollectionRadio.setChecked(true);
+            if (mMethodParameter.getTypeMultiplicity()==TypeMultiplicity.ARRAY) mArrayRadio.setChecked(true);
+            mDimEdit.setText(Integer.toString(mMethodParameter.getTableDimension()));
+        }
+        populateTypeSpinner();
+    }
+
+    private void populateTypeSpinner() {
+        List<String> arrayList=new ArrayList<>();
+        for (UmlType t:mCallback.getProject().getUmlTypes())
+            arrayList.add(t.getName());
+        ArrayAdapter<String> adapter=new ArrayAdapter<>(getContext(),android.R.layout.simple_spinner_item,arrayList);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mParameterTypeSpinner.setAdapter(adapter);
+        mParameterTypeSpinner.setSelection(mMethodParameters.indexOf(mMethodParameter));
+    }
+
+    private void setOnEditDisplay() {
+        mEditParameterText.setText("Edit parameter");
+        mDeleteParameterButton.setVisibility(View.VISIBLE);
+    }
+
+    private void setOnCreateDisplay() {
+        mEditParameterText.setText("Create parameter");
+        mDeleteParameterButton.setVisibility(View.INVISIBLE);
+    }
+
+    private void setOnSingleDisplay() {
+        mDimText.setVisibility(View.INVISIBLE);
+        mDimEdit.setVisibility(View.INVISIBLE);
+    }
+
+    private void setOnArrayDisplay() {
+        mDimText.setVisibility(View.VISIBLE);
+        mDimEdit.setVisibility(View.VISIBLE);
+    }
+
+//    **********************************************************************************************
+//    Edition methods
+//    **********************************************************************************************
+
+    private void updateOrCreateParameter() {
+        if (mParameterIndex == -1) {
+            mMethodParameters.add(new MethodParameter(getParameterName(), getParameterType(), getParameterMultiplicity(), getArrayDimension()));
+        } else {
+            mMethodParameter.setName(getParameterName());
+            mMethodParameter.setUmlType(getParameterType());
+            mMethodParameter.setTypeMultiplicity(getParameterMultiplicity());
+            mMethodParameter.setTableDimension(getArrayDimension());
+        }
+    }
+
+    private String getParameterName() {
+        return mParameterNameEdit.getText().toString();
+    }
+
+    private UmlType getParameterType() {
+        return mCallback.getProject().getUmlTypes().get(mParameterTypeSpinner.getSelectedItemPosition());
+    }
+
+    private TypeMultiplicity getParameterMultiplicity() {
+        if (mSingleRadio.isChecked()) return TypeMultiplicity.SINGLE;
+        if (mCollectionRadio.isChecked()) return TypeMultiplicity.COLLECTION;
+        return TypeMultiplicity.ARRAY;
+    }
+
+    private int getArrayDimension() {
+        if (mDimEdit.getText().toString().equals("")) return 0;
+        return Integer.parseInt(mDimEdit.getText().toString());
     }
 }
