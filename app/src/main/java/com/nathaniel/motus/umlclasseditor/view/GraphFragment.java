@@ -14,6 +14,8 @@ import android.widget.TextView;
 
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.controller.FragmentObserver;
+import com.nathaniel.motus.umlclasseditor.model.UmlClass;
+import com.nathaniel.motus.umlclasseditor.model.UmlRelation;
 
 public class GraphFragment extends Fragment implements View.OnClickListener {
 
@@ -27,6 +29,13 @@ public class GraphFragment extends Fragment implements View.OnClickListener {
     private Button mDependancyButton;
     private Button mCompositionButton;
     private Button mNewClassButton;
+
+    private boolean mExpectingTouchLocation =false;
+    private boolean mExpectingStartClass=false;
+    private boolean mExpectingEndClass=false;
+    private UmlClass mStartClass;
+    private UmlClass mEndClass;
+    private UmlRelation.UmlRelationType mUmlRelationType;
 
     public static final int GRAPHVIEW_TAG=110;
     public static final int NEW_CLASS_BUTTON_TAG=120;
@@ -64,7 +73,55 @@ public class GraphFragment extends Fragment implements View.OnClickListener {
         return mCallBack;
     }
 
-//    **********************************************************************************************
+    public boolean isExpectingTouchLocation() {
+        return mExpectingTouchLocation;
+    }
+
+    public void setExpectingTouchLocation(boolean expectingTouchLocation) {
+        mExpectingTouchLocation = expectingTouchLocation;
+    }
+
+    public boolean isExpectingStartClass() {
+        return mExpectingStartClass;
+    }
+
+    public void setExpectingStartClass(boolean expectingStartClass) {
+        mExpectingStartClass = expectingStartClass;
+    }
+
+    public boolean isExpectingEndClass() {
+        return mExpectingEndClass;
+    }
+
+    public void setExpectingEndClass(boolean expectingEndClass) {
+        mExpectingEndClass = expectingEndClass;
+    }
+
+    public UmlClass getStartClass() {
+        return mStartClass;
+    }
+
+    public void setStartClass(UmlClass startClass) {
+        mStartClass = startClass;
+    }
+
+    public UmlClass getEndClass() {
+        return mEndClass;
+    }
+
+    public void setEndClass(UmlClass endClass) {
+        mEndClass = endClass;
+    }
+
+    public UmlRelation.UmlRelationType getUmlRelationType() {
+        return mUmlRelationType;
+    }
+
+    public void setUmlRelationType(UmlRelation.UmlRelationType umlRelationType) {
+        mUmlRelationType = umlRelationType;
+    }
+
+    //    **********************************************************************************************
 //    Fragment events
 //    **********************************************************************************************
 
@@ -95,6 +152,7 @@ public class GraphFragment extends Fragment implements View.OnClickListener {
     private void configureViews() {
         mGraphView=getActivity().findViewById(R.id.graphview);
         mGraphView.setTag(GRAPHVIEW_TAG);
+        mGraphView.setGraphFragment(this);
 
         mGraphText=getActivity().findViewById(R.id.graph_text);
 
@@ -159,14 +217,44 @@ public class GraphFragment extends Fragment implements View.OnClickListener {
         switch (tag) {
 
             case NEW_CLASS_BUTTON_TAG:
-                mCallBack.setExpectingTouchLocation(true);
+                this.setExpectingTouchLocation(true);
                 this.setPrompt("Locate the new class");
+                break;
+
+            case INHERITANCE_BUTTON_TAG:
+                startRelation(UmlRelation.UmlRelationType.INHERITANCE);
+                break;
+
+            case REALIZATION_BUTTON_TAG:
+                startRelation(UmlRelation.UmlRelationType.REALIZATION);
+                break;
+
+            case AGGREGATION_BUTTON_TAG:
+                startRelation(UmlRelation.UmlRelationType.AGGREGATION);
+                break;
+
+            case ASSOCIATION_BUTTON_TAG:
+                startRelation(UmlRelation.UmlRelationType.ASSOCIATION);
+                break;
+
+            case COMPOSITION_BUTTON_TAG:
+                startRelation(UmlRelation.UmlRelationType.COMPOSITION);
+                break;
+
+            case DEPENDENCY_BUTTON_TAG:
+                startRelation(UmlRelation.UmlRelationType.DEPENDENCY);
                 break;
 
             default:
                 break;
 
         }
+    }
+
+    private void startRelation(UmlRelation.UmlRelationType relationType) {
+        this.setExpectingStartClass(true);
+        this.setUmlRelationType(relationType);
+        this.setPrompt("Choose start class");
     }
 
 }

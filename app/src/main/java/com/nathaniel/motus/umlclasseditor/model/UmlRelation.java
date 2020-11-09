@@ -45,4 +45,20 @@ public class UmlRelation {
     public void setUmlRelationType(UmlRelationType umlRelationType) {
         mUmlRelationType = umlRelationType;
     }
+
+//    **********************************************************************************************
+//    Test methods
+//    **********************************************************************************************
+
+    public static boolean relationAlreadyExistsBetween(UmlClass firstClass, UmlClass secondClass,UmlProject inProject) {
+        //check whether there already is a relation between two classes
+        //this test is not oriented
+        boolean test=false;
+
+        for (UmlRelation r : inProject.getUmlRelations())
+            if ((r.getRelationOriginClass()==firstClass && r.getRelationEndClass()==secondClass)
+                    || (r.getRelationOriginClass()==secondClass && r.getRelationEndClass()==firstClass))
+                test=true;
+        return test;
+    }
 }

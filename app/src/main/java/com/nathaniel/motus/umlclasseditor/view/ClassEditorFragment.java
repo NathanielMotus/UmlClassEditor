@@ -1,5 +1,6 @@
 package com.nathaniel.motus.umlclasseditor.view;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -367,6 +368,8 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
                 });
                 AlertDialog dialog=builder.create();
                 dialog.show();
+                break;
+
             case NEW_VALUE_BUTTON_TAG:
                 AlertDialog.Builder adb=new AlertDialog.Builder(getContext());
                 adb.setTitle("Add a value")

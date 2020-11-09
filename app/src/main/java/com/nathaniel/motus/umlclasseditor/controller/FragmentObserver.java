@@ -10,7 +10,6 @@ import com.nathaniel.motus.umlclasseditor.model.UmlProject;
     public interface FragmentObserver {
 
 
-        void setExpectingTouchLocation(boolean b);
         void setPurpose(Purpose purpose);
         UmlProject getProject();
         void closeClassEditorFragment(Fragment fragment);

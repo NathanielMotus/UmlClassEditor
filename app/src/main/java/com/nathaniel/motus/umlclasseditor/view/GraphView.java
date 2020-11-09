@@ -1,5 +1,7 @@
 package com.nathaniel.motus.umlclasseditor.view;
 
+import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -12,6 +14,8 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.model.UmlClass;
@@ -24,6 +28,7 @@ public class GraphView extends View implements View.OnTouchListener{
 
     enum TouchMode{DRAG,ZOOM}
 
+    private GraphFragment mGraphFragment;
     private float mZoom;
     private float mXOffset;
     private float mYOffset;
@@ -140,6 +145,7 @@ public class GraphView extends View implements View.OnTouchListener{
         public boolean isExpectingTouchLocation();
         public void createClass(float xLocation, float yLocation);
         public void editClass(UmlClass umlClass);
+        public void createRelation(UmlClass startClass, UmlClass endClass, UmlRelation.UmlRelationType relationType);
     }
 
 //    **********************************************************************************************
@@ -151,9 +157,12 @@ public class GraphView extends View implements View.OnTouchListener{
         this.invalidate();
     }
 
+    public void setGraphFragment(GraphFragment graphFragment) {
+        mGraphFragment = graphFragment;
+    }
 
 //    **********************************************************************************************
-//    Overrode methods
+//    Overridden methods
 //    **********************************************************************************************
 
     @Override
@@ -551,8 +560,23 @@ public class GraphView extends View implements View.OnTouchListener{
                 //simple click
                 if (event.getEventTime()-mActionDownEventTime<=CLICK_DELAY) {
                     mFirstClickTime = event.getEventTime();
-                    if (mCallback.isExpectingTouchLocation()) {
+
+                    if (mGraphFragment.isExpectingTouchLocation()) {
+                        mGraphFragment.setExpectingTouchLocation(false);
+                        mGraphFragment.clearPrompt();
                         mCallback.createClass(absoluteX(mLastTouchX), absoluteY(mLastTouchY));
+                    } else if (mGraphFragment.isExpectingEndClass()
+                            && getTouchedClass(mLastTouchX,mLastTouchY)!=null
+                            && getTouchedClass(mLastTouchX,mLastTouchY)!=mGraphFragment.getStartClass()) {
+                        mGraphFragment.setEndClass(getTouchedClass(mLastTouchX,mLastTouchY));
+                        mGraphFragment.setExpectingEndClass(false);
+                        mGraphFragment.clearPrompt();
+                        mCallback.createRelation(mGraphFragment.getStartClass(),mGraphFragment.getEndClass(),mGraphFragment.getUmlRelationType());
+                    } else if (mGraphFragment.isExpectingStartClass() && getTouchedClass(mLastTouchX, mLastTouchY) != null) {
+                        mGraphFragment.setStartClass(getTouchedClass(mLastTouchX,mLastTouchY));
+                        mGraphFragment.setExpectingStartClass(false);
+                        mGraphFragment.setExpectingEndClass(true);
+                        mGraphFragment.setPrompt("Choose end class");
                     }
                 }
                 break;

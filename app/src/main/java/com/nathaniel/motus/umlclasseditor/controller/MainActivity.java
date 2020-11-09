@@ -143,17 +143,11 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         mProject = project;
     }
 
-
 //    **********************************************************************************************
 //    Callback methods
 //    **********************************************************************************************
 
 //    GraphFragmentObserver
-
-    @Override
-    public void setExpectingTouchLocation(boolean b) {
-        mExpectingTouchLocation=b;
-    }
 
     @Override
     public void setPurpose(Purpose purpose) {
@@ -219,7 +213,6 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
     @Override
     public void createClass(float xLocation, float yLocation) {
-        setExpectingTouchLocation(false);
         configureAndDisplayClassEditorFragment(R.id.activity_main_frame,xLocation,yLocation,-1);
     }
 
@@ -228,9 +221,13 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         configureAndDisplayClassEditorFragment(R.id.activity_main_frame,0,0,mProject.getUmlClasses().indexOf(umlClass));
     }
 
+    @Override
+    public void createRelation(UmlClass startClass, UmlClass endClass, UmlRelation.UmlRelationType relationType) {
+        if (!mProject.relationAlreadyExistsBetween(startClass,endClass))
+            mProject.addUmlRelation(new UmlRelation(startClass,endClass,relationType));
+    }
 
-
-//    **********************************************************************************************
+    //    **********************************************************************************************
 //    Test methods
 //    **********************************************************************************************
 
