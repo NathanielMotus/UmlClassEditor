@@ -1,8 +1,8 @@
 package com.nathaniel.motus.umlclasseditor.view;
 
-import android.app.Activity;
-import android.app.Application;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -10,12 +10,11 @@ import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.model.UmlClass;
@@ -351,6 +350,12 @@ public class GraphView extends View implements View.OnTouchListener{
                     umlRelation.getRelationOriginClass().getUmlClassNormalHeight()/(upperYLimit-lowerYLimit)*
                             (endAbsoluteTop-lowerYLimit);
         }
+        //update relation coordinates
+        umlRelation.setXOrigin(absoluteXOrigin);
+        umlRelation.setYOrigin(absoluteYOrigin);
+        umlRelation.setXEnd(absoluteXEnd);
+        umlRelation.setYEnd(absoluteYEnd);
+
         Path path=new Path();
         path.moveTo(visibleX(absoluteXOrigin),visibleY(absoluteYOrigin));
         path.lineTo(visibleX(absoluteXEnd),visibleY(absoluteYEnd));
@@ -469,23 +474,6 @@ public class GraphView extends View implements View.OnTouchListener{
         canvas.restore();
     }
 
-
-//    **********************************************************************************************
-//    Test methods
-//    **********************************************************************************************
-
-    private void displaySomeText(Canvas canvas) {
-        float xPos=100;
-        float yPos=100;
-        Paint paint=new Paint();
-        paint.setColor(Color.GRAY);
-        paint.setTextSize(20*mZoom);
-        canvas.drawText("Test string",visibleX(xPos),visibleY(yPos),paint);
-        canvas.drawText("X",mXMidPoint,mYMidpoint,paint);
-        canvas.drawText(mUmlProject.getName(),200,200,paint);
-
-    }
-
 //    **********************************************************************************************
 //    UI events
 //    **********************************************************************************************
@@ -555,16 +543,23 @@ public class GraphView extends View implements View.OnTouchListener{
                 //double click
                 if (event.getEventTime() - mActionDownEventTime <= CLICK_DELAY && event.getEventTime() - mFirstClickTime <= DOUBLE_CLICK_DELAY) {
                     if (getTouchedClass(mLastTouchX, mLastTouchY) != null) mCallback.editClass(getTouchedClass(mLastTouchX,mLastTouchY));
+                    else if (getTouchedRelation(mLastTouchX,mLastTouchY)!=null) {
+                        promptDeleteRelation(getTouchedRelation(mLastTouchX,mLastTouchY),this);
+                    }
+                    else adjustViewToProject();
                 }
 
                 //simple click
                 if (event.getEventTime()-mActionDownEventTime<=CLICK_DELAY) {
                     mFirstClickTime = event.getEventTime();
 
+                    //locate new classe
                     if (mGraphFragment.isExpectingTouchLocation()) {
                         mGraphFragment.setExpectingTouchLocation(false);
                         mGraphFragment.clearPrompt();
                         mCallback.createClass(absoluteX(mLastTouchX), absoluteY(mLastTouchY));
+
+                        //touch relation end class
                     } else if (mGraphFragment.isExpectingEndClass()
                             && getTouchedClass(mLastTouchX,mLastTouchY)!=null
                             && getTouchedClass(mLastTouchX,mLastTouchY)!=mGraphFragment.getStartClass()) {
@@ -572,6 +567,8 @@ public class GraphView extends View implements View.OnTouchListener{
                         mGraphFragment.setExpectingEndClass(false);
                         mGraphFragment.clearPrompt();
                         mCallback.createRelation(mGraphFragment.getStartClass(),mGraphFragment.getEndClass(),mGraphFragment.getUmlRelationType());
+
+                        //touch relation origin class
                     } else if (mGraphFragment.isExpectingStartClass() && getTouchedClass(mLastTouchX, mLastTouchY) != null) {
                         mGraphFragment.setStartClass(getTouchedClass(mLastTouchX,mLastTouchY));
                         mGraphFragment.setExpectingStartClass(false);
@@ -654,6 +651,69 @@ public class GraphView extends View implements View.OnTouchListener{
                 Math.PI*180f);
     }
 
+    private float getAbsoluteProjectWidth() {
+        //return the length of the rectangle that can contain all the project
+
+        float minX=1000000;
+        float maxX=-1000000;
+        for (UmlClass c : mUmlProject.getUmlClasses()) {
+            minX=Math.min(c.getUmlClassNormalXPos(),minX);
+            maxX=Math.max(c.getNormalRightEnd(),maxX);
+        }
+        return maxX-minX;
+    }
+
+    private float getAbsoluteProjectHeight() {
+        //return the height of the rectangle that can contain all the project
+
+        float minY=1000000;
+        float maxY=-1000000;
+        for (UmlClass c : mUmlProject.getUmlClasses()) {
+            minY=Math.min(c.getUmlClassNormalYPos(),minY);
+            maxY=Math.max(c.getNormalBottomEnd(),maxY);
+        }
+        return maxY-minY;
+    }
+
+    private float getAbsoluteProjectLeft() {
+        float minX=1000000;
+        for (UmlClass c : mUmlProject.getUmlClasses()) minX=Math.min(c.getUmlClassNormalXPos(),minX);
+        return minX;
+    }
+
+    private float getAbsoluteProjectRight() {
+        float maxX=-1000000;
+        for (UmlClass c : mUmlProject.getUmlClasses()) maxX=Math.max(c.getNormalRightEnd(),maxX);
+        return maxX;
+    }
+
+    private float getAbsoluteProjectTop() {
+        float minY=1000000;
+        for (UmlClass c : mUmlProject.getUmlClasses()) minY=Math.min(c.getUmlClassNormalYPos(),minY);
+        return minY;
+    }
+
+    private float getAbsoluteProjectBottom() {
+        float maxY=-1000000;
+        for (UmlClass c : mUmlProject.getUmlClasses()) maxY=Math.max(c.getNormalBottomEnd(),maxY);
+        return maxY;
+    }
+
+    private void adjustViewToProject() {
+        float xZoom=this.getMeasuredWidth()/getAbsoluteProjectWidth();
+        float yZoom=this.getMeasuredHeight()/getAbsoluteProjectHeight();
+        if (xZoom <= yZoom) {
+            mZoom = xZoom;
+            mXOffset=-getAbsoluteProjectLeft()*mZoom;
+            mYOffset =-getAbsoluteProjectTop()*mZoom+(this.getMeasuredHeight()-getAbsoluteProjectHeight()*mZoom)/2f;
+        } else {
+            mZoom=yZoom;
+            mYOffset=-getAbsoluteProjectTop()*mZoom;
+            mXOffset=-getAbsoluteProjectLeft()*mZoom+(this.getMeasuredWidth()-getAbsoluteProjectWidth()*mZoom)/2f;
+        }
+        this.invalidate();
+    }
+
 //    **********************************************************************************************
 //    Coordinates transformations
 //    "visible" refers to the screen referential
@@ -681,12 +741,68 @@ public class GraphView extends View implements View.OnTouchListener{
 //    **********************************************************************************************
 
     private UmlClass getTouchedClass(float visibleX, float visibleY) {
-        UmlClass currentClass=null;
 
-        for (UmlClass c:mUmlProject.getUmlClasses())
-            if (c.containsPoint(absoluteX(visibleX),absoluteY(visibleY)))
-                currentClass=c;
+        for (UmlClass c:mUmlProject.getUmlClasses()) {
+            if (c.containsPoint(absoluteX(visibleX), absoluteY(visibleY)))
+                return c;
+        }
+        return null;
+    }
 
-        return currentClass;
+    public UmlRelation getTouchedRelation(float visibleX, float visibleY) {
+        for (UmlRelation r : mUmlProject.getUmlRelations()) {
+            if (distance(absoluteX(visibleX),absoluteY(visibleY),r.getXOrigin(),r.getYOrigin(),r.getXEnd(),r.getYEnd())<=20
+            && absoluteX(visibleX)>=Math.min(r.getXOrigin(),r.getXEnd())-20
+            && absoluteX(visibleX)<=Math.max(r.getXOrigin(),r.getXEnd())+20
+            && absoluteY(visibleY)>=Math.min(r.getYOrigin(),r.getYEnd())-20
+            && absoluteY(visibleY)<=Math.max(r.getYOrigin(),r.getYEnd())+20)
+                return r;
+        }
+        return null;
+    }
+
+    private float distance(float dotX, float dotY, float originX, float originY, float endX, float endY) {
+        //calculate the distance between a dot and a line
+        //uX and uY are coordinates of a normal vector perpendicular to the line
+
+        float uX;
+        float uY;
+
+        if (originX == endX) {
+            uX=0;
+            uY=1;
+        } else if (originY == endY) {
+            uX = 1;
+            uY = 0;
+        } else {
+            uX = (float) (1f / Math.sqrt(1f + (endX - originX) * (endX - originX) / (endY - originY) / (endY - originY)));
+            uY= (float) ((originX-endX)/(endY-originY)/Math.sqrt(1f + (endX - originX) * (endX - originX) / (endY - originY) / (endY - originY)));
+        }
+
+        return Math.abs((dotX-originX)*uX+(dotY-originY)*uY);
+    }
+
+//    **********************************************************************************************
+//    Interaction methods
+//    **********************************************************************************************
+    private void promptDeleteRelation(final UmlRelation umlRelation, final View view) {
+        AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
+        builder.setTitle("Delete relation")
+                .setMessage("Are you sure you want to delete this relation ?")
+                .setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                })
+                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mUmlProject.removeUmlRelation(umlRelation);
+                        view.invalidate();
+                    }
+                });
+        AlertDialog dialog=builder.create();
+        dialog.show();
     }
 }

@@ -245,6 +245,10 @@ public class GraphFragment extends Fragment implements View.OnClickListener {
                 startRelation(UmlRelation.UmlRelationType.DEPENDENCY);
                 break;
 
+            case ESCAPE_BUTTON_TAG:
+                clearInput();
+                break;
+
             default:
                 break;
 
@@ -253,8 +257,16 @@ public class GraphFragment extends Fragment implements View.OnClickListener {
 
     private void startRelation(UmlRelation.UmlRelationType relationType) {
         this.setExpectingStartClass(true);
+        this.setExpectingEndClass(false);
         this.setUmlRelationType(relationType);
         this.setPrompt("Choose start class");
+    }
+
+    private void clearInput() {
+        setExpectingEndClass(false);
+        setExpectingStartClass(false);
+        setExpectingTouchLocation(false);
+        clearPrompt();
     }
 
 }

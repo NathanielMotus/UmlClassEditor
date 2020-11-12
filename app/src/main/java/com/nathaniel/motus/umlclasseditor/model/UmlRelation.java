@@ -6,6 +6,10 @@ public class UmlRelation {
 
     private UmlClass mRelationOriginClass; //arrow starts from this
     private UmlClass mRelationEndClass; //to this
+    private float mXOrigin;
+    private float mYOrigin;
+    private float mXEnd;
+    private float mYEnd;
     private UmlRelationType mUmlRelationType;
 
 //    **********************************************************************************************
@@ -16,6 +20,10 @@ public class UmlRelation {
         mRelationOriginClass = relationOriginClass;
         mRelationEndClass = relationEndClass;
         mUmlRelationType = umlRelationType;
+        mXOrigin =0;
+        mYOrigin =0;
+        mXEnd =0;
+        mYEnd =0;
     }
 
 //    **********************************************************************************************
@@ -46,19 +54,44 @@ public class UmlRelation {
         mUmlRelationType = umlRelationType;
     }
 
+    public float getXOrigin() {
+        return mXOrigin;
+    }
+
+    public void setXOrigin(float XOrigin) {
+        mXOrigin = XOrigin;
+    }
+
+    public float getYOrigin() {
+        return mYOrigin;
+    }
+
+    public void setYOrigin(float YOrigin) {
+        mYOrigin = YOrigin;
+    }
+
+    public float getXEnd() {
+        return mXEnd;
+    }
+
+    public void setXEnd(float XEnd) {
+        mXEnd = XEnd;
+    }
+
+    public float getYEnd() {
+        return mYEnd;
+    }
+
+    public void setYEnd(float YEnd) {
+        mYEnd = YEnd;
+    }
+
 //    **********************************************************************************************
 //    Test methods
 //    **********************************************************************************************
 
-    public static boolean relationAlreadyExistsBetween(UmlClass firstClass, UmlClass secondClass,UmlProject inProject) {
-        //check whether there already is a relation between two classes
-        //this test is not oriented
-        boolean test=false;
+//    **********************************************************************************************
+//    Other methods
+//    **********************************************************************************************
 
-        for (UmlRelation r : inProject.getUmlRelations())
-            if ((r.getRelationOriginClass()==firstClass && r.getRelationEndClass()==secondClass)
-                    || (r.getRelationOriginClass()==secondClass && r.getRelationEndClass()==firstClass))
-                test=true;
-        return test;
-    }
 }
