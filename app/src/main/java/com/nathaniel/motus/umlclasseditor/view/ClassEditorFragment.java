@@ -30,6 +30,8 @@ import com.nathaniel.motus.umlclasseditor.model.UmlClass;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassAttribute;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassMethod;
 
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="none">
+        <item
+            android:id="@+id/drawer_menu_new_project"
+            android:title="New project"/>
+        <item
+            android:id="@+id/drawer_menu_load_project"
+            android:title="Load project"/>
+        <item
+            android:id="@+id/drawer_menu_merge_project"
+            android:title="Merge project"/>
+        <item
+            android:id="@+id/drawer_menu_delete_project"
+            android:title="Delete project"/>
+    </group>
+
+</menu>

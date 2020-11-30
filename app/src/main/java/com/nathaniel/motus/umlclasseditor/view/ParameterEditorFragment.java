@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +25,8 @@ import com.nathaniel.motus.umlclasseditor.controller.FragmentObserver;
 import com.nathaniel.motus.umlclasseditor.model.MethodParameter;
 import com.nathaniel.motus.umlclasseditor.model.TypeMultiplicity;
 import com.nathaniel.motus.umlclasseditor.model.UmlType;
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -209,7 +212,7 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
             if (mMethodParameter.getTypeMultiplicity()== TypeMultiplicity.SINGLE) mSingleRadio.setChecked(true);
             if (mMethodParameter.getTypeMultiplicity()==TypeMultiplicity.COLLECTION) mCollectionRadio.setChecked(true);
             if (mMethodParameter.getTypeMultiplicity()==TypeMultiplicity.ARRAY) mArrayRadio.setChecked(true);
-            mDimEdit.setText(Integer.toString(mMethodParameter.getTableDimension()));
+            mDimEdit.setText(Integer.toString(mMethodParameter.getArrayDimension()));
         }
         populateTypeSpinner();
     }
@@ -224,7 +227,7 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
         mParameterTypeSpinner.setSelection(mMethodParameters.indexOf(mMethodParameter));
     }
 
-    private void setOnEditDisplay() {
+    private void setOnEditDisplay(){
         mEditParameterText.setText("Edit parameter");
         mDeleteParameterButton.setVisibility(View.VISIBLE);
     }
@@ -255,7 +258,7 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
             mMethodParameter.setName(getParameterName());
             mMethodParameter.setUmlType(getParameterType());
             mMethodParameter.setTypeMultiplicity(getParameterMultiplicity());
-            mMethodParameter.setTableDimension(getArrayDimension());
+            mMethodParameter.setArrayDimension(getArrayDimension());
         }
     }
 

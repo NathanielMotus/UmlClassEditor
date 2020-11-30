@@ -12,7 +12,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -29,6 +28,8 @@ import com.nathaniel.motus.umlclasseditor.model.TypeMultiplicity;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassAttribute;
 import com.nathaniel.motus.umlclasseditor.model.UmlType;
 import com.nathaniel.motus.umlclasseditor.model.Visibility;
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -218,7 +219,7 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
                     mArrayRadio.setChecked(true);
                     break;
             }
-            mDimEdit.setText(Integer.toString(mUmlClassAttribute.getTableDimension()));
+            mDimEdit.setText(Integer.toString(mUmlClassAttribute.getArrayDimension()));
         }
         populateTypeSpinner();
     }
@@ -326,7 +327,7 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
                 mUmlClassAttribute.setFinal(isFinal());
                 mUmlClassAttribute.setUmlType(getType());
                 mUmlClassAttribute.setTypeMultiplicity(getMultiplicity());
-                mUmlClassAttribute.setTableDimension(getArrayDimension());
+                mUmlClassAttribute.setArrayDimension(getArrayDimension());
             }
         }
     }

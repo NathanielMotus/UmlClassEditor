@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,6 +31,8 @@ import com.nathaniel.motus.umlclasseditor.model.TypeMultiplicity;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassMethod;
 import com.nathaniel.motus.umlclasseditor.model.UmlType;
 import com.nathaniel.motus.umlclasseditor.model.Visibility;
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -231,7 +234,7 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
                     break;
             }
 
-            mDimEdit.setText(Integer.toString(mUmlClassMethod.getTableDimension()));
+            mDimEdit.setText(Integer.toString(mUmlClassMethod.getArrayDimension()));
         }
         populateTypeSpinner();
         populateParameterListView();
@@ -260,6 +263,10 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
     private void setOnEditDisplay() {
         mEditMethodText.setText("Edit method");
         mDeleteMethodButton.setVisibility(View.VISIBLE);
+        JSONObject jj=mUmlClassMethod.toJSONObject();
+        Log.i("TEST",jj.toString());
+        JSONObject jj2=(UmlClassMethod.fromJSONObject(jj,mCallback.getProject())).toJSONObject();
+        Log.i("TEST",jj2.toString());
     }
 
     private void setOnCreateDisplay() {
@@ -349,7 +356,7 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
                 mUmlClassMethod.setStatic(isStatic());
                 mUmlClassMethod.setUmlType(getMethodType());
                 mUmlClassMethod.setTypeMultiplicity(getMethodMultiplicity());
-                mUmlClassMethod.setTableDimension(getArrayDimension());
+                mUmlClassMethod.setArrayDimension(getArrayDimension());
             }
         }
     }

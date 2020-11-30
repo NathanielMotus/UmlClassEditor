@@ -1,12 +1,20 @@
 package com.nathaniel.motus.umlclasseditor.controller;
 
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
+import android.view.Menu;
+import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 
+import com.google.android.material.navigation.NavigationView;
 import com.nathaniel.motus.umlclasseditor.model.TypeMultiplicity;
 import com.nathaniel.motus.umlclasseditor.model.UmlClass;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassAttribute;
@@ -30,6 +38,10 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     private Purpose mPurpose= FragmentObserver.Purpose.NONE;
     private float mXLocationFromGraphView;
     private float mYLocationFromGraphView;
+    private Toolbar mToolbar;
+    private DrawerLayout mDrawerLayout;
+    private NavigationView mNavigationView;
+    private TextView mMenuHeaderProjectNameText;
 
 //    **********************************************************************************************
 //    Fragments declaration
@@ -63,9 +75,16 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
         mProject=new UmlProject("testProjet",getApplicationContext());
         populateProject();
+        configureToolbar();
+        configureDrawerLayout();
+        configureNavigationView();
         configureAndDisplayGraphFragment(R.id.activity_main_frame);
+    }
 
-
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.activity_main_toolbar_menu,menu);
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
@@ -74,6 +93,32 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
         mGraphView=findViewById(R.id.graphview);
         mGraphView.setUmlProject(mProject);
+    }
+
+//    **********************************************************************************************
+//    Configuration methods
+//    **********************************************************************************************
+
+    private void configureToolbar() {
+        mToolbar=findViewById(R.id.main_activity_toolbar);
+        setSupportActionBar(mToolbar);
+    }
+
+    private void configureDrawerLayout() {
+        mDrawerLayout=findViewById(R.id.activity_main_drawer);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, mDrawerLayout, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        mDrawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
+    }
+
+    private void configureNavigationView() {
+        mNavigationView=findViewById(R.id.activity_main_navigation_view);
+        mMenuHeaderProjectNameText= mNavigationView.getHeaderView(0).findViewById(R.id.activity_main_navigation_view_header_project_name_text);
+        updateNavigationView();
+    }
+
+    private void updateNavigationView() {
+        mMenuHeaderProjectNameText.setText(mProject.getName());
     }
 
 //    **********************************************************************************************
@@ -227,7 +272,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
             mProject.addUmlRelation(new UmlRelation(startClass,endClass,relationType));
     }
 
-    //    **********************************************************************************************
+//    **********************************************************************************************
 //    Test methods
 //    **********************************************************************************************
 
