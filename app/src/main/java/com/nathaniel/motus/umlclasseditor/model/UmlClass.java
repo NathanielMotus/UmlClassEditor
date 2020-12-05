@@ -1,5 +1,11 @@
 package com.nathaniel.motus.umlclasseditor.model;
 
+import android.util.JsonReader;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 
 public class UmlClass extends UmlType {
@@ -22,6 +28,13 @@ public class UmlClass extends UmlType {
     private float mUmlClassNormalWidth;
     private float mUmlClassNormalHeight;
 
+    private static final String JSON_CLASS_NAME="ClassName";
+    private static final String JSON_CLASS_CLASS_TYPE="ClassClassType";
+    private static final String JSON_CLASS_ATTRIBUTES="ClassAttributes";
+    private static final String JSON_CLASS_METHODS="ClassMethods";
+    private static final String JSON_CLASS_VALUES="ClassValues";
+    private static final String JSON_CLASS_NORMAL_XPOS="ClassNormalXPos";
+    private static final String JSON_CLASS_NORMAL_YPOS="ClassNormalYPos";
 
 //    **********************************************************************************************
 //    Constructors
@@ -236,5 +249,112 @@ public class UmlClass extends UmlType {
     public boolean isInvolvedInRelation(UmlRelation umlRelation) {
         return (this==umlRelation.getRelationOriginClass()||this==umlRelation.getRelationEndClass());
     }
+
+//    **********************************************************************************************
+//    JSON methods
+//    **********************************************************************************************
+
+    public JSONObject toJSONObject() {
+        JSONObject jsonObject =new JSONObject();
+
+        try {
+            jsonObject.put(JSON_CLASS_NAME, this.getName().toString());
+            jsonObject.put(JSON_CLASS_CLASS_TYPE, mUmlClassType);
+            jsonObject.put(JSON_CLASS_ATTRIBUTES, getAttributesToJSONArray());
+            jsonObject.put(JSON_CLASS_METHODS, getMethodsToJSONArray());
+            jsonObject.put(JSON_CLASS_VALUES, getValuesToJSONArray());
+            jsonObject.put(JSON_CLASS_NORMAL_XPOS, mUmlClassNormalXPos);
+            jsonObject.put(JSON_CLASS_NORMAL_YPOS, mUmlClassNormalYPos);
+            return jsonObject;
+        } catch (JSONException e) {
+            return null;
+        }
+    }
+
+    //we need to first create classes with their names
+    //in order to have them usable to create UmlTyped objects
+
+    public static UmlClass fromJSONObject(JSONObject jsonObject) {
+        try {
+            return new UmlClass(jsonObject.getString(JSON_CLASS_NAME));
+        } catch (JSONException e) {
+            return null;
+        }
+    }
+
+    //and then populate them with their attributes
+
+    public static void populateUmlClassFromJSONObject(JSONObject jsonObject, UmlProject project) {
+        //read a class JSONObject and populate the already created class
+
+        try {
+            UmlClass umlClass=project.getUmlClass(jsonObject.getString(JSON_CLASS_NAME));
+
+            umlClass.setUmlClassType(UmlClassType.valueOf(jsonObject.getString(JSON_CLASS_CLASS_TYPE)));
+            umlClass.setAttributeList(getAttributesFromJSONArray(jsonObject.getJSONArray(JSON_CLASS_ATTRIBUTES),project));
+            umlClass.setMethodList(getMethodsFromJSONArray(jsonObject.getJSONArray(JSON_CLASS_METHODS),project));
+            umlClass.setValueList(getValuesFromJSONArray(jsonObject.getJSONArray(JSON_CLASS_VALUES),project));
+            umlClass.setUmlClassNormalXPos(jsonObject.getInt(JSON_CLASS_NORMAL_XPOS));
+            umlClass.setUmlClassNormalYPos(jsonObject.getInt(JSON_CLASS_NORMAL_YPOS));
+
+        } catch (JSONException ignored) {
+
+        }
+    }
+
+    private JSONArray getAttributesToJSONArray() {
+        JSONArray jsonArray = new JSONArray();
+
+        for (UmlClassAttribute a:mAttributeList) jsonArray.put(a.toJSONObject());
+        return jsonArray;
+    }
+
+    private static ArrayList<UmlClassAttribute> getAttributesFromJSONArray(JSONArray jsonArray, UmlProject project) {
+        ArrayList<UmlClassAttribute> umlClassAttributes = new ArrayList<>();
+
+        JSONObject jsonAttribute=(JSONObject) jsonArray.remove(0);
+        while (jsonAttribute != null) {
+            umlClassAttributes.add(UmlClassAttribute.fromJSONObject(jsonAttribute,project));
+            jsonAttribute = (JSONObject) jsonArray.remove(0);
+        }
+        return umlClassAttributes;
+    }
+
+    private JSONArray getMethodsToJSONArray() {
+        JSONArray jsonArray=new JSONArray();
+
+        for (UmlClassMethod m:mMethodList) jsonArray.put(m.toJSONObject());
+        return jsonArray;
+    }
+
+    private static ArrayList<UmlClassMethod> getMethodsFromJSONArray(JSONArray jsonArray, UmlProject project) {
+        ArrayList<UmlClassMethod> umlClassMethods = new ArrayList<>();
+
+        JSONObject jsonMethod=(JSONObject)jsonArray.remove(0);
+        while (jsonMethod != null) {
+            umlClassMethods.add(UmlClassMethod.fromJSONObject(jsonMethod,project));
+            jsonMethod=(JSONObject)jsonArray.remove(0);
+        }
+        return umlClassMethods;
+    }
+
+    private JSONArray getValuesToJSONArray() {
+        JSONArray jsonArray=new JSONArray();
+
+        for (String s:mValueList) jsonArray.put(s);
+        return jsonArray;
+    }
+
+    private static ArrayList<String> getValuesFromJSONArray(JSONArray jsonArray, UmlProject project) {
+        ArrayList<String> values = new ArrayList<>();
+
+        JSONObject jsonValue = (JSONObject) jsonArray.remove(0);
+        while (jsonValue != null) {
+            values.add(jsonValue.toString());
+            jsonValue=(JSONObject)jsonArray.remove(0);
+        }
+        return values;
+    }
+
 
 }

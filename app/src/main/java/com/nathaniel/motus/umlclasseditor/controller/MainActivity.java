@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -29,6 +30,9 @@ import com.nathaniel.motus.umlclasseditor.view.GraphView;
 import com.nathaniel.motus.umlclasseditor.view.MethodEditorFragment;
 import com.nathaniel.motus.umlclasseditor.view.ParameterEditorFragment;
 import com.nathaniel.motus.umlclasseditor.R;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity implements FragmentObserver,
         GraphView.GraphViewObserver {
