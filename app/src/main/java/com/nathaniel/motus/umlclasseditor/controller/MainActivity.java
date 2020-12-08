@@ -79,6 +79,8 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
         mProject=new UmlProject("testProjet",getApplicationContext());
         populateProject();
+        JSONObject jsonObject=mProject.toJSONObject(getApplicationContext());
+        Log.i("TEST",jsonObject.toString());
         configureToolbar();
         configureDrawerLayout();
         configureNavigationView();

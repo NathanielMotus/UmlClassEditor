@@ -3,7 +3,6 @@ package com.nathaniel.motus.umlclasseditor.model;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.util.Log;
 
 import com.nathaniel.motus.umlclasseditor.R;
 
@@ -19,12 +18,12 @@ public class UmlProject {
     private ArrayList<UmlClass> mUmlClasses;
     private ArrayList<UmlType> mUmlTypes;
     private ArrayList<UmlRelation> mUmlRelations;
-    private String mAppVersion;
+    private int mAppVersionCode;
 
     public static final String JSON_PROJECT_NAME = "ProjectName";
     public static final String JSON_PROJECT_CLASSES = "ProjectClasses";
     public static final String JSON_PROJECT_RELATIONS = "ProjectRelations";
-    public static final String JSON_PROJECT_PACKAGE_VERSION="ProjectPackageVersion";
+    public static final String JSON_PROJECT_PACKAGE_VERSION_CODE ="ProjectPackageVersionCode";
 
 //    **********************************************************************************************
 //    Constructors
@@ -74,12 +73,12 @@ public class UmlProject {
         this.mUmlRelations = UmlRelations;
     }
 
-    public String getAppVersion() {
-        return mAppVersion;
+    public int getAppVersionCode() {
+        return mAppVersionCode;
     }
 
-    public void setAppVersion(String appVersion) {
-        mAppVersion = appVersion;
+    public void setAppVersionCode(int appVersionCode) {
+        mAppVersionCode = appVersionCode;
     }
 
 //    **********************************************************************************************
@@ -154,7 +153,7 @@ public class UmlProject {
         JSONObject jsonObject = new JSONObject();
 
         try {
-            jsonObject.put(JSON_PROJECT_PACKAGE_VERSION,getAppVersion(context));
+            jsonObject.put(JSON_PROJECT_PACKAGE_VERSION_CODE, getAppVersionCode(context));
             jsonObject.put(JSON_PROJECT_NAME, mName);
             jsonObject.put(JSON_PROJECT_CLASSES, getClassesToJSONArray());
             jsonObject.put(JSON_PROJECT_RELATIONS, getRelationsToJSONArray());
@@ -168,7 +167,7 @@ public class UmlProject {
         try {
             UmlProject project = new UmlProject(jsonObject.getString(JSON_PROJECT_NAME), context);
 
-            project.setAppVersion(getAppVersion(context));
+            project.setAppVersionCode(getAppVersionCode(context));
 
             //copy jsonObject because it is cleared in getClassesFromJSONArray
             JSONObject jsonObjectCopy=new JSONObject(jsonObject.toString());
@@ -235,13 +234,13 @@ public class UmlProject {
 //    Other methods
 //    **********************************************************************************************
 
-    private static String getAppVersion(Context context) {
+    private static int getAppVersionCode(Context context) {
         PackageManager manager=context.getPackageManager();
         try {
             PackageInfo info = manager.getPackageInfo(context.getPackageName(),0);
-            return info.versionName;
+            return info.versionCode;
         } catch (PackageManager.NameNotFoundException e) {
-            return null;
+            return -1;
         }
     }
 
