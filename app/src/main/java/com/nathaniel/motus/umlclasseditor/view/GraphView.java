@@ -153,11 +153,26 @@ public class GraphView extends View implements View.OnTouchListener{
 
     public void setUmlProject(UmlProject umlProject) {
         mUmlProject = umlProject;
+        mZoom=mUmlProject.getZoom();
+        mXOffset=mUmlProject.getXOffset();
+        mYOffset=mUmlProject.getYOffset();
         this.invalidate();
     }
 
     public void setGraphFragment(GraphFragment graphFragment) {
         mGraphFragment = graphFragment;
+    }
+
+    public void setZoom(float zoom) {
+        mZoom = zoom;
+    }
+
+    public void setXOffset(float XOffset) {
+        mXOffset = XOffset;
+    }
+
+    public void setYOffset(float YOffset) {
+        mYOffset = YOffset;
     }
 
 //    **********************************************************************************************
@@ -167,6 +182,8 @@ public class GraphView extends View implements View.OnTouchListener{
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+
+        updateProjectGeometricalParameters();
 
         for (UmlClass c:mUmlProject.getUmlClasses())
             drawUmlClass(canvas,c);
@@ -780,6 +797,12 @@ public class GraphView extends View implements View.OnTouchListener{
         }
 
         return Math.abs((dotX-originX)*uX+(dotY-originY)*uY);
+    }
+
+    private void updateProjectGeometricalParameters() {
+        mUmlProject.setZoom(mZoom);
+        mUmlProject.setXOffset(mXOffset);
+        mUmlProject.setYOffset(mYOffset);
     }
 
 //    **********************************************************************************************

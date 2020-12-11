@@ -77,10 +77,12 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         //Instantiate views
         mMainActivityFrame=findViewById(R.id.activity_main_frame);
 
-        mProject=new UmlProject("testProjet",getApplicationContext());
-        populateProject();
-        JSONObject jsonObject=mProject.toJSONObject(getApplicationContext());
-        Log.i("TEST",jsonObject.toString());
+//        mProject=new UmlProject("testProjet",getApplicationContext());
+//        populateProject();
+//        JSONObject jsonObject=mProject.toJSONObject(getApplicationContext());
+//        Log.i("TEST",jsonObject.toString());
+//        mProject.save(getApplicationContext());
+        mProject=UmlProject.load(getApplicationContext(),"testProjet");
         configureToolbar();
         configureDrawerLayout();
         configureNavigationView();
@@ -99,6 +101,13 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
         mGraphView=findViewById(R.id.graphview);
         mGraphView.setUmlProject(mProject);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        mProject.save(getApplicationContext());
     }
 
 //    **********************************************************************************************

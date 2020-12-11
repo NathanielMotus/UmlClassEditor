@@ -3,13 +3,16 @@ package com.nathaniel.motus.umlclasseditor.model;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 
 import com.nathaniel.motus.umlclasseditor.R;
+import com.nathaniel.motus.umlclasseditor.controller.IOUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class UmlProject {
@@ -19,11 +22,19 @@ public class UmlProject {
     private ArrayList<UmlType> mUmlTypes;
     private ArrayList<UmlRelation> mUmlRelations;
     private int mAppVersionCode;
+    private float mZoom=1;
+    private float mXOffset=0;
+    private float mYOffset=0;
 
     public static final String JSON_PROJECT_NAME = "ProjectName";
     public static final String JSON_PROJECT_CLASSES = "ProjectClasses";
     public static final String JSON_PROJECT_RELATIONS = "ProjectRelations";
     public static final String JSON_PROJECT_PACKAGE_VERSION_CODE ="ProjectPackageVersionCode";
+    public static final String JSON_PROJECT_ZOOM="ProjectZoom";
+    public static final String JSON_PROJECT_X_OFFSET="ProjectXOffset";
+    public static final String JSON_PROJECT_Y_OFFSET="ProjectYOffset";
+
+    public static final String PROJECT_DIRECTORY="projects";
 
 //    **********************************************************************************************
 //    Constructors
@@ -79,6 +90,30 @@ public class UmlProject {
 
     public void setAppVersionCode(int appVersionCode) {
         mAppVersionCode = appVersionCode;
+    }
+
+    public void setZoom(float zoom) {
+        mZoom = zoom;
+    }
+
+    public void setXOffset(float XOffset) {
+        mXOffset = XOffset;
+    }
+
+    public void setYOffset(float YOffset) {
+        mYOffset = YOffset;
+    }
+
+    public float getZoom() {
+        return mZoom;
+    }
+
+    public float getXOffset() {
+        return mXOffset;
+    }
+
+    public float getYOffset() {
+        return mYOffset;
     }
 
 //    **********************************************************************************************
@@ -154,6 +189,9 @@ public class UmlProject {
 
         try {
             jsonObject.put(JSON_PROJECT_PACKAGE_VERSION_CODE, getAppVersionCode(context));
+            jsonObject.put(JSON_PROJECT_ZOOM,mZoom);
+            jsonObject.put(JSON_PROJECT_X_OFFSET,mXOffset);
+            jsonObject.put(JSON_PROJECT_Y_OFFSET,mYOffset);
             jsonObject.put(JSON_PROJECT_NAME, mName);
             jsonObject.put(JSON_PROJECT_CLASSES, getClassesToJSONArray());
             jsonObject.put(JSON_PROJECT_RELATIONS, getRelationsToJSONArray());
@@ -167,7 +205,10 @@ public class UmlProject {
         try {
             UmlProject project = new UmlProject(jsonObject.getString(JSON_PROJECT_NAME), context);
 
-            project.setAppVersionCode(getAppVersionCode(context));
+            project.setAppVersionCode(jsonObject.getInt(JSON_PROJECT_PACKAGE_VERSION_CODE));
+            project.setZoom((float)(jsonObject.getDouble(JSON_PROJECT_ZOOM)));
+            project.setXOffset((float)(jsonObject.getDouble(JSON_PROJECT_X_OFFSET)));
+            project.setYOffset((float)(jsonObject.getDouble(JSON_PROJECT_Y_OFFSET)));
 
             //copy jsonObject because it is cleared in getClassesFromJSONArray
             JSONObject jsonObjectCopy=new JSONObject(jsonObject.toString());
@@ -228,6 +269,40 @@ public class UmlProject {
             jsonObject = (JSONObject) jsonArray.remove(0);
         }
         return relations;
+    }
+
+//    **********************************************************************************************
+//    Save and load project methods
+//    **********************************************************************************************
+
+    public void save(Context context) {
+        File destination=new File(context.getFilesDir(),PROJECT_DIRECTORY);
+        if (!destination.exists()) destination.mkdir();
+        IOUtils.saveFileToInternalStorage(this.toJSONObject(context).toString(),new File(destination,mName));
+    }
+
+    public static UmlProject load(Context context, String projectName) {
+        File destination=new File(context.getFilesDir(),PROJECT_DIRECTORY);
+        File source=new File(destination,projectName);
+        try {
+            return UmlProject.fromJSONObject(new JSONObject(IOUtils.getFileFromInternalStorage(source)),context);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public void exportProject(Uri toDestination) {
+
+    }
+
+    public static UmlProject importProject(Uri fromFileUri) {
+        return null;
+
+    }
+
+    public void mergeWith(UmlProject project) {
+
     }
 
 //    **********************************************************************************************
