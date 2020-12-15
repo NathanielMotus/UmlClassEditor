@@ -1,18 +1,31 @@
 package com.nathaniel.motus.umlclasseditor.controller;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.google.android.material.navigation.NavigationView;
@@ -34,8 +47,13 @@ import com.nathaniel.motus.umlclasseditor.R;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.File;
+
 public class MainActivity extends AppCompatActivity implements FragmentObserver,
-        GraphView.GraphViewObserver {
+        GraphView.GraphViewObserver,
+        NavigationView.OnNavigationItemSelectedListener{
+
+    //todo : user manual
 
     private UmlProject mProject;
     private boolean mExpectingTouchLocation=false;
@@ -46,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     private DrawerLayout mDrawerLayout;
     private NavigationView mNavigationView;
     private TextView mMenuHeaderProjectNameText;
+    private String pFileName;
 
 //    **********************************************************************************************
 //    Fragments declaration
@@ -61,6 +80,11 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     private static final String ATTRIBUTE_EDITOR_FRAGMENT_TAG="attributeEditorFragment";
     private static final String METHOD_EDITOR_FRAGMENT_TAG="methodEditorFragment";
     private static final String PARAMETER_EDITOR_FRAGMENT_TAG="parameterEditorFragment";
+
+    private static final String SHARED_PREFERENCES_PROJECT_NAME="sharedPreferencesProjectName";
+
+    private static final int INTENT_CREATE_DOCUMENT=1000;
+    private static final int INTENT_OPEN_DOCUMENT=2000;
 
 //    **********************************************************************************************
 //    Views declaration
@@ -82,7 +106,8 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 //        JSONObject jsonObject=mProject.toJSONObject(getApplicationContext());
 //        Log.i("TEST",jsonObject.toString());
 //        mProject.save(getApplicationContext());
-        mProject=UmlProject.load(getApplicationContext(),"testProjet");
+//        mProject=UmlProject.load(getApplicationContext(),"testProjet");
+        getPreferences();
         configureToolbar();
         configureDrawerLayout();
         configureNavigationView();
@@ -108,6 +133,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         super.onDestroy();
 
         mProject.save(getApplicationContext());
+        savePreferences();
     }
 
 //    **********************************************************************************************
@@ -130,10 +156,28 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         mNavigationView=findViewById(R.id.activity_main_navigation_view);
         mMenuHeaderProjectNameText= mNavigationView.getHeaderView(0).findViewById(R.id.activity_main_navigation_view_header_project_name_text);
         updateNavigationView();
+        mNavigationView.setNavigationItemSelectedListener(this);
     }
 
     private void updateNavigationView() {
         mMenuHeaderProjectNameText.setText(mProject.getName());
+    }
+
+    private void savePreferences() {
+        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        SharedPreferences.Editor editor=preferences.edit();
+        editor.putString(SHARED_PREFERENCES_PROJECT_NAME,mProject.getName());
+        editor.apply();
+    }
+
+    private void getPreferences() {
+        SharedPreferences preferences=getPreferences(MODE_PRIVATE);
+        String projectName=preferences.getString(SHARED_PREFERENCES_PROJECT_NAME,null);
+        if (projectName != null) {
+            mProject = UmlProject.load(getApplicationContext(), projectName);
+        } else {
+            mProject=new UmlProject("NewProject",getApplicationContext());
+        }
     }
 
 //    **********************************************************************************************
@@ -285,6 +329,208 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     public void createRelation(UmlClass startClass, UmlClass endClass, UmlRelation.UmlRelationType relationType) {
         if (!mProject.relationAlreadyExistsBetween(startClass,endClass))
             mProject.addUmlRelation(new UmlRelation(startClass,endClass,relationType));
+    }
+
+//    **********************************************************************************************
+//    Navigation view events
+//    **********************************************************************************************
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        int menuId=item.getItemId();
+        if (menuId == R.id.drawer_menu_new_project) {
+            drawerMenuNewProject();
+        } else if (menuId == R.id.drawer_menu_load_project) {
+            drawerMenuLoadProject();
+        } else if (menuId == R.id.drawer_menu_save_as) {
+            drawerMenuSaveAs();
+        } else if (menuId == R.id.drawer_menu_merge_project) {
+        } else if (menuId == R.id.drawer_menu_delete_project) {
+            drawerMenuDeleteProject();
+        }
+        this.mDrawerLayout.closeDrawer(GravityCompat.START);
+
+        return true;
+    }
+
+//    **********************************************************************************************
+//    Navigation view called methods
+//    **********************************************************************************************
+
+    private void drawerMenuSaveAs() {
+        AlertDialog.Builder builder=new AlertDialog.Builder(this);
+        final EditText editText=new EditText(this);
+        editText.setText(mProject.getName());
+        builder.setTitle("Save as")
+                .setMessage("Enter new name :")
+                .setView(editText)
+                .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                })
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        saveAs(editText.getText().toString());
+                    }
+                })
+                .create()
+                .show();
+    }
+
+    private void drawerMenuNewProject() {
+        mProject.save(this);
+        mProject=new UmlProject("NewProject",this);
+        mGraphView.setUmlProject(mProject);
+        updateNavigationView();
+    }
+
+    private void drawerMenuLoadProject() {
+        mProject.save(this);
+
+        final Spinner spinner=new Spinner(this);
+        spinner.setAdapter(projectDirectoryAdapter());
+
+        AlertDialog.Builder builder=new AlertDialog.Builder(this);
+        builder.setTitle("Load project")
+                .setMessage("Choose project to load :")
+                .setView(spinner)
+                .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                })
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        String fileName=spinner.getSelectedItem().toString();
+                        if (fileName!=null) {
+                            mProject = UmlProject.load(getApplicationContext(), fileName);
+                            mGraphView.setUmlProject(mProject);
+                        }
+                    }
+                })
+                .create()
+                .show();
+    }
+
+    private void drawerMenuDeleteProject() {
+
+        final Context context=this;
+
+        final Spinner spinner=new Spinner(this);
+        spinner.setAdapter(projectDirectoryAdapter());
+
+        AlertDialog.Builder builder=new AlertDialog.Builder(this);
+        builder.setTitle("Delete project")
+                .setMessage("Choose project to delete :")
+                .setView(spinner)
+                .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                })
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        String fileName=spinner.getSelectedItem().toString();
+                        if (fileName!=null) {
+                            File pathName=new File(getFilesDir(),UmlProject.PROJECT_DIRECTORY);
+                            final File file=new File(pathName,fileName);
+                            AlertDialog.Builder alert=new AlertDialog.Builder(context);
+                            alert.setTitle("Delete Project")
+                                    .setMessage("Are you sure you want to delete "+fileName+" ?")
+                                    .setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialogInterface, int i) {
+
+                                        }
+                                    })
+                                    .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialogInterface, int i) {
+                                            file.delete();
+                                        }
+                                    })
+                                    .create()
+                                    .show();
+                        }
+                    }
+                })
+                .create()
+                .show();
+    }
+
+
+
+    private ArrayAdapter<String> projectDirectoryAdapter() {
+        //Create an array adapter to set a spinner with all project file names
+        ArrayAdapter<String> adapter=new ArrayAdapter<>(this, android.R.layout.simple_spinner_item,IOUtils.sortedFiles(new File(getFilesDir(),UmlProject.PROJECT_DIRECTORY)));
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        return adapter;
+    }
+
+//    **********************************************************************************************
+//    Option menu events
+//    **********************************************************************************************
+
+    public boolean onOptionsItemSelected(MenuItem menuItem) {
+        int itemId = menuItem.getItemId();
+        if (itemId == R.id.toolbar_menu_export) {
+            menuItemExport();
+        } else if (itemId == R.id.toolbar_menu_import) {
+            menuItemImport();
+        }
+        return true;
+    }
+
+//    **********************************************************************************************
+//    Menu item called methods
+//    **********************************************************************************************
+
+    private void menuItemExport() {
+        Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.setType("text/*");
+        startActivityForResult(intent,INTENT_CREATE_DOCUMENT);
+    }
+
+    private void menuItemImport() {
+        Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.setType("text/*");
+        startActivityForResult(intent,INTENT_OPEN_DOCUMENT);
+    }
+
+//    **********************************************************************************************
+//    Intents
+//    **********************************************************************************************
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+
+        if (requestCode == INTENT_CREATE_DOCUMENT && resultCode == RESULT_OK) {
+            Uri fileNameUri=data.getData();
+            mProject.exportProject(this,fileNameUri);
+        } else if (requestCode == INTENT_OPEN_DOCUMENT && resultCode == RESULT_OK) {
+            Uri fileNameUri=data.getData();
+            mProject=UmlProject.importProject(this,fileNameUri);
+            mGraphView.setUmlProject(mProject);
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+
+//    **********************************************************************************************
+//    Project management methods
+//    **********************************************************************************************
+
+    private void saveAs(String projectName) {
+        mProject.setName(projectName);
+
+        //No need to actually save, it will be done on leaving the app
     }
 
 //    **********************************************************************************************

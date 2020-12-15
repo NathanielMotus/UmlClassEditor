@@ -9,6 +9,9 @@
             android:id="@+id/drawer_menu_load_project"
             android:title="Load project"/>
         <item
+            android:id="@+id/drawer_menu_save_as"
+            android:title="Save as"/>
+        <item
             android:id="@+id/drawer_menu_merge_project"
             android:title="Merge project"/>
         <item

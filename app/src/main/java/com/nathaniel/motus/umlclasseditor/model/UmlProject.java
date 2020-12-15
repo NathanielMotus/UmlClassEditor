@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.util.Log;
 
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.controller.IOUtils;
@@ -292,13 +293,17 @@ public class UmlProject {
         return null;
     }
 
-    public void exportProject(Uri toDestination) {
-
+    public void exportProject(Context context, Uri toDestination) {
+        IOUtils.saveFileToExternalStorage(context,this.toJSONObject(context).toString(),toDestination);
     }
 
-    public static UmlProject importProject(Uri fromFileUri) {
-        return null;
-
+    public static UmlProject importProject(Context context, Uri fromFileUri) {
+        try {
+            return UmlProject.fromJSONObject(new JSONObject(IOUtils.readFileFromExternalStorage(context,fromFileUri)),context);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public void mergeWith(UmlProject project) {
