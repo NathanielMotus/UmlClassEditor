@@ -345,6 +345,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         } else if (menuId == R.id.drawer_menu_save_as) {
             drawerMenuSaveAs();
         } else if (menuId == R.id.drawer_menu_merge_project) {
+            drawerMenuMerge();
         } else if (menuId == R.id.drawer_menu_delete_project) {
             drawerMenuDeleteProject();
         }
@@ -410,6 +411,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
                         if (fileName!=null) {
                             mProject = UmlProject.load(getApplicationContext(), fileName);
                             mGraphView.setUmlProject(mProject);
+                            updateNavigationView();
                         }
                     }
                 })
@@ -465,7 +467,37 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
                 .show();
     }
 
+    private void drawerMenuMerge() {
+        final Spinner spinner=new Spinner(this);
+        spinner.setAdapter(projectDirectoryAdapter());
+        final Context currentContext=this;
 
+        AlertDialog.Builder builder=new AlertDialog.Builder(this);
+        builder.setTitle("Merge project")
+                .setMessage("Choose project to merge")
+                .setView(spinner)
+                .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                })
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        String fileName=spinner.getSelectedItem().toString();
+                        if (fileName!=null) {
+                            UmlProject project = UmlProject.load(getApplicationContext(), fileName);
+                            mProject.mergeWith(project);
+                            mGraphView.invalidate();
+                        }
+
+                    }
+                })
+                .create()
+                .show();
+
+    }
 
     private ArrayAdapter<String> projectDirectoryAdapter() {
         //Create an array adapter to set a spinner with all project file names
@@ -529,6 +561,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
     private void saveAs(String projectName) {
         mProject.setName(projectName);
+        updateNavigationView();
 
         //No need to actually save, it will be done on leaving the app
     }

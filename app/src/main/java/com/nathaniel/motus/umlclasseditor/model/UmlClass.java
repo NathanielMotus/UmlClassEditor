@@ -179,7 +179,12 @@ public class UmlClass extends UmlType {
         mValueList = valueList;
     }
 
-//    **********************************************************************************************
+    @Override
+    public void setName(String name) {
+        super.setName(name);
+    }
+
+    //    **********************************************************************************************
 //    Modifiers
 //    **********************************************************************************************
 
@@ -248,6 +253,15 @@ public class UmlClass extends UmlType {
 
     public boolean isInvolvedInRelation(UmlRelation umlRelation) {
         return (this==umlRelation.getRelationOriginClass()||this==umlRelation.getRelationEndClass());
+    }
+
+    public boolean alreadyExists(UmlProject inProject) {
+        //check whether class name already exists
+
+        for (UmlClass c:inProject.getUmlClasses())
+            if (this.getName().equals(c.getName())) return true;
+
+        return false;
     }
 
 //    **********************************************************************************************

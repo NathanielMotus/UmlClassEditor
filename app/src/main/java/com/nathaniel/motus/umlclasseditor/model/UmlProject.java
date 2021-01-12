@@ -1,10 +1,13 @@
 package com.nathaniel.motus.umlclasseditor.model;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.util.Log;
+import android.widget.EditText;
 
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.controller.IOUtils;
@@ -181,6 +184,22 @@ public class UmlProject {
         return test;
     }
 
+    public boolean hasConflictNameWith(UmlClass umlClass) {
+        boolean test=false;
+        for (UmlClass c:mUmlClasses)
+            if (c.getName().compareTo(umlClass.getName())==0) test=true;
+        return test;
+    }
+
+    public boolean containsClassNamed(String className) {
+        //check whether a class with className already exists in this project
+
+        for (UmlClass c:this.getUmlClasses())
+            if (c.getName().equals(className)) return true;
+
+        return false;
+    }
+
 //    **********************************************************************************************
 //    JSON methods
 //    **********************************************************************************************
@@ -307,7 +326,16 @@ public class UmlProject {
     }
 
     public void mergeWith(UmlProject project) {
+        for (UmlClass c:project.getUmlClasses()){
 
+            while (this.containsClassNamed(c.getName())){
+                c.setName(c.getName()+"(1)");
+            }
+
+            this.addUmlClass(c);
+        }
+
+        for (UmlRelation r:project.getUmlRelations()) this.addUmlRelation(r);
     }
 
 //    **********************************************************************************************

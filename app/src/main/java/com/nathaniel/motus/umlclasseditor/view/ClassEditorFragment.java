@@ -334,8 +334,8 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         switch (tag) {
 
             case OK_BUTTON_TAG:
-                createOrUpdateClass();
-                mCallback.closeClassEditorFragment(this);
+                 if(createOrUpdateClass())
+                     mCallback.closeClassEditorFragment(this);
                 break;
 
             case CANCEL_BUTTON_TAG:
@@ -450,20 +450,25 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
 //    Edition methods
 //    **********************************************************************************************
 
-    private void createOrUpdateClass() {
+    private boolean createOrUpdateClass() {
 
-        if (getClassName().equals("")) Toast.makeText(getContext(),"Name cannot be blank",Toast.LENGTH_SHORT).show();
-
-        else {
-            if (mClassIndex == -1) {
-                mCallback.getProject().addUmlClass(new UmlClass(getClassName(), getClassType(), mUmlClassAttributes, mUmlClassMethods,mValues, mXPos, mYPos));
-            } else {
-                mCallback.getProject().getUmlClasses().get(mClassIndex).setName(getClassName());
-                mCallback.getProject().getUmlClasses().get(mClassIndex).setUmlClassType(getClassType());
-                mCallback.getProject().getUmlClasses().get(mClassIndex).setAttributeList(mUmlClassAttributes);
-                mCallback.getProject().getUmlClasses().get(mClassIndex).setMethodList(mUmlClassMethods);
-                mCallback.getProject().getUmlClasses().get(mClassIndex).setValueList(mValues);
-            }
+        if (getClassName().equals("")) {
+            Toast.makeText(getContext(),"Name cannot be blank",Toast.LENGTH_SHORT).show();
+            return false;
+        } else if (mCallback.getProject().containsClassNamed(getClassName())
+                && mCallback.getProject().getUmlClasses().indexOf(mCallback.getProject().getUmlClass(getClassName()))!=mClassIndex) {
+            Toast.makeText(getContext(),"This name already exists",Toast.LENGTH_SHORT).show();
+            return false;
+        } else if (mClassIndex == -1) {
+            mCallback.getProject().addUmlClass(new UmlClass(getClassName(), getClassType(), mUmlClassAttributes, mUmlClassMethods, mValues, mXPos, mYPos));
+            return true;
+        } else {
+            mCallback.getProject().getUmlClasses().get(mClassIndex).setName(getClassName());
+            mCallback.getProject().getUmlClasses().get(mClassIndex).setUmlClassType(getClassType());
+            mCallback.getProject().getUmlClasses().get(mClassIndex).setAttributeList(mUmlClassAttributes);
+            mCallback.getProject().getUmlClasses().get(mClassIndex).setMethodList(mUmlClassMethods);
+            mCallback.getProject().getUmlClasses().get(mClassIndex).setValueList(mValues);
+            return true;
         }
     }
 

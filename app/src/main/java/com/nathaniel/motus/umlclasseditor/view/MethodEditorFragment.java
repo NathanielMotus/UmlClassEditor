@@ -235,9 +235,9 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
             }
 
             mDimEdit.setText(Integer.toString(mUmlClassMethod.getArrayDimension()));
+            populateParameterListView();
         }
         populateTypeSpinner();
-        populateParameterListView();
     }
 
     private void populateTypeSpinner() {
