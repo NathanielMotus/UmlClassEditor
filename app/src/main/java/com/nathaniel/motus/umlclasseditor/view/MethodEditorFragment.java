@@ -198,10 +198,13 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
     private void initializeMembers() {
         mUmlClassMethods=((ClassEditorFragment)getFragmentManager().findFragmentByTag(mClassEditorFragmentTag)).getUmlClassMethods();
 
-        if (mMethodIndex!=-1){
-            mUmlClassMethod=mUmlClassMethods.get(mMethodIndex);
-            mMethodParameters=mUmlClassMethod.getParameters();
+        if (mMethodIndex != -1) {
+            mUmlClassMethod = mUmlClassMethods.get(mMethodIndex);
+            mMethodParameters = mUmlClassMethod.getParameters();
+        } else {
+            mMethodParameters=new ArrayList<>();
         }
+
     }
 
     private void initializeFields() {
@@ -349,7 +352,7 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
             Toast.makeText(getContext(), "Method name cannot be blank", Toast.LENGTH_SHORT).show();
         } else {
             if (mMethodIndex == -1) {
-                mUmlClassMethods.add(new UmlClassMethod(getMethodName(), getMethodVisibility(), isStatic(), getMethodType(), getMethodMultiplicity(), getArrayDimension()));
+                mUmlClassMethods.add(new UmlClassMethod(getMethodName(), getMethodVisibility(), isStatic(), getMethodType(), getMethodMultiplicity(), getArrayDimension(),mMethodParameters));
             } else {
                 mUmlClassMethod.setName(getMethodName());
                 mUmlClassMethod.setVisibility(getMethodVisibility());

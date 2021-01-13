@@ -224,7 +224,8 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
         ArrayAdapter<String> adapter=new ArrayAdapter<>(getContext(),android.R.layout.simple_spinner_item,arrayList);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mParameterTypeSpinner.setAdapter(adapter);
-        mParameterTypeSpinner.setSelection(mMethodParameters.indexOf(mMethodParameter));
+        if (mParameterIndex!=-1)
+            mParameterTypeSpinner.setSelection(mMethodParameters.indexOf(mMethodParameter));
     }
 
     private void setOnEditDisplay(){

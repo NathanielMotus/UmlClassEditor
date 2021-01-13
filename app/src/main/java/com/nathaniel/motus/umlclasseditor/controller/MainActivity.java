@@ -54,6 +54,10 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         NavigationView.OnNavigationItemSelectedListener{
 
     //todo : user manual
+    //todo : solve backstack button on blank screen
+    //todo : permissions for lollypop+
+    //todo : arrow icons
+    //todo : app icon
 
     private UmlProject mProject;
     private boolean mExpectingTouchLocation=false;

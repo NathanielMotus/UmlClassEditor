@@ -1,13 +1,9 @@
 package com.nathaniel.motus.umlclasseditor.model;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.util.Log;
-import android.widget.EditText;
 
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.controller.IOUtils;
@@ -147,7 +143,9 @@ public class UmlProject {
         mUmlClasses.remove(umlClass);
         mUmlTypes.remove(umlClass);
         removeRelationsInvolving(umlClass);
-        //todo : remove attributes and methods of UmlClass type
+        removeAttributesOfType((UmlType)umlClass);
+        removeMethodsOfType((UmlType)umlClass);
+        removeParametersOfType((UmlType)umlClass);
     }
 
     public void addUmlRelation(UmlRelation umlRelation) {
@@ -165,6 +163,32 @@ public class UmlProject {
         }
         for (UmlRelation r : umlRelations) {
             removeUmlRelation(r);
+        }
+    }
+
+    public void removeAttributesOfType(UmlType umlType) {
+        for (UmlClass c : this.getUmlClasses()) {
+            for (UmlClassAttribute a : c.getAttributeList()) {
+                if (a.getUmlType()==umlType) c.removeAttribute(a);
+            }
+        }
+    }
+
+    public void removeMethodsOfType(UmlType umlType) {
+        for (UmlClass c : this.getUmlClasses()) {
+            for (UmlClassMethod m : c.getMethodList()) {
+                if (m.getUmlType()==umlType) c.removeMethod(m);
+            }
+        }
+    }
+
+    public void removeParametersOfType(UmlType umlType) {
+        for (UmlClass c : this.getUmlClasses()) {
+            for (UmlClassMethod m : c.getMethodList()) {
+                for (MethodParameter p : m.getParameters()) {
+                    if (p.getUmlType() == umlType) m.removeParameter(p);
+                }
+            }
         }
     }
 
