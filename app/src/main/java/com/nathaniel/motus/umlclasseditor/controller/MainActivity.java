@@ -58,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     //todo : permissions for lollypop+
     //todo : arrow icons
     //todo : app icon
+    //todo : option "add standard type"
 
     private UmlProject mProject;
     private boolean mExpectingTouchLocation=false;

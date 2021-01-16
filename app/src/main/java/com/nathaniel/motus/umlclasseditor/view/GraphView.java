@@ -9,8 +9,8 @@ import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Typeface;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -42,7 +42,9 @@ public class GraphView extends View implements View.OnTouchListener{
     private float mYMidpoint;
     private float mOldXMidPoint;
     private float mOldYMidPoint;
-    private Paint textPaint;
+    private Paint plainTextPaint;
+    private Paint italicTextPaint;
+    private Paint underlinedTextPaint;
     private Paint linePaint;
     private Paint dashPaint;
     private Paint solidBlackPaint;
@@ -103,8 +105,16 @@ public class GraphView extends View implements View.OnTouchListener{
         else
             mYOffset=0;
 
-        textPaint=new Paint();
-        textPaint.setColor(Color.DKGRAY);
+        plainTextPaint =new Paint();
+        plainTextPaint.setColor(Color.DKGRAY);
+
+        italicTextPaint=new Paint();
+        italicTextPaint.setColor(Color.DKGRAY);
+        italicTextPaint.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
+
+        underlinedTextPaint=new Paint();
+        underlinedTextPaint.setColor(Color.DKGRAY);
+        underlinedTextPaint.setFlags(Paint.UNDERLINE_TEXT_FLAG);
 
         linePaint =new Paint();
         linePaint.setColor(Color.DKGRAY);
@@ -199,7 +209,6 @@ public class GraphView extends View implements View.OnTouchListener{
     public void drawUmlClass(Canvas canvas,UmlClass umlClass) {
 
         //Update class dimensions
-        updateUmlClassDimensions(umlClass);
         updateUmlClassNormalDimensions(umlClass);
 
         //Draw frame
@@ -221,48 +230,48 @@ public class GraphView extends View implements View.OnTouchListener{
         //outer rectangle
         canvas.drawRect(visibleX(umlClass.getUmlClassNormalXPos()),
                 visibleY(umlClass.getUmlClassNormalYPos()),
-                visibleX(umlClass.getUmlClassNormalXPos())+umlClass.getUmlClassWidth(),
-                visibleY(umlClass.getUmlClassNormalYPos())+umlClass.getUmlClassHeight(),
+                visibleX(umlClass.getUmlClassNormalXPos()+umlClass.getUmlClassNormalWidth()),
+                visibleY(umlClass.getUmlClassNormalYPos()+umlClass.getUmlClassNormalHeight()),
                 linePaint);
 
         //separation under title
         canvas.drawLine(visibleX(umlClass.getUmlClassNormalXPos()),
                 visibleY(umlClass.getUmlClassNormalYPos())+(INTERLINE*2f+FONT_SIZE)*mZoom,
-                visibleX(umlClass.getUmlClassNormalXPos())+umlClass.getUmlClassWidth(),
+                visibleX(umlClass.getUmlClassNormalXPos()+umlClass.getUmlClassNormalWidth()),
                 visibleY(umlClass.getUmlClassNormalYPos())+(INTERLINE*2f+FONT_SIZE)*mZoom,
                 linePaint);
 
         //separation under attributes
         canvas.drawLine(visibleX(umlClass.getUmlClassNormalXPos()),
                 visibleY(umlClass.getUmlClassNormalYPos())+(INTERLINE*2f+(1f+umlClass.getAttributeList().size())*(INTERLINE+FONT_SIZE))*mZoom,
-                visibleX(umlClass.getUmlClassNormalXPos())+umlClass.getUmlClassWidth(),
+                visibleX(umlClass.getUmlClassNormalXPos()+umlClass.getUmlClassNormalWidth()),
                 visibleY(umlClass.getUmlClassNormalYPos())+(INTERLINE*2f+(1f+umlClass.getAttributeList().size())*(INTERLINE+FONT_SIZE))*mZoom,
                 linePaint);
     }
-
+//todo : differentiate drawing depending on class type, enum, static, etc.
     private void drawUmlClassName(Canvas canvas, UmlClass umlClass) {
         //draw class name in frame
 
         float titleX=visibleX(umlClass.getUmlClassNormalXPos())+INTERLINE*mZoom;
-        textPaint.setTextSize(FONT_SIZE*mZoom);
-        if (getUmlClassMaxTextWidth(umlClass,textPaint)>textPaint.measureText(umlClass.getName()))
-            titleX=titleX+(getUmlClassMaxTextWidth(umlClass,textPaint)-textPaint.measureText(umlClass.getName()))/2f;
+        plainTextPaint.setTextSize(FONT_SIZE*mZoom);
+        if (getUmlClassMaxTextWidth(umlClass, plainTextPaint)> plainTextPaint.measureText(umlClass.getName()))
+            titleX=titleX+(getUmlClassMaxTextWidth(umlClass, plainTextPaint)- plainTextPaint.measureText(umlClass.getName()))/2f;
         canvas.drawText(umlClass.getName(),
                 titleX,
                 visibleY(umlClass.getUmlClassNormalYPos())+(INTERLINE+FONT_SIZE)*mZoom,
-                textPaint);
+                plainTextPaint);
     }
 
     private void drawUmlClassAttributes(Canvas canvas, UmlClass umlClass) {
         //draw class attributes in frame
 
         float currentY=visibleY(umlClass.getUmlClassNormalYPos())+(FONT_SIZE*2f+3f*INTERLINE)*mZoom;
-        textPaint.setTextSize(FONT_SIZE*mZoom);
+        plainTextPaint.setTextSize(FONT_SIZE*mZoom);
         for (UmlClassAttribute a : umlClass.getAttributeList()) {
             canvas.drawText(a.getName(),
                     visibleX(umlClass.getUmlClassNormalXPos())+INTERLINE*mZoom,
                     currentY,
-                    textPaint);
+                    plainTextPaint);
             currentY=currentY+(FONT_SIZE+INTERLINE)*mZoom;
         }
     }
@@ -272,12 +281,12 @@ public class GraphView extends View implements View.OnTouchListener{
 
         float currentY=visibleY(umlClass.getUmlClassNormalYPos())+
                 (INTERLINE*2f+(2f+umlClass.getAttributeList().size())*(INTERLINE+FONT_SIZE))*mZoom;
-        textPaint.setTextSize(FONT_SIZE*mZoom);
+        plainTextPaint.setTextSize(FONT_SIZE*mZoom);
         for (UmlClassMethod m : umlClass.getMethodList()) {
             canvas.drawText(m.getName(),
                     visibleX(umlClass.getUmlClassNormalXPos())+INTERLINE*mZoom,
                     currentY,
-                    textPaint);
+                    plainTextPaint);
             currentY=currentY+(FONT_SIZE+INTERLINE)*mZoom;
         }
     }
@@ -648,18 +657,38 @@ public class GraphView extends View implements View.OnTouchListener{
         return maxWidth;
     }
 
-    private void updateUmlClassDimensions(UmlClass umlClass) {
-        textPaint.setTextSize(FONT_SIZE*mZoom);
-        umlClass.setUmlClassWidth(getUmlClassMaxTextWidth(umlClass,textPaint)+INTERLINE*2f*mZoom);
-        umlClass.setUmlClassHeight((INTERLINE*3f+(FONT_SIZE+INTERLINE)*(1f+umlClass.getAttributeList().size()+umlClass.getMethodList().size()))*mZoom);
-    }
-
     private void updateUmlClassNormalDimensions(UmlClass umlClass) {
         //you must use the actual dimension normalized at zoom=1
         //because text width is not a linear function of zoom
-        textPaint.setTextSize(FONT_SIZE*mZoom);
-        umlClass.setUmlClassNormalWidth((getUmlClassMaxTextWidth(umlClass,textPaint)+INTERLINE*2f*mZoom)/mZoom);
+        plainTextPaint.setTextSize(FONT_SIZE*mZoom);
+        umlClass.setUmlClassNormalWidth((getUmlClassMaxTextWidth(umlClass, plainTextPaint)+INTERLINE*2f*mZoom)/mZoom);
         umlClass.setUmlClassNormalHeight(INTERLINE*3f+(FONT_SIZE+INTERLINE)*(1f+umlClass.getAttributeList().size()+umlClass.getMethodList().size()));
+    }
+//todo : implement following methods
+    private float getClassHeaderNormalWidth(UmlClass umlClass) {
+        //you may have to take into account <<interface>>
+
+        return 0;
+    }
+
+    private float getClassHeaderNormalHeight(UmlClass umlClass) {
+
+        return 0;
+    }
+
+    private float getAttributeNormalWidth(UmlClassAttribute attribute) {
+
+        return 0;
+    }
+
+    private float getMethodNormalWidth(UmlClassMethod method) {
+
+        return 0;
+    }
+
+    private float getTextNormalWidth(String text) {
+
+        return 0;
     }
 
     private float getAngle(float xOrigin, float yOrigin, float xEnd, float yEnd) {

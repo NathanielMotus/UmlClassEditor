@@ -96,6 +96,13 @@ public class UmlClassAttribute {
         mArrayDimension = arrayDimension;
     }
 
+    public String getAttributeCompleteString() {
+        //return attribute name with conventional modifiers
+        //todo : implement
+
+        return "";
+    }
+
 //    **********************************************************************************************
 //    JSON methods
 //    **********************************************************************************************

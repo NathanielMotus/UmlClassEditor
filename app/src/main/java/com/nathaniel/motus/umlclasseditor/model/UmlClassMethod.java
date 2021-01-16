@@ -48,7 +48,7 @@ public class UmlClassMethod {
         this.mParameters = mParameters;
     }
 
-    //    **********************************************************************************************
+//    **********************************************************************************************
 //    Getters and setters
 //    **********************************************************************************************
 
@@ -102,6 +102,13 @@ public class UmlClassMethod {
 
     public ArrayList<MethodParameter> getParameters() {
         return mParameters;
+    }
+
+    public String getMethodCompleteString() {
+        //return method name with conventional modifiers
+        //todo : implement
+
+        return "";
     }
 
 //    **********************************************************************************************

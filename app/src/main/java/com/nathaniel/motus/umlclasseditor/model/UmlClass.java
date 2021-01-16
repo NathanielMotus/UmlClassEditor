@@ -1,7 +1,5 @@
 package com.nathaniel.motus.umlclasseditor.model;
 
-import android.util.JsonReader;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,12 +15,6 @@ public class UmlClass extends UmlType {
     private ArrayList<UmlClassMethod> mMethodList;
     private ArrayList<String> mValueList; //in case of an Enum
 
-    //Location and size of graphical representation of the class
-    //before moving or zooming the graph
-    private float mUmlClassXPos;
-    private float mUmlClassYPos;
-    private float mUmlClassWidth;
-    private float mUmlClassHeight;
     private float mUmlClassNormalXPos;
     private float mUmlClassNormalYPos;
     private float mUmlClassNormalWidth;
@@ -81,38 +73,6 @@ public class UmlClass extends UmlType {
 
     public void setUmlClassType(UmlClassType umlClassType) {
         mUmlClassType = umlClassType;
-    }
-
-    public float getUmlClassXPos() {
-        return mUmlClassXPos;
-    }
-
-    public void setUmlClassXPos(float umlClassXPos) {
-        mUmlClassXPos = umlClassXPos;
-    }
-
-    public float getUmlClassYPos() {
-        return mUmlClassYPos;
-    }
-
-    public void setUmlClassYPos(float umlClassYPos) {
-        mUmlClassYPos = umlClassYPos;
-    }
-
-    public float getUmlClassWidth() {
-        return mUmlClassWidth;
-    }
-
-    public void setUmlClassWidth(float umlClassWidth) {
-        mUmlClassWidth = umlClassWidth;
-    }
-
-    public float getUmlClassHeight() {
-        return mUmlClassHeight;
-    }
-
-    public void setUmlClassHeight(float umlClassHeight) {
-        mUmlClassHeight = umlClassHeight;
     }
 
     public float getUmlClassNormalXPos() {
@@ -184,7 +144,7 @@ public class UmlClass extends UmlType {
         super.setName(name);
     }
 
-    //    **********************************************************************************************
+//    **********************************************************************************************
 //    Modifiers
 //    **********************************************************************************************
 
