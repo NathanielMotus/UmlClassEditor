@@ -98,9 +98,24 @@ public class UmlClassAttribute {
 
     public String getAttributeCompleteString() {
         //return attribute name with conventional modifiers
-        //todo : implement
 
-        return "";
+        String completeString=new String();
+
+        switch (mVisibility) {
+            case PUBLIC:
+                completeString="+";
+                break;
+            case PROTECTED:
+                completeString="~";
+                break;
+            default:
+                completeString="-";
+                break;
+        }
+
+        completeString=completeString+mName+" : "+mUmlType.getName();
+
+        return completeString;
     }
 
 //    **********************************************************************************************

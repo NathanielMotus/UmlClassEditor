@@ -106,9 +106,32 @@ public class UmlClassMethod {
 
     public String getMethodCompleteString() {
         //return method name with conventional modifiers
-        //todo : implement
 
-        return "";
+        String completeString=new String();
+
+        switch (mVisibility) {
+            case PUBLIC:
+                completeString="+";
+                break;
+            case PROTECTED:
+                completeString="~";
+                break;
+            default:
+                completeString="-";
+                break;
+        }
+
+        completeString=completeString+mName+"(";
+
+        for (MethodParameter p:mParameters) {
+            completeString = completeString + p.getName();
+            if (mParameters.indexOf(p)!=mParameters.size()-1)
+                completeString=completeString+", ";
+        }
+
+        completeString=completeString+") : "+mUmlType.getName();
+
+        return completeString;
     }
 
 //    **********************************************************************************************
