@@ -669,8 +669,9 @@ public class GraphView extends View implements View.OnTouchListener{
 //        umlClass.setUmlClassNormalHeight(INTERLINE*3f+(FONT_SIZE+INTERLINE)*(1f+umlClass.getAttributeList().size()+umlClass.getMethodList().size()));
         switch (umlClass.getUmlClassType()) {
             case ENUM:
-                umlClass.setUmlClassNormalWidth(Math.max(getClassHeaderNormalWidth(umlClass),getAttributeBoxNormalWidth(umlClass)));
-                umlClass.setUmlClassNormalHeight(getClassHeaderNormalHeight(umlClass)+getAttributeBoxNormalHeight(umlClass));
+                umlClass.setUmlClassNormalWidth(Math.max(getClassHeaderNormalWidth(umlClass),getValueBoxNormalWidth(umlClass)));
+                umlClass.setUmlClassNormalHeight(getClassHeaderNormalHeight(umlClass)+getValueBoxNormalHeight(umlClass));
+                break;
             default:
                 float currentWidth=0;
                 if (getClassHeaderNormalWidth(umlClass)>currentWidth) currentWidth=getClassHeaderNormalWidth(umlClass);
@@ -678,6 +679,7 @@ public class GraphView extends View implements View.OnTouchListener{
                 if (getMethodBoxNormalWidth(umlClass)>currentWidth) currentWidth=getMethodBoxNormalWidth(umlClass);
                 umlClass.setUmlClassNormalWidth(currentWidth);
                 umlClass.setUmlClassNormalHeight(getClassHeaderNormalHeight(umlClass)+getAttributeBoxNormalHeight(umlClass)+getMethodBoxNormalHeight(umlClass));
+                break;
         }
     }
 

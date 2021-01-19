@@ -59,7 +59,6 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     //todo : arrow icons
     //todo : app icon
     //todo : option "add standard type"
-    //todo : solve bug concerning value to JSON
 
     private UmlProject mProject;
     private boolean mExpectingTouchLocation=false;

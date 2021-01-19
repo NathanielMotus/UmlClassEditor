@@ -1,5 +1,7 @@
 package com.nathaniel.motus.umlclasseditor.model;
 
+import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -322,10 +324,10 @@ public class UmlClass extends UmlType {
     private static ArrayList<String> getValuesFromJSONArray(JSONArray jsonArray, UmlProject project) {
         ArrayList<String> values = new ArrayList<>();
 
-        JSONObject jsonValue = (JSONObject) jsonArray.remove(0);
+        String jsonValue = (String)jsonArray.remove(0);
         while (jsonValue != null) {
             values.add(jsonValue.toString());
-            jsonValue=(JSONObject)jsonArray.remove(0);
+            jsonValue=(String)jsonArray.remove(0);
         }
         return values;
     }
