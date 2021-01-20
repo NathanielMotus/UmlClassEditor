@@ -8,7 +8,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,16 +18,17 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.controller.FragmentObserver;
 import com.nathaniel.motus.umlclasseditor.model.MethodParameter;
 import com.nathaniel.motus.umlclasseditor.model.TypeMultiplicity;
+import com.nathaniel.motus.umlclasseditor.model.TypeNameComparator;
 import com.nathaniel.motus.umlclasseditor.model.UmlType;
 
-import org.json.JSONObject;
-
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -123,8 +123,8 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
                 mCallback.closeParameterEditorFragment(this);
                 break;
             case OK_BUTTON_TAG:
-                updateOrCreateParameter();
-                mCallback.closeParameterEditorFragment(this);
+                if (createOrUpdateParameter())
+                    mCallback.closeParameterEditorFragment(this);
                 break;
             case DELETE_PARAMETER_BUTTON_TAG:
                 final Fragment fragment=this;
@@ -220,12 +220,13 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
     private void populateTypeSpinner() {
         List<String> arrayList=new ArrayList<>();
         for (UmlType t:mCallback.getProject().getUmlTypes())
-            arrayList.add(t.getName());
+            if(!t.getName().equals("void")) arrayList.add(t.getName());
+        Collections.sort(arrayList,new TypeNameComparator());
         ArrayAdapter<String> adapter=new ArrayAdapter<>(getContext(),android.R.layout.simple_spinner_item,arrayList);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mParameterTypeSpinner.setAdapter(adapter);
         if (mParameterIndex!=-1)
-            mParameterTypeSpinner.setSelection(mMethodParameters.indexOf(mMethodParameter));
+            mParameterTypeSpinner.setSelection(arrayList.indexOf(mMethodParameter.getUmlType().getName()));
     }
 
     private void setOnEditDisplay(){
@@ -252,14 +253,20 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
 //    Edition methods
 //    **********************************************************************************************
 
-    private void updateOrCreateParameter() {
-        if (mParameterIndex == -1) {
-            mMethodParameters.add(new MethodParameter(getParameterName(), getParameterType(), getParameterMultiplicity(), getArrayDimension()));
-        } else {
-            mMethodParameter.setName(getParameterName());
-            mMethodParameter.setUmlType(getParameterType());
-            mMethodParameter.setTypeMultiplicity(getParameterMultiplicity());
-            mMethodParameter.setArrayDimension(getArrayDimension());
+    private boolean createOrUpdateParameter() {
+        if (getParameterName().equals("")) {
+            Toast.makeText(getContext(),"Parameter cannot be blank",Toast.LENGTH_SHORT).show();
+            return false;
+        }else {
+            if (mParameterIndex == -1) {
+                mMethodParameters.add(new MethodParameter(getParameterName(), getParameterType(), getParameterMultiplicity(), getArrayDimension()));
+            } else {
+                mMethodParameter.setName(getParameterName());
+                mMethodParameter.setUmlType(getParameterType());
+                mMethodParameter.setTypeMultiplicity(getParameterMultiplicity());
+                mMethodParameter.setArrayDimension(getArrayDimension());
+            }
+            return true;
         }
     }
 
@@ -268,7 +275,7 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
     }
 
     private UmlType getParameterType() {
-        return mCallback.getProject().getUmlTypes().get(mParameterTypeSpinner.getSelectedItemPosition());
+        return UmlType.valueOf(mParameterTypeSpinner.getSelectedItem().toString(),mCallback.getProject().getUmlTypes());
     }
 
     private TypeMultiplicity getParameterMultiplicity() {

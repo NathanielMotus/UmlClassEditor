@@ -54,10 +54,11 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         NavigationView.OnNavigationItemSelectedListener{
 
     //todo : user manual
-    //todo : solve backstack button on blank screen
     //todo : permissions for lollypop+
     //todo : app icon
-    //todo : option "add standard type"
+    //todo : option "add custom standard type"
+    //todo : option "delete custom standard type"
+    //todo : when importing project, if type does not exist create it as custom standard type
 
     private UmlProject mProject;
     private boolean mExpectingTouchLocation=false;
@@ -192,8 +193,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
         mGraphFragment=new GraphFragment();
         getSupportFragmentManager().beginTransaction()
-                .replace(viewContainerId,mGraphFragment,GRAPH_FRAGMENT_TAG)
-                .addToBackStack(GRAPH_FRAGMENT_TAG)
+                .add(viewContainerId,mGraphFragment,GRAPH_FRAGMENT_TAG)
                 .commit();
     }
 

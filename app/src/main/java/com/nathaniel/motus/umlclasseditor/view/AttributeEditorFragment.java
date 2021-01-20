@@ -25,6 +25,7 @@ import android.widget.Toast;
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.controller.FragmentObserver;
 import com.nathaniel.motus.umlclasseditor.model.TypeMultiplicity;
+import com.nathaniel.motus.umlclasseditor.model.TypeNameComparator;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassAttribute;
 import com.nathaniel.motus.umlclasseditor.model.UmlType;
 import com.nathaniel.motus.umlclasseditor.model.Visibility;
@@ -32,6 +33,7 @@ import com.nathaniel.motus.umlclasseditor.model.Visibility;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -227,12 +229,13 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
     private void populateTypeSpinner() {
         List<String> spinnerArray=new ArrayList<>();
         for (UmlType t:mCallback.getProject().getUmlTypes())
-            spinnerArray.add(t.getName());
+            if(!t.getName().equals("void")) spinnerArray.add(t.getName());
+        Collections.sort(spinnerArray,new TypeNameComparator());
         ArrayAdapter<String> adapter=new ArrayAdapter<>(getContext(),android.R.layout.simple_spinner_item,spinnerArray);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mTypeSpinner.setAdapter(adapter);
         if (mAttributeIndex!=-1)
-            mTypeSpinner.setSelection(mCallback.getProject().getUmlTypes().indexOf(mUmlClassAttribute.getUmlType()));
+            mTypeSpinner.setSelection(spinnerArray.indexOf(mUmlClassAttribute.getUmlType().getName()));
     }
 
     private void setOnEditDisplay() {
@@ -268,8 +271,8 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
         switch (tag) {
 
             case OK_BUTTON_TAG:
-                createOrUpdateAttribute();
-                mCallback.closeAttributeEditorFragment(this);
+                if(createOrUpdateAttribute())
+                    mCallback.closeAttributeEditorFragment(this);
                 break;
 
             case CANCEL_BUTTON_TAG:
@@ -314,9 +317,10 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
 //    Edition methods
 //    **********************************************************************************************
 
-    private void createOrUpdateAttribute() {
+    private boolean createOrUpdateAttribute() {
         if (getAttributeName().equals("")) {
             Toast.makeText(getContext(), "Attribute name cannot be blank", Toast.LENGTH_SHORT).show();
+            return false;
         } else {
             if (mAttributeIndex == -1) {
                 mUmlClassAttributes.add(new UmlClassAttribute(getAttributeName(), getVisibility(), isStatic(), isFinal(), getType(), getMultiplicity(), getArrayDimension()));
@@ -329,6 +333,7 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
                 mUmlClassAttribute.setTypeMultiplicity(getMultiplicity());
                 mUmlClassAttribute.setArrayDimension(getArrayDimension());
             }
+            return true;
         }
     }
 
@@ -351,7 +356,7 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
     }
 
     private UmlType getType() {
-        return mCallback.getProject().getUmlTypes().get(mTypeSpinner.getSelectedItemPosition());
+        return UmlType.valueOf(mTypeSpinner.getSelectedItem().toString(),mCallback.getProject().getUmlTypes());
     }
 
     private TypeMultiplicity getMultiplicity() {

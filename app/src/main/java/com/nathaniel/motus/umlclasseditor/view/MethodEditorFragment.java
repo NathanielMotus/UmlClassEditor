@@ -28,6 +28,7 @@ import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.controller.FragmentObserver;
 import com.nathaniel.motus.umlclasseditor.model.MethodParameter;
 import com.nathaniel.motus.umlclasseditor.model.TypeMultiplicity;
+import com.nathaniel.motus.umlclasseditor.model.TypeNameComparator;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassMethod;
 import com.nathaniel.motus.umlclasseditor.model.UmlType;
 import com.nathaniel.motus.umlclasseditor.model.Visibility;
@@ -35,6 +36,7 @@ import com.nathaniel.motus.umlclasseditor.model.Visibility;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -247,11 +249,13 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
         List<String> spinnerArray=new ArrayList<>();
         for (UmlType t:mCallback.getProject().getUmlTypes())
             spinnerArray.add(t.getName());
+        Collections.sort(spinnerArray,new TypeNameComparator());
         ArrayAdapter<String> adapter=new ArrayAdapter<>(getContext(),android.R.layout.simple_spinner_item,spinnerArray);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mTypeSpinner.setAdapter(adapter);
         if (mMethodIndex!=-1)
-            mTypeSpinner.setSelection(mCallback.getProject().getUmlTypes().indexOf(mUmlClassMethod.getUmlType()));
+            mTypeSpinner.setSelection(spinnerArray.indexOf(mUmlClassMethod.getUmlType().getName()));
+        else mTypeSpinner.setSelection(spinnerArray.indexOf("void"));
     }
 
     private void populateParameterListView() {
@@ -300,8 +304,8 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
                 mCallback.closeMethodEditorFragment(this);
                 break;
             case OK_BUTTON_TAG:
-                createOrUpdateMethod();
-                mCallback.closeMethodEditorFragment(this);
+                if(createOrUpdateMethod())
+                    mCallback.closeMethodEditorFragment(this);
                 break;
             case DELETE_METHOD_BUTTON_TAG:
                 final Fragment fragment=this;
@@ -347,9 +351,10 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
 //    Edition methods
 //    **********************************************************************************************
 
-    private void createOrUpdateMethod() {
-        if (getMethodName() == "") {
+    private boolean createOrUpdateMethod() {
+        if (getMethodName().equals("")) {
             Toast.makeText(getContext(), "Method name cannot be blank", Toast.LENGTH_SHORT).show();
+            return false;
         } else {
             if (mMethodIndex == -1) {
                 mUmlClassMethods.add(new UmlClassMethod(getMethodName(), getMethodVisibility(), isStatic(), getMethodType(), getMethodMultiplicity(), getArrayDimension(),mMethodParameters));
@@ -361,6 +366,7 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
                 mUmlClassMethod.setTypeMultiplicity(getMethodMultiplicity());
                 mUmlClassMethod.setArrayDimension(getArrayDimension());
             }
+            return true;
         }
     }
 
@@ -379,7 +385,7 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
     }
 
     private UmlType getMethodType() {
-        return mCallback.getProject().getUmlTypes().get(mTypeSpinner.getSelectedItemPosition());
+        return UmlType.valueOf(mTypeSpinner.getSelectedItem().toString(),mCallback.getProject().getUmlTypes());
     }
 
     private TypeMultiplicity getMethodMultiplicity() {
