@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.nathaniel.motus.umlclasseditor.R;
@@ -21,13 +22,13 @@ public class GraphFragment extends Fragment implements View.OnClickListener {
 
     private GraphView mGraphView;
     private TextView mGraphText;
-    private Button mInheritanceButton;
-    private Button mRealizationButton;
-    private Button mAggregationButton;
+    private ImageButton mInheritanceButton;
+    private ImageButton mRealizationButton;
+    private ImageButton mAggregationButton;
     private Button mEscapeButton;
-    private Button mAssociationButton;
-    private Button mDependancyButton;
-    private Button mCompositionButton;
+    private ImageButton mAssociationButton;
+    private ImageButton mDependancyButton;
+    private ImageButton mCompositionButton;
     private Button mNewClassButton;
 
     private boolean mExpectingTouchLocation =false;
@@ -176,7 +177,7 @@ public class GraphFragment extends Fragment implements View.OnClickListener {
         mAssociationButton.setTag(ASSOCIATION_BUTTON_TAG);
         mAssociationButton.setOnClickListener(this);
 
-        mDependancyButton=getActivity().findViewById(R.id.dependancy_button);
+        mDependancyButton=getActivity().findViewById(R.id.dependency_button);
         mDependancyButton.setTag(DEPENDENCY_BUTTON_TAG);
         mDependancyButton.setOnClickListener(this);
 

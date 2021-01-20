@@ -56,7 +56,6 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     //todo : user manual
     //todo : solve backstack button on blank screen
     //todo : permissions for lollypop+
-    //todo : arrow icons
     //todo : app icon
     //todo : option "add standard type"
 
