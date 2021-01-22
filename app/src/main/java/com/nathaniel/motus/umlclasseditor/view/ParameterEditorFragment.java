@@ -219,7 +219,7 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
 
     private void populateTypeSpinner() {
         List<String> arrayList=new ArrayList<>();
-        for (UmlType t:mCallback.getProject().getUmlTypes())
+        for (UmlType t:UmlType.getUmlTypes())
             if(!t.getName().equals("void")) arrayList.add(t.getName());
         Collections.sort(arrayList,new TypeNameComparator());
         ArrayAdapter<String> adapter=new ArrayAdapter<>(getContext(),android.R.layout.simple_spinner_item,arrayList);
@@ -275,7 +275,7 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
     }
 
     private UmlType getParameterType() {
-        return UmlType.valueOf(mParameterTypeSpinner.getSelectedItem().toString(),mCallback.getProject().getUmlTypes());
+        return UmlType.valueOf(mParameterTypeSpinner.getSelectedItem().toString(),UmlType.getUmlTypes());
     }
 
     private TypeMultiplicity getParameterMultiplicity() {

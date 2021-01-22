@@ -85,7 +85,7 @@ public class MethodParameter {
     public static MethodParameter fromJSONObject(JSONObject jsonObject, UmlProject project) {
         try {
             return new MethodParameter(jsonObject.getString(JSON_METHOD_PARAMETER_NAME),
-                    UmlType.valueOf(jsonObject.getString(JSON_METHOD_PARAMETER_TYPE),project.getUmlTypes()),
+                    UmlType.valueOf(jsonObject.getString(JSON_METHOD_PARAMETER_TYPE),UmlType.getUmlTypes()),
                     TypeMultiplicity.valueOf(jsonObject.getString(JSON_METHOD_PARAMETER_TYPE_MULTIPLICITY)),
                     jsonObject.getInt(JSON_METHOD_PARAMETER_ARRAY_DIMENSION));
         } catch (JSONException jsonException) {

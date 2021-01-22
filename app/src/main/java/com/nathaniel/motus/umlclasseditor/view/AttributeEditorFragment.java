@@ -228,8 +228,8 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
 
     private void populateTypeSpinner() {
         List<String> spinnerArray=new ArrayList<>();
-        for (UmlType t:mCallback.getProject().getUmlTypes())
-            if(!t.getName().equals("void")) spinnerArray.add(t.getName());
+        for (UmlType t:UmlType.getUmlTypes())
+            if (!t.getName().equals("void")) spinnerArray.add(t.getName());
         Collections.sort(spinnerArray,new TypeNameComparator());
         ArrayAdapter<String> adapter=new ArrayAdapter<>(getContext(),android.R.layout.simple_spinner_item,spinnerArray);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -356,7 +356,7 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
     }
 
     private UmlType getType() {
-        return UmlType.valueOf(mTypeSpinner.getSelectedItem().toString(),mCallback.getProject().getUmlTypes());
+        return UmlType.valueOf(mTypeSpinner.getSelectedItem().toString(),UmlType.getUmlTypes());
     }
 
     private TypeMultiplicity getMultiplicity() {

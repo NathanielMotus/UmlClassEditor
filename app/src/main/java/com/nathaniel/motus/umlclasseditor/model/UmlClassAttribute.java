@@ -145,7 +145,7 @@ public class UmlClassAttribute {
                     Visibility.valueOf(jsonObject.getString(JSON_CLASS_ATTRIBUTE_VISIBILITY)),
                     jsonObject.getBoolean(JSON_CLASS_ATTRIBUTE_STATIC),
                     jsonObject.getBoolean(JSON_CLASS_ATTRIBUTE_FINAL),
-                    UmlType.valueOf(jsonObject.getString(JSON_CLASS_ATTRIBUTE_TYPE), project.getUmlTypes()),
+                    UmlType.valueOf(jsonObject.getString(JSON_CLASS_ATTRIBUTE_TYPE), UmlType.getUmlTypes()),
                     TypeMultiplicity.valueOf(jsonObject.getString(JSON_CLASS_ATTRIBUTE_TYPE_MULTIPLICITY)),
                     jsonObject.getInt(JSON_CLASS_ATTRIBUTE_ARRAY_DIMENSION));
         } catch (JSONException jsonException) {

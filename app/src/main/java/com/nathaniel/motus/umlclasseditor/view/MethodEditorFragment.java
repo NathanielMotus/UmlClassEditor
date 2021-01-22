@@ -247,7 +247,7 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
 
     private void populateTypeSpinner() {
         List<String> spinnerArray=new ArrayList<>();
-        for (UmlType t:mCallback.getProject().getUmlTypes())
+        for (UmlType t:UmlType.getUmlTypes())
             spinnerArray.add(t.getName());
         Collections.sort(spinnerArray,new TypeNameComparator());
         ArrayAdapter<String> adapter=new ArrayAdapter<>(getContext(),android.R.layout.simple_spinner_item,spinnerArray);
@@ -385,7 +385,7 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
     }
 
     private UmlType getMethodType() {
-        return UmlType.valueOf(mTypeSpinner.getSelectedItem().toString(),mCallback.getProject().getUmlTypes());
+        return UmlType.valueOf(mTypeSpinner.getSelectedItem().toString(),UmlType.getUmlTypes());
     }
 
     private TypeMultiplicity getMethodMultiplicity() {

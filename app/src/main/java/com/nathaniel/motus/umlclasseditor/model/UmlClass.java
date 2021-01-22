@@ -1,7 +1,5 @@
 package com.nathaniel.motus.umlclasseditor.model;
 
-import android.util.Log;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,24 +37,15 @@ public class UmlClass extends UmlType {
     }
 
     public UmlClass(String name, UmlClassType umlClassType) {
-        super(name);
+        super(name,TypeLevel.PROJECT);
         mUmlClassType = umlClassType;
         mAttributeList= new ArrayList<>();
         mMethodList=new ArrayList<>();
         mValueList=new ArrayList<>();
     }
 
-    public UmlClass(String name, UmlClassType umlClassType, ArrayList<UmlClassAttribute> attributeList, ArrayList<UmlClassMethod> methodList, float umlClassNormalXPos, float umlClassNormalYPos) {
-        super(name);
-        mUmlClassType = umlClassType;
-        mAttributeList = attributeList;
-        mMethodList = methodList;
-        mUmlClassNormalXPos = umlClassNormalXPos;
-        mUmlClassNormalYPos = umlClassNormalYPos;
-    }
-
     public UmlClass(String name, UmlClassType umlClassType, ArrayList<UmlClassAttribute> attributeList, ArrayList<UmlClassMethod> methodList, ArrayList<String> valueList, float umlClassNormalXPos, float umlClassNormalYPos) {
-        super(name);
+        super(name,TypeLevel.PROJECT);
         mUmlClassType = umlClassType;
         mAttributeList = attributeList;
         mMethodList = methodList;

@@ -9,8 +9,6 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -18,10 +16,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -29,13 +25,10 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.google.android.material.navigation.NavigationView;
-import com.nathaniel.motus.umlclasseditor.model.TypeMultiplicity;
 import com.nathaniel.motus.umlclasseditor.model.UmlClass;
-import com.nathaniel.motus.umlclasseditor.model.UmlClassAttribute;
-import com.nathaniel.motus.umlclasseditor.model.UmlClassMethod;
 import com.nathaniel.motus.umlclasseditor.model.UmlProject;
 import com.nathaniel.motus.umlclasseditor.model.UmlRelation;
-import com.nathaniel.motus.umlclasseditor.model.Visibility;
+import com.nathaniel.motus.umlclasseditor.model.UmlType;
 import com.nathaniel.motus.umlclasseditor.view.AttributeEditorFragment;
 import com.nathaniel.motus.umlclasseditor.view.ClassEditorFragment;
 import com.nathaniel.motus.umlclasseditor.view.GraphFragment;
@@ -43,9 +36,6 @@ import com.nathaniel.motus.umlclasseditor.view.GraphView;
 import com.nathaniel.motus.umlclasseditor.view.MethodEditorFragment;
 import com.nathaniel.motus.umlclasseditor.view.ParameterEditorFragment;
 import com.nathaniel.motus.umlclasseditor.R;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.io.File;
 
@@ -59,6 +49,8 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     //todo : option "add custom standard type"
     //todo : option "delete custom standard type"
     //todo : when importing project, if type does not exist create it as custom standard type
+    //todo : export/import custom standard types
+    //todo : check class name does not already exist as type
 
     private UmlProject mProject;
     private boolean mExpectingTouchLocation=false;
@@ -112,6 +104,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 //        Log.i("TEST",jsonObject.toString());
 //        mProject.save(getApplicationContext());
 //        mProject=UmlProject.load(getApplicationContext(),"testProjet");
+        UmlType.initializePrimitiveUmlTypes(this);
         getPreferences();
         configureToolbar();
         configureDrawerLayout();
@@ -570,62 +563,4 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         //No need to actually save, it will be done on leaving the app
     }
 
-//    **********************************************************************************************
-//    Test methods
-//    **********************************************************************************************
-
-    private void populateProject() {
-        //JavaClass
-        UmlClass someJavaClass=new UmlClass("UneClasseJava", UmlClass.UmlClassType.JAVA_CLASS);
-        //Attributes
-        someJavaClass.addAttribute(new UmlClassAttribute("unAttributPublic", Visibility.PUBLIC,
-                false,false,mProject.getUmlTypes().get(1), TypeMultiplicity.SINGLE,0));
-        someJavaClass.addAttribute(new UmlClassAttribute("unAttributPrivate",Visibility.PRIVATE,
-                false,false,mProject.getUmlTypes().get(2),TypeMultiplicity.COLLECTION,0));
-        someJavaClass.addAttribute(new UmlClassAttribute("unAttributStaticFinal",Visibility.PROTECTED,
-                true,true,mProject.getUmlTypes().get(3),TypeMultiplicity.ARRAY,3));
-        //Methods
-        someJavaClass.addMethod(new UmlClassMethod("uneMéthodePublic",Visibility.PUBLIC,false,mProject.getUmlTypes().get(0),TypeMultiplicity.SINGLE,0));
-        //Coordinates
-        someJavaClass.setUmlClassNormalXPos(150);
-        someJavaClass.setUmlClassNormalYPos(200);
-        mProject.addUmlClass(someJavaClass);
-
-        //Interface
-        UmlClass someInterface=new UmlClass("UneInterface", UmlClass.UmlClassType.INTERFACE);
-        //Attributes
-        someInterface.addAttribute(new UmlClassAttribute("unAttributPublic", Visibility.PUBLIC,
-                false,false,mProject.getUmlTypes().get(1), TypeMultiplicity.SINGLE,0));
-        someInterface.addAttribute(new UmlClassAttribute("unAttributPrivate",Visibility.PRIVATE,
-                false,false,mProject.getUmlTypes().get(2),TypeMultiplicity.COLLECTION,0));
-        someInterface.addAttribute(new UmlClassAttribute("unAttributStaticFinal",Visibility.PROTECTED,
-                true,true,mProject.getUmlTypes().get(3),TypeMultiplicity.ARRAY,3));
-        //Methods
-        someInterface.addMethod(new UmlClassMethod("uneMéthodePublic",Visibility.PUBLIC,false,
-                mProject.getUmlTypes().get(0),TypeMultiplicity.SINGLE,0));
-        someInterface.addMethod(new UmlClassMethod("encoreUneMéthodePublic",Visibility.PUBLIC,false,
-                mProject.getUmlTypes().get(0),TypeMultiplicity.SINGLE,0));
-        //Coordinates
-        someInterface.setUmlClassNormalXPos(300);
-        someInterface.setUmlClassNormalYPos(300);
-        mProject.addUmlClass(someInterface);
-
-        //Abstract class
-        UmlClass someAbstractClass=new UmlClass("UneClasseAbstraite", UmlClass.UmlClassType.ABSTRACT_CLASS);
-        someAbstractClass.setUmlClassNormalXPos(400);
-        someAbstractClass.setUmlClassNormalYPos(400);
-        mProject.addUmlClass(someAbstractClass);
-
-        //Relation
-        UmlRelation someRelation=new UmlRelation(someJavaClass,someInterface, UmlRelation.UmlRelationType.REALIZATION);
-        mProject.addUmlRelation(someRelation);
-
-        UmlRelation otherRelation=new UmlRelation(someAbstractClass,someInterface, UmlRelation.UmlRelationType.INHERITANCE);
-        mProject.addUmlRelation(otherRelation);
-
-        UmlRelation lastRelation=new UmlRelation(someJavaClass,someAbstractClass, UmlRelation.UmlRelationType.COMPOSITION);
-        mProject.addUmlRelation(lastRelation);
-
-
-    }
 }

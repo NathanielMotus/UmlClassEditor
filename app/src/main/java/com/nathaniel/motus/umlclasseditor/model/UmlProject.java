@@ -5,7 +5,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 
-import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.controller.IOUtils;
 
 import org.json.JSONArray;
@@ -19,7 +18,6 @@ public class UmlProject {
 
     private String mName;
     private ArrayList<UmlClass> mUmlClasses;
-    private ArrayList<UmlType> mUmlTypes;
     private ArrayList<UmlRelation> mUmlRelations;
     private int mAppVersionCode;
     private float mZoom=1;
@@ -43,10 +41,7 @@ public class UmlProject {
     public UmlProject(String name,Context context) {
         mName = name;
         mUmlClasses=new ArrayList<UmlClass>();
-        mUmlTypes=new ArrayList<UmlType>();
         mUmlRelations=new ArrayList<UmlRelation>();
-
-        initializeStandardTypes(context);
     }
 
 //    **********************************************************************************************
@@ -63,10 +58,6 @@ public class UmlProject {
 
     public ArrayList<UmlClass> getUmlClasses() {
         return mUmlClasses;
-    }
-
-    public ArrayList<UmlType> getUmlTypes() {
-        return mUmlTypes;
     }
 
     public ArrayList<UmlRelation> getUmlRelations() {
@@ -120,28 +111,17 @@ public class UmlProject {
 //    Initialization
 //    **********************************************************************************************
 
-    public void initializeStandardTypes(Context context) {
-        //Initialize primitive types and their wrappers, among others
-
-        String[] standardTypes=context.getResources().getStringArray(R.array.standard_types);
-
-        for (int i=0;i< standardTypes.length;i++) {
-            mUmlTypes.add(new UmlType(standardTypes[i]));
-        }
-    }
-
 //    **********************************************************************************************
 //    Modifiers
 //    **********************************************************************************************
 
     public void addUmlClass(UmlClass umlClass) {
         mUmlClasses.add(umlClass);
-        mUmlTypes.add(umlClass);
     }
 
     public void removeUmlClass(UmlClass umlClass) {
         mUmlClasses.remove(umlClass);
-        mUmlTypes.remove(umlClass);
+        UmlType.removeUmlType(umlClass);
         removeRelationsInvolving(umlClass);
         removeAttributesOfType((UmlType)umlClass);
         removeMethodsOfType((UmlType)umlClass);
