@@ -270,10 +270,6 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
     private void setOnEditDisplay() {
         mEditMethodText.setText("Edit method");
         mDeleteMethodButton.setVisibility(View.VISIBLE);
-        JSONObject jj=mUmlClassMethod.toJSONObject();
-        Log.i("TEST",jj.toString());
-        JSONObject jj2=(UmlClassMethod.fromJSONObject(jj,mCallback.getProject())).toJSONObject();
-        Log.i("TEST",jj2.toString());
     }
 
     private void setOnCreateDisplay() {

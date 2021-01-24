@@ -332,7 +332,7 @@ public class UmlProject {
     public void mergeWith(UmlProject project) {
         for (UmlClass c:project.getUmlClasses()){
 
-            while (this.containsClassNamed(c.getName())){
+            while (UmlType.containsUmlTypeNamed(c.getName())){
                 c.setName(c.getName()+"(1)");
             }
 

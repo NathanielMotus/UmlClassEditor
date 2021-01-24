@@ -29,6 +29,7 @@ import com.nathaniel.motus.umlclasseditor.controller.FragmentObserver;
 import com.nathaniel.motus.umlclasseditor.model.UmlClass;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassAttribute;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassMethod;
+import com.nathaniel.motus.umlclasseditor.model.UmlType;
 
 import org.json.JSONObject;
 
@@ -457,9 +458,12 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
             return false;
         } else if (mCallback.getProject().containsClassNamed(getClassName())
                 && mCallback.getProject().getUmlClasses().indexOf(mCallback.getProject().getUmlClass(getClassName()))!=mClassIndex) {
-            Toast.makeText(getContext(),"This name already exists",Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(),"This name already exists in project",Toast.LENGTH_SHORT).show();
             return false;
-        } else if (mClassIndex == -1) {
+        } else if (UmlType.containsUmlTypeNamed(getClassName())) {
+            Toast.makeText(getContext(), "This name already exists as standard or custom type", Toast.LENGTH_SHORT).show();
+            return false;
+        }else if (mClassIndex == -1) {
             mCallback.getProject().addUmlClass(new UmlClass(getClassName(), getClassType(), mUmlClassAttributes, mUmlClassMethods, mValues, mXPos, mYPos));
             return true;
         } else {

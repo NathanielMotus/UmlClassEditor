@@ -138,7 +138,7 @@ public class UmlClassMethod {
 //    Modifiers
 //    **********************************************************************************************
 
-    public void addParemeter(MethodParameter parameter) {
+    public void addParameter(MethodParameter parameter) {
         mParameters.add(parameter);
     }
 
@@ -160,40 +160,43 @@ public class UmlClassMethod {
             jsonObject.put(JSON_CLASS_METHOD_TYPE, mUmlType.getName());
             jsonObject.put(JSON_CLASS_METHOD_TYPE_MULTIPLICITY, mTypeMultiplicity);
             jsonObject.put(JSON_CLASS_METHOD_ARRAY_DIMENSION, mArrayDimension);
-            jsonObject.put(JSON_CLASS_METHOD_PARAMETERS, getAttributesToJSONArray());
+            jsonObject.put(JSON_CLASS_METHOD_PARAMETERS, getParametersToJSONArray());
             return jsonObject;
         } catch (JSONException jsonException) {
             return null;
         }
     }
 
-    public static UmlClassMethod fromJSONObject(JSONObject jsonObject, UmlProject project) {
+    public static UmlClassMethod fromJSONObject(JSONObject jsonObject) {
         try {
+            if (UmlType.valueOf(jsonObject.getString(JSON_CLASS_METHOD_TYPE),UmlType.getUmlTypes())==null)
+                UmlType.createUmlType(jsonObject.getString(JSON_CLASS_METHOD_TYPE), UmlType.TypeLevel.CUSTOM);
+
             return new UmlClassMethod(jsonObject.getString(JSON_CLASS_METHOD_NAME),
                     Visibility.valueOf(jsonObject.getString(JSON_CLASS_METHOD_VISIBILITY)),
                     jsonObject.getBoolean(JSON_CLASS_METHOD_STATIC),
                     UmlType.valueOf(jsonObject.getString(JSON_CLASS_METHOD_TYPE), UmlType.getUmlTypes()),
                     TypeMultiplicity.valueOf(jsonObject.getString(JSON_CLASS_METHOD_TYPE_MULTIPLICITY)),
                     jsonObject.getInt(JSON_CLASS_METHOD_ARRAY_DIMENSION),
-                    getAttributesFromJSONArray(jsonObject.getJSONArray(JSON_CLASS_METHOD_PARAMETERS),project));
+                    getParametersFromJSONArray(jsonObject.getJSONArray(JSON_CLASS_METHOD_PARAMETERS)));
         } catch (JSONException jsonException) {
             return null;
         }
     }
 
-    private JSONArray getAttributesToJSONArray() {
+    private JSONArray getParametersToJSONArray() {
         JSONArray jsonArray =new JSONArray();
 
         for (MethodParameter p : this.mParameters) jsonArray.put(p.toJSONObject());
         return jsonArray;
     }
 
-    private static ArrayList<MethodParameter> getAttributesFromJSONArray(JSONArray jsonArray,UmlProject project) {
+    private static ArrayList<MethodParameter> getParametersFromJSONArray(JSONArray jsonArray) {
         ArrayList<MethodParameter> methodParameters=new ArrayList<>();
 
         JSONObject jsonParameter=(JSONObject)(jsonArray.remove(0));
         while (jsonParameter != null) {
-            methodParameters.add(MethodParameter.fromJSONObject(jsonParameter, project));
+            methodParameters.add(MethodParameter.fromJSONObject(jsonParameter));
             jsonParameter=(JSONObject)(jsonArray.remove(0));
         }
         return methodParameters;

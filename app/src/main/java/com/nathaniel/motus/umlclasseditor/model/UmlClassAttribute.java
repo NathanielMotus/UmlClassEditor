@@ -139,8 +139,11 @@ public class UmlClassAttribute {
         }
     }
 
-    public static UmlClassAttribute fromJSONObject(JSONObject jsonObject, UmlProject project) {
+    public static UmlClassAttribute fromJSONObject(JSONObject jsonObject) {
         try {
+            if (UmlType.valueOf(jsonObject.getString(JSON_CLASS_ATTRIBUTE_TYPE),UmlType.getUmlTypes())==null)
+                UmlType.createUmlType(jsonObject.getString(JSON_CLASS_ATTRIBUTE_TYPE), UmlType.TypeLevel.CUSTOM);
+
             return new UmlClassAttribute(jsonObject.getString(JSON_CLASS_ATTRIBUTE_NAME),
                     Visibility.valueOf(jsonObject.getString(JSON_CLASS_ATTRIBUTE_VISIBILITY)),
                     jsonObject.getBoolean(JSON_CLASS_ATTRIBUTE_STATIC),

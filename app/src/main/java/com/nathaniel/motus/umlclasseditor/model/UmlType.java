@@ -4,6 +4,8 @@ import android.content.Context;
 
 import com.nathaniel.motus.umlclasseditor.R;
 
+import org.json.JSONArray;
+
 import java.util.ArrayList;
 
 public class UmlType {
@@ -59,12 +61,31 @@ public class UmlType {
     }
 
 //    **********************************************************************************************
+//    JSON methods
+//    **********************************************************************************************
+
+    public static JSONArray getCustomUmlTypesToJSONArray() {
+        JSONArray jsonArray=new JSONArray();
+        for (UmlType t:UmlType.sUmlTypes)
+            if (t.isCustomUmlType()) jsonArray.put(t.mName);
+        return jsonArray;
+    }
+
+    public static void createCustomUmlTypesFromJSONArray(JSONArray jsonArrayTypes) {
+        String jsonString=(String)jsonArrayTypes.remove(0);
+        while (jsonString!=null) {
+            createUmlType(jsonString, TypeLevel.CUSTOM);
+            jsonString=(String)jsonArrayTypes.remove(0);
+        }
+    }
+
+//    **********************************************************************************************
 //    Modifiers
 //    **********************************************************************************************
 
-    public static void clearClassUmlTypes() {
-        for (UmlType t:sUmlTypes)
-            if (t.mTypeLevel==TypeLevel.PROJECT) sUmlTypes.remove(t);
+    public static void clearProjectUmlTypes() {
+        for (int i=sUmlTypes.size()-1;i>0;i--)
+            if (sUmlTypes.get(i).isProjectUmlType()) sUmlTypes.remove(i);
     }
 
     public static void removeUmlType(UmlType umlType) {
@@ -76,10 +97,6 @@ public class UmlType {
 
         for (int i=0;i< standardTypes.length;i++)
             createUmlType(standardTypes[i],TypeLevel.PRIMITIVE);
-    }
-
-    public static void initializeCustomUmlTypes(Context context) {
-        //todo : implement initializeCustomUmlTypes
     }
 
 //    **********************************************************************************************
@@ -96,5 +113,29 @@ public class UmlType {
 
     public boolean isProjectUmlType() {
         return (this.mTypeLevel==TypeLevel.PROJECT);
+    }
+
+    public static boolean containsPrimitiveUmlTypeNamed(String name) {
+        for (UmlType t:UmlType.sUmlTypes)
+            if (t.mName.equals(name) && t.isPrimitiveUmlType()) return true;
+        return false;
+    }
+
+    public static boolean containsCustomUmlTypeNamed(String name) {
+        for (UmlType t:UmlType.sUmlTypes)
+            if (t.mName.equals(name) && t.isCustomUmlType()) return true;
+        return false;
+    }
+
+    public static boolean containsProjectUmlTypeNamed(String name) {
+        for (UmlType t:UmlType.sUmlTypes)
+            if (t.mName.equals(name) && t.isProjectUmlType()) return true;
+        return false;
+    }
+
+    public static boolean containsUmlTypeNamed(String name) {
+        for (UmlType t:sUmlTypes)
+            if (t.mName.equals(name)) return true;
+        return false;
     }
 }

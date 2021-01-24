@@ -10,6 +10,5 @@
         <item>double</item>
         <item>char</item>
         <item>boolean</item>
-        <item>Object</item>
     </array>
 </resources>

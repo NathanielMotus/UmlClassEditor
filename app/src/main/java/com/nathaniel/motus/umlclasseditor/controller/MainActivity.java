@@ -48,9 +48,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     //todo : app icon
     //todo : option "add custom standard type"
     //todo : option "delete custom standard type"
-    //todo : when importing project, if type does not exist create it as custom standard type
     //todo : export/import custom standard types
-    //todo : check class name does not already exist as type
 
     private UmlProject mProject;
     private boolean mExpectingTouchLocation=false;
@@ -176,6 +174,10 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         } else {
             mProject=new UmlProject("NewProject",getApplicationContext());
         }
+    }
+
+    private void initializeCustomUmlTypes() {
+        //todo : initializeCustomUmlTypes
     }
 
 //    **********************************************************************************************
@@ -380,6 +382,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
     private void drawerMenuNewProject() {
         mProject.save(this);
+        UmlType.clearProjectUmlTypes();
         mProject=new UmlProject("NewProject",this);
         mGraphView.setUmlProject(mProject);
         updateNavigationView();
@@ -406,6 +409,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
                     public void onClick(DialogInterface dialogInterface, int i) {
                         String fileName=spinner.getSelectedItem().toString();
                         if (fileName!=null) {
+                            UmlType.clearProjectUmlTypes();
                             mProject = UmlProject.load(getApplicationContext(), fileName);
                             mGraphView.setUmlProject(mProject);
                             updateNavigationView();
@@ -545,6 +549,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
             mProject.exportProject(this,fileNameUri);
         } else if (requestCode == INTENT_OPEN_DOCUMENT && resultCode == RESULT_OK) {
             Uri fileNameUri=data.getData();
+            UmlType.clearProjectUmlTypes();
             mProject=UmlProject.importProject(this,fileNameUri);
             mGraphView.setUmlProject(mProject);
         }

@@ -256,9 +256,9 @@ public class UmlClass extends UmlType {
             UmlClass umlClass=project.getUmlClass(jsonObject.getString(JSON_CLASS_NAME));
 
             umlClass.setUmlClassType(UmlClassType.valueOf(jsonObject.getString(JSON_CLASS_CLASS_TYPE)));
-            umlClass.setAttributeList(getAttributesFromJSONArray(jsonObject.getJSONArray(JSON_CLASS_ATTRIBUTES),project));
-            umlClass.setMethodList(getMethodsFromJSONArray(jsonObject.getJSONArray(JSON_CLASS_METHODS),project));
-            umlClass.setValueList(getValuesFromJSONArray(jsonObject.getJSONArray(JSON_CLASS_VALUES),project));
+            umlClass.setAttributeList(getAttributesFromJSONArray(jsonObject.getJSONArray(JSON_CLASS_ATTRIBUTES)));
+            umlClass.setMethodList(getMethodsFromJSONArray(jsonObject.getJSONArray(JSON_CLASS_METHODS)));
+            umlClass.setValueList(getValuesFromJSONArray(jsonObject.getJSONArray(JSON_CLASS_VALUES)));
             umlClass.setUmlClassNormalXPos(jsonObject.getInt(JSON_CLASS_NORMAL_XPOS));
             umlClass.setUmlClassNormalYPos(jsonObject.getInt(JSON_CLASS_NORMAL_YPOS));
 
@@ -274,12 +274,12 @@ public class UmlClass extends UmlType {
         return jsonArray;
     }
 
-    private static ArrayList<UmlClassAttribute> getAttributesFromJSONArray(JSONArray jsonArray, UmlProject project) {
+    private static ArrayList<UmlClassAttribute> getAttributesFromJSONArray(JSONArray jsonArray) {
         ArrayList<UmlClassAttribute> umlClassAttributes = new ArrayList<>();
 
         JSONObject jsonAttribute=(JSONObject) jsonArray.remove(0);
         while (jsonAttribute != null) {
-            umlClassAttributes.add(UmlClassAttribute.fromJSONObject(jsonAttribute,project));
+            umlClassAttributes.add(UmlClassAttribute.fromJSONObject(jsonAttribute));
             jsonAttribute = (JSONObject) jsonArray.remove(0);
         }
         return umlClassAttributes;
@@ -292,12 +292,12 @@ public class UmlClass extends UmlType {
         return jsonArray;
     }
 
-    private static ArrayList<UmlClassMethod> getMethodsFromJSONArray(JSONArray jsonArray, UmlProject project) {
+    private static ArrayList<UmlClassMethod> getMethodsFromJSONArray(JSONArray jsonArray) {
         ArrayList<UmlClassMethod> umlClassMethods = new ArrayList<>();
 
         JSONObject jsonMethod=(JSONObject)jsonArray.remove(0);
         while (jsonMethod != null) {
-            umlClassMethods.add(UmlClassMethod.fromJSONObject(jsonMethod,project));
+            umlClassMethods.add(UmlClassMethod.fromJSONObject(jsonMethod));
             jsonMethod=(JSONObject)jsonArray.remove(0);
         }
         return umlClassMethods;
@@ -310,12 +310,12 @@ public class UmlClass extends UmlType {
         return jsonArray;
     }
 
-    private static ArrayList<String> getValuesFromJSONArray(JSONArray jsonArray, UmlProject project) {
+    private static ArrayList<String> getValuesFromJSONArray(JSONArray jsonArray) {
         ArrayList<String> values = new ArrayList<>();
 
         String jsonValue = (String)jsonArray.remove(0);
         while (jsonValue != null) {
-            values.add(jsonValue.toString());
+            values.add(jsonValue);
             jsonValue=(String)jsonArray.remove(0);
         }
         return values;

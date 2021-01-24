@@ -82,8 +82,10 @@ public class MethodParameter {
         }
     }
 
-    public static MethodParameter fromJSONObject(JSONObject jsonObject, UmlProject project) {
+    public static MethodParameter fromJSONObject(JSONObject jsonObject) {
         try {
+            if (UmlType.valueOf(jsonObject.getString(JSON_METHOD_PARAMETER_TYPE),UmlType.getUmlTypes())==null)
+                UmlType.createUmlType(jsonObject.getString(JSON_METHOD_PARAMETER_TYPE), UmlType.TypeLevel.CUSTOM);
             return new MethodParameter(jsonObject.getString(JSON_METHOD_PARAMETER_NAME),
                     UmlType.valueOf(jsonObject.getString(JSON_METHOD_PARAMETER_TYPE),UmlType.getUmlTypes()),
                     TypeMultiplicity.valueOf(jsonObject.getString(JSON_METHOD_PARAMETER_TYPE_MULTIPLICITY)),
