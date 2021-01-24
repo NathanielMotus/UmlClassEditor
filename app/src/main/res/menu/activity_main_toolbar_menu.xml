@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+    <group
+        android:id="@+id/project_group"
+        android:checkableBehavior="none">
     <item
         android:id="@+id/toolbar_menu_export"
         app:showAsAction="never"
@@ -9,5 +12,26 @@
         android:id="@+id/toolbar_menu_import"
         app:showAsAction="never"
         android:title="Import project"/>
+    </group>
+    <group
+        android:id="@+id/custom_type_group"
+        android:checkableBehavior="none">
+        <item
+            android:id="@+id/toolbar_menu_create_custom_type"
+            app:showAsAction="never"
+            android:title="Create custom type"/>
+        <item
+            android:id="@+id/toolbar_menu_delete_custom_type"
+            app:showAsAction="never"
+            android:title="Delete custom type"/>
+        <item
+            android:id="@+id/toolbar_menu_export_custom_types"
+            app:showAsAction="never"
+            android:title="Export custom types"/>
+        <item
+            android:id="@+id/toolbar_menu_import_custom_types"
+            app:showAsAction="never"
+            android:title="Import custom types"/>
+    </group>
 
 </menu>

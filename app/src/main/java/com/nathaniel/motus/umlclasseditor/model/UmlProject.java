@@ -1,8 +1,6 @@
 package com.nathaniel.motus.umlclasseditor.model;
 
 import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 
 import com.nathaniel.motus.umlclasseditor.controller.IOUtils;
@@ -73,10 +71,6 @@ public class UmlProject {
 
     public void setUmlRelations(ArrayList<UmlRelation> UmlRelations) {
         this.mUmlRelations = UmlRelations;
-    }
-
-    public int getAppVersionCode() {
-        return mAppVersionCode;
     }
 
     public void setAppVersionCode(int appVersionCode) {
@@ -212,7 +206,7 @@ public class UmlProject {
         JSONObject jsonObject = new JSONObject();
 
         try {
-            jsonObject.put(JSON_PROJECT_PACKAGE_VERSION_CODE, getAppVersionCode(context));
+            jsonObject.put(JSON_PROJECT_PACKAGE_VERSION_CODE, IOUtils.getAppVersionCode(context));
             jsonObject.put(JSON_PROJECT_ZOOM,mZoom);
             jsonObject.put(JSON_PROJECT_X_OFFSET,mXOffset);
             jsonObject.put(JSON_PROJECT_Y_OFFSET,mYOffset);
@@ -341,19 +335,4 @@ public class UmlProject {
 
         for (UmlRelation r:project.getUmlRelations()) this.addUmlRelation(r);
     }
-
-//    **********************************************************************************************
-//    Other methods
-//    **********************************************************************************************
-
-    private static int getAppVersionCode(Context context) {
-        PackageManager manager=context.getPackageManager();
-        try {
-            PackageInfo info = manager.getPackageInfo(context.getPackageName(),0);
-            return info.versionCode;
-        } catch (PackageManager.NameNotFoundException e) {
-            return -1;
-        }
-    }
-
 }

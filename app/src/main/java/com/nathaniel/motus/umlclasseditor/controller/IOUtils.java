@@ -1,6 +1,8 @@
 package com.nathaniel.motus.umlclasseditor.controller;
 
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.util.Log;
 
@@ -94,5 +96,19 @@ public class IOUtils {
 
         Collections.sort(fileList);
         return fileList;
+    }
+
+//    **********************************************************************************************
+//    Side utilities
+//    **********************************************************************************************
+
+    public static int getAppVersionCode(Context context) {
+        PackageManager manager=context.getPackageManager();
+        try {
+            PackageInfo info = manager.getPackageInfo(context.getPackageName(),0);
+            return info.versionCode;
+        } catch (PackageManager.NameNotFoundException e) {
+            return -1;
+        }
     }
 }

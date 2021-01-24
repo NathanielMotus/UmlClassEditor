@@ -6,6 +6,7 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
+import androidx.core.view.MenuCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 
@@ -23,6 +24,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.material.navigation.NavigationView;
 import com.nathaniel.motus.umlclasseditor.model.UmlClass;
@@ -46,9 +48,6 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     //todo : user manual
     //todo : permissions for lollypop+
     //todo : app icon
-    //todo : option "add custom standard type"
-    //todo : option "delete custom standard type"
-    //todo : export/import custom standard types
 
     private UmlProject mProject;
     private boolean mExpectingTouchLocation=false;
@@ -80,6 +79,9 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
     private static final int INTENT_CREATE_DOCUMENT=1000;
     private static final int INTENT_OPEN_DOCUMENT=2000;
+
+    public static final String JSON_PACKAGE_VERSION_CODE="PackageVersionCode";
+    public static final String JSON_CUSTOM_TYPES="CustomTypes";
 
 //    **********************************************************************************************
 //    Views declaration
@@ -113,6 +115,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.activity_main_toolbar_menu,menu);
+        MenuCompat.setGroupDividerEnabled(menu,true);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -517,6 +520,14 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
             menuItemExport();
         } else if (itemId == R.id.toolbar_menu_import) {
             menuItemImport();
+        } else if (itemId == R.id.toolbar_menu_create_custom_type) {
+            menuCreateCustomType();
+        } else if (itemId == R.id.toolbar_menu_delete_custom_type) {
+            menuDeleteCustomType();
+        } else if (itemId == R.id.toolbar_menu_export_custom_types) {
+            menuExportCustomTypes();
+        } else if (itemId == R.id.toolbar_menu_import_custom_types) {
+            menuImportCustomTypes();
         }
         return true;
     }
@@ -535,6 +546,50 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.setType("text/*");
         startActivityForResult(intent,INTENT_OPEN_DOCUMENT);
+    }
+
+    private void menuCreateCustomType() {
+        //todo : alert dialog prompting for a type, check if already exists
+        final EditText editText=new EditText(this);
+        final Context context=getApplicationContext();
+        AlertDialog.Builder adb=new AlertDialog.Builder(this);
+        adb.setTitle("Create custom type")
+                .setMessage("Enter custom type name :")
+                .setView(editText)
+                .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                })
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        String typeName=editText.getText().toString();
+                        if (typeName.equals(""))
+                            Toast.makeText(context,"Failed : name cannot be blank",Toast.LENGTH_SHORT).show();
+                        else if (UmlType.containsUmlTypeNamed(typeName))
+                            Toast.makeText(context,"Failed : this name is already used",Toast.LENGTH_SHORT).show();
+                        else{
+                            UmlType.createUmlType(typeName, UmlType.TypeLevel.CUSTOM);
+                            Toast.makeText(context,"Custom type created",Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .create()
+                .show();
+    }
+
+    private void menuDeleteCustomType() {
+        //todo : alert dialog with custom types listed, checkbox to choose
+    }
+
+    private void menuExportCustomTypes() {
+        //todo : alert dialog prompting for a file name, include app version
+    }
+
+    private void menuImportCustomTypes() {
+        //todo : alert dialog prompting for a file name, check if is a custom types file
     }
 
 //    **********************************************************************************************
@@ -564,8 +619,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     private void saveAs(String projectName) {
         mProject.setName(projectName);
         updateNavigationView();
-
-        //No need to actually save, it will be done on leaving the app
+        mProject.save(getApplicationContext());
     }
 
 }
