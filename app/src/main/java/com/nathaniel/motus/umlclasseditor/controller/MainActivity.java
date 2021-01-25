@@ -39,6 +39,10 @@ import com.nathaniel.motus.umlclasseditor.view.MethodEditorFragment;
 import com.nathaniel.motus.umlclasseditor.view.ParameterEditorFragment;
 import com.nathaniel.motus.umlclasseditor.R;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 
 public class MainActivity extends AppCompatActivity implements FragmentObserver,
@@ -83,6 +87,8 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     public static final String JSON_PACKAGE_VERSION_CODE="PackageVersionCode";
     public static final String JSON_CUSTOM_TYPES="CustomTypes";
 
+    public static final String CUSTOM_TYPES_FILENAME="custom_types";
+
 //    **********************************************************************************************
 //    Views declaration
 //    **********************************************************************************************
@@ -98,13 +104,8 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         //Instantiate views
         mMainActivityFrame=findViewById(R.id.activity_main_frame);
 
-//        mProject=new UmlProject("testProjet",getApplicationContext());
-//        populateProject();
-//        JSONObject jsonObject=mProject.toJSONObject(getApplicationContext());
-//        Log.i("TEST",jsonObject.toString());
-//        mProject.save(getApplicationContext());
-//        mProject=UmlProject.load(getApplicationContext(),"testProjet");
         UmlType.initializePrimitiveUmlTypes(this);
+        initializeCustomUmlTypes();
         getPreferences();
         configureToolbar();
         configureDrawerLayout();
@@ -133,6 +134,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
         mProject.save(getApplicationContext());
         savePreferences();
+        saveCustomTypes();
     }
 
 //    **********************************************************************************************
@@ -179,8 +181,27 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         }
     }
 
+    private void saveCustomTypes() {
+        JSONObject jsonObject=new JSONObject();
+        try {
+            jsonObject.put(JSON_CUSTOM_TYPES,UmlType.getCustomUmlTypesToJSONArray());
+            jsonObject.put(JSON_PACKAGE_VERSION_CODE,IOUtils.getAppVersionCode(this));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        IOUtils.saveFileToInternalStorage(jsonObject.toString(),new File(getFilesDir(),CUSTOM_TYPES_FILENAME));
+    }
+
     private void initializeCustomUmlTypes() {
-        //todo : initializeCustomUmlTypes
+        JSONArray jsonCustomTypes=new JSONArray();
+        JSONObject jsonObject;
+        try {
+            jsonObject=new JSONObject(IOUtils.getFileFromInternalStorage(new File(getFilesDir(),CUSTOM_TYPES_FILENAME)));
+            jsonCustomTypes=jsonObject.getJSONArray(JSON_CUSTOM_TYPES);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        UmlType.getCustomUmlTypesFromJSONArray(jsonCustomTypes);
     }
 
 //    **********************************************************************************************
@@ -549,7 +570,6 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     }
 
     private void menuCreateCustomType() {
-        //todo : alert dialog prompting for a type, check if already exists
         final EditText editText=new EditText(this);
         final Context context=getApplicationContext();
         AlertDialog.Builder adb=new AlertDialog.Builder(this);

@@ -71,6 +71,16 @@ public class UmlType {
         return jsonArray;
     }
 
+    public static void getCustomUmlTypesFromJSONArray(JSONArray jsonArray) {
+        String typeName=(String)jsonArray.remove(0);
+        while (typeName != null) {
+            while (UmlType.containsUmlTypeNamed(typeName))
+                typeName=typeName+"(1)";
+            UmlType.createUmlType(typeName,TypeLevel.CUSTOM);
+            typeName=(String)jsonArray.remove(0);
+        }
+    }
+
     public static void createCustomUmlTypesFromJSONArray(JSONArray jsonArrayTypes) {
         String jsonString=(String)jsonArrayTypes.remove(0);
         while (jsonString!=null) {
