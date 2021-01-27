@@ -21,9 +21,9 @@
             app:showAsAction="never"
             android:title="Create custom type"/>
         <item
-            android:id="@+id/toolbar_menu_delete_custom_type"
+            android:id="@+id/toolbar_menu_delete_custom_types"
             app:showAsAction="never"
-            android:title="Delete custom type"/>
+            android:title="Delete custom types"/>
         <item
             android:id="@+id/toolbar_menu_export_custom_types"
             app:showAsAction="never"

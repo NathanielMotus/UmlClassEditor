@@ -17,16 +17,20 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.navigation.NavigationView;
+import com.nathaniel.motus.umlclasseditor.model.TypeNameComparator;
 import com.nathaniel.motus.umlclasseditor.model.UmlClass;
 import com.nathaniel.motus.umlclasseditor.model.UmlProject;
 import com.nathaniel.motus.umlclasseditor.model.UmlRelation;
@@ -44,6 +48,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements FragmentObserver,
         GraphView.GraphViewObserver,
@@ -543,8 +550,8 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
             menuItemImport();
         } else if (itemId == R.id.toolbar_menu_create_custom_type) {
             menuCreateCustomType();
-        } else if (itemId == R.id.toolbar_menu_delete_custom_type) {
-            menuDeleteCustomType();
+        } else if (itemId == R.id.toolbar_menu_delete_custom_types) {
+            menuDeleteCustomTypes();
         } else if (itemId == R.id.toolbar_menu_export_custom_types) {
             menuExportCustomTypes();
         } else if (itemId == R.id.toolbar_menu_import_custom_types) {
@@ -600,8 +607,45 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
                 .show();
     }
 
-    private void menuDeleteCustomType() {
-        //todo : alert dialog with custom types listed, checkbox to choose
+    private void menuDeleteCustomTypes() {
+        final ListView listView=new ListView(this);
+        List<String> listArray=new ArrayList<>();
+        for (UmlType t:UmlType.getUmlTypes())
+            if (t.isCustomUmlType()) listArray.add(t.getName());
+        Collections.sort(listArray,new TypeNameComparator());
+        ArrayAdapter<String> adapter=new ArrayAdapter<>(this, android.R.layout.simple_list_item_multiple_choice,listArray);
+        listView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+        listView.setAdapter(adapter);
+
+        AlertDialog.Builder adb=new AlertDialog.Builder(this);
+        adb.setTitle("Delete custom types")
+                .setMessage("Check custom types to delete")
+                .setView(listView)
+                .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                })
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        SparseBooleanArray checkMapping=listView.getCheckedItemPositions();
+                        UmlType t;
+                        for (int j = 0; j < checkMapping.size(); j++) {
+                            if (checkMapping.valueAt(j)) {
+                                t=UmlType.valueOf(listView.getItemAtPosition(checkMapping.keyAt(j)).toString(),UmlType.getUmlTypes());
+                                UmlType.removeUmlType(t);
+                                mProject.removeParametersOfType(t);
+                                mProject.removeMethodsOfType(t);
+                                mProject.removeAttributesOfType(t);
+                                mGraphView.invalidate();
+                            }
+                        }
+                    }
+                })
+                .create()
+                .show();
     }
 
     private void menuExportCustomTypes() {
