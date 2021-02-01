@@ -1,11 +1,16 @@
 package com.nathaniel.motus.umlclasseditor.model;
 
 import android.content.Context;
+import android.net.Uri;
 
 import com.nathaniel.motus.umlclasseditor.R;
+import com.nathaniel.motus.umlclasseditor.controller.IOUtils;
 
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class UmlType {
@@ -19,6 +24,12 @@ public class UmlType {
     protected String mName;
     protected TypeLevel mTypeLevel;
     private static ArrayList<UmlType> sUmlTypes=new ArrayList<>();
+
+    private static String CUSTOM_TYPES_FILENAME="custom_types";
+
+    public static final String JSON_PACKAGE_VERSION_CODE="PackageVersionCode";
+    public static final String JSON_CUSTOM_TYPES="CustomTypes";
+
 
 //    **********************************************************************************************
 //    Constructors
@@ -71,21 +82,13 @@ public class UmlType {
         return jsonArray;
     }
 
-    public static void getCustomUmlTypesFromJSONArray(JSONArray jsonArray) {
+    public static void createCustomUmlTypesFromJSONArray(JSONArray jsonArray) {
         String typeName=(String)jsonArray.remove(0);
         while (typeName != null) {
             while (UmlType.containsUmlTypeNamed(typeName))
                 typeName=typeName+"(1)";
             UmlType.createUmlType(typeName,TypeLevel.CUSTOM);
             typeName=(String)jsonArray.remove(0);
-        }
-    }
-
-    public static void createCustomUmlTypesFromJSONArray(JSONArray jsonArrayTypes) {
-        String jsonString=(String)jsonArrayTypes.remove(0);
-        while (jsonString!=null) {
-            createUmlType(jsonString, TypeLevel.CUSTOM);
-            jsonString=(String)jsonArrayTypes.remove(0);
         }
     }
 
@@ -148,4 +151,49 @@ public class UmlType {
             if (t.mName.equals(name)) return true;
         return false;
     }
+
+//    **********************************************************************************************
+//    Save and load methods
+//    **********************************************************************************************
+    public static void saveCustomUmlTypes(Context context) {
+        JSONObject jsonObject=new JSONObject();
+        try {
+            jsonObject.put(JSON_CUSTOM_TYPES,UmlType.getCustomUmlTypesToJSONArray());
+            jsonObject.put(JSON_PACKAGE_VERSION_CODE, IOUtils.getAppVersionCode(context));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        IOUtils.saveFileToInternalStorage(jsonObject.toString(),new File(context.getFilesDir(),CUSTOM_TYPES_FILENAME));
+    }
+
+    public static void initializeCustomUmlTypes(Context context) {
+        try {
+            JSONObject jsonObject=new JSONObject(IOUtils.getFileFromInternalStorage(new File(context.getFilesDir(),CUSTOM_TYPES_FILENAME)));
+            JSONArray jsonCustomTypes=jsonObject.getJSONArray(JSON_CUSTOM_TYPES);
+            UmlType.createCustomUmlTypesFromJSONArray(jsonCustomTypes);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void exportCustomUmlTypes(Context context, Uri toDestination) {
+        JSONObject jsonObject=new JSONObject();
+        try {
+            jsonObject.put(JSON_CUSTOM_TYPES,UmlType.getCustomUmlTypesToJSONArray());
+            jsonObject.put(JSON_PACKAGE_VERSION_CODE,IOUtils.getAppVersionCode(context));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        IOUtils.saveFileToExternalStorage(context,jsonObject.toString(),toDestination);
+    }
+
+    public static void importCustomUmlTypes(Context context, Uri fromDestination) {
+        try {
+            JSONObject jsonObject=new JSONObject(IOUtils.readFileFromExternalStorage(context,fromDestination));
+            UmlType.createCustomUmlTypesFromJSONArray(jsonObject.getJSONArray(JSON_CUSTOM_TYPES));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

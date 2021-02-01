@@ -43,7 +43,6 @@ import com.nathaniel.motus.umlclasseditor.view.MethodEditorFragment;
 import com.nathaniel.motus.umlclasseditor.view.ParameterEditorFragment;
 import com.nathaniel.motus.umlclasseditor.R;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -63,13 +62,10 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     private UmlProject mProject;
     private boolean mExpectingTouchLocation=false;
     private Purpose mPurpose= FragmentObserver.Purpose.NONE;
-    private float mXLocationFromGraphView;
-    private float mYLocationFromGraphView;
     private Toolbar mToolbar;
     private DrawerLayout mDrawerLayout;
     private NavigationView mNavigationView;
     private TextView mMenuHeaderProjectNameText;
-    private String pFileName;
 
 //    **********************************************************************************************
 //    Fragments declaration
@@ -88,13 +84,10 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
     private static final String SHARED_PREFERENCES_PROJECT_NAME="sharedPreferencesProjectName";
 
-    private static final int INTENT_CREATE_DOCUMENT=1000;
-    private static final int INTENT_OPEN_DOCUMENT=2000;
-
-    public static final String JSON_PACKAGE_VERSION_CODE="PackageVersionCode";
-    public static final String JSON_CUSTOM_TYPES="CustomTypes";
-
-    public static final String CUSTOM_TYPES_FILENAME="custom_types";
+    private static final int INTENT_CREATE_DOCUMENT_EXPORT_PROJECT =1000;
+    private static final int INTENT_OPEN_DOCUMENT_IMPORT_PROJECT =2000;
+    private static final int INTENT_CREATE_DOCUMENT_EXPORT_CUSTOM_TYPES=3000;
+    private static final int INTENT_OPEN_DOCUMENT_IMPORT_CUSTOM_TYPES=4000;
 
 //    **********************************************************************************************
 //    Views declaration
@@ -112,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         mMainActivityFrame=findViewById(R.id.activity_main_frame);
 
         UmlType.initializePrimitiveUmlTypes(this);
-        initializeCustomUmlTypes();
+        UmlType.initializeCustomUmlTypes(this);
         getPreferences();
         configureToolbar();
         configureDrawerLayout();
@@ -141,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
         mProject.save(getApplicationContext());
         savePreferences();
-        saveCustomTypes();
+        UmlType.saveCustomUmlTypes(this);
     }
 
 //    **********************************************************************************************
@@ -186,29 +179,6 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         } else {
             mProject=new UmlProject("NewProject",getApplicationContext());
         }
-    }
-
-    private void saveCustomTypes() {
-        JSONObject jsonObject=new JSONObject();
-        try {
-            jsonObject.put(JSON_CUSTOM_TYPES,UmlType.getCustomUmlTypesToJSONArray());
-            jsonObject.put(JSON_PACKAGE_VERSION_CODE,IOUtils.getAppVersionCode(this));
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        IOUtils.saveFileToInternalStorage(jsonObject.toString(),new File(getFilesDir(),CUSTOM_TYPES_FILENAME));
-    }
-
-    private void initializeCustomUmlTypes() {
-        JSONArray jsonCustomTypes=new JSONArray();
-        JSONObject jsonObject;
-        try {
-            jsonObject=new JSONObject(IOUtils.getFileFromInternalStorage(new File(getFilesDir(),CUSTOM_TYPES_FILENAME)));
-            jsonCustomTypes=jsonObject.getJSONArray(JSON_CUSTOM_TYPES);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        UmlType.getCustomUmlTypesFromJSONArray(jsonCustomTypes);
     }
 
 //    **********************************************************************************************
@@ -567,13 +537,13 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     private void menuItemExport() {
         Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.setType("text/*");
-        startActivityForResult(intent,INTENT_CREATE_DOCUMENT);
+        startActivityForResult(intent, INTENT_CREATE_DOCUMENT_EXPORT_PROJECT);
     }
 
     private void menuItemImport() {
         Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.setType("text/*");
-        startActivityForResult(intent,INTENT_OPEN_DOCUMENT);
+        startActivityForResult(intent, INTENT_OPEN_DOCUMENT_IMPORT_PROJECT);
     }
 
     private void menuCreateCustomType() {
@@ -649,11 +619,15 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     }
 
     private void menuExportCustomTypes() {
-        //todo : alert dialog prompting for a file name, include app version
+        Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.setType("text/*");
+        startActivityForResult(intent,INTENT_CREATE_DOCUMENT_EXPORT_CUSTOM_TYPES);
     }
 
     private void menuImportCustomTypes() {
-        //todo : alert dialog prompting for a file name, check if is a custom types file
+        Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.setType("text/*");
+        startActivityForResult(intent,INTENT_OPEN_DOCUMENT_IMPORT_CUSTOM_TYPES);
     }
 
 //    **********************************************************************************************
@@ -663,14 +637,20 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
 
-        if (requestCode == INTENT_CREATE_DOCUMENT && resultCode == RESULT_OK) {
+        if (requestCode == INTENT_CREATE_DOCUMENT_EXPORT_PROJECT && resultCode == RESULT_OK) {
             Uri fileNameUri=data.getData();
             mProject.exportProject(this,fileNameUri);
-        } else if (requestCode == INTENT_OPEN_DOCUMENT && resultCode == RESULT_OK) {
+        } else if (requestCode == INTENT_OPEN_DOCUMENT_IMPORT_PROJECT && resultCode == RESULT_OK) {
             Uri fileNameUri=data.getData();
             UmlType.clearProjectUmlTypes();
             mProject=UmlProject.importProject(this,fileNameUri);
             mGraphView.setUmlProject(mProject);
+        } else if (requestCode == INTENT_CREATE_DOCUMENT_EXPORT_CUSTOM_TYPES && resultCode == RESULT_OK) {
+            Uri fileNameUri=data.getData();
+            UmlType.exportCustomUmlTypes(this,fileNameUri);
+        } else if (requestCode == INTENT_OPEN_DOCUMENT_IMPORT_CUSTOM_TYPES && resultCode == RESULT_OK) {
+            Uri fileNameUri=data.getData();
+            UmlType.importCustomUmlTypes(this,fileNameUri);
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
