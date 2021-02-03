@@ -1,21 +1,14 @@
 package com.nathaniel.motus.umlclasseditor.controller;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.view.GravityCompat;
-import androidx.core.view.MenuCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.Fragment;
-
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.SparseBooleanArray;
 import android.view.Menu;
@@ -29,7 +22,19 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.core.view.MenuCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+
 import com.google.android.material.navigation.NavigationView;
+import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.model.TypeNameComparator;
 import com.nathaniel.motus.umlclasseditor.model.UmlClass;
 import com.nathaniel.motus.umlclasseditor.model.UmlProject;
@@ -41,10 +46,6 @@ import com.nathaniel.motus.umlclasseditor.view.GraphFragment;
 import com.nathaniel.motus.umlclasseditor.view.GraphView;
 import com.nathaniel.motus.umlclasseditor.view.MethodEditorFragment;
 import com.nathaniel.motus.umlclasseditor.view.ParameterEditorFragment;
-import com.nathaniel.motus.umlclasseditor.R;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -56,7 +57,6 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         NavigationView.OnNavigationItemSelectedListener{
 
     //todo : user manual
-    //todo : permissions for lollypop+
     //todo : app icon
 
     private UmlProject mProject;
@@ -66,6 +66,11 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     private DrawerLayout mDrawerLayout;
     private NavigationView mNavigationView;
     private TextView mMenuHeaderProjectNameText;
+
+    private static boolean sWriteExternalStoragePermission =true;
+    private static boolean sReadExternalStoragePermission=true;
+    private static final int WRITE_EXTERNAL_STORAGE_INDEX=0;
+    private static final int READ_EXTERNAL_STORAGE_INDEX=1;
 
 //    **********************************************************************************************
 //    Fragments declaration
@@ -88,6 +93,8 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     private static final int INTENT_OPEN_DOCUMENT_IMPORT_PROJECT =2000;
     private static final int INTENT_CREATE_DOCUMENT_EXPORT_CUSTOM_TYPES=3000;
     private static final int INTENT_OPEN_DOCUMENT_IMPORT_CUSTOM_TYPES=4000;
+
+    private static final int REQUEST_PERMISSION=5000;
 
 //    **********************************************************************************************
 //    Views declaration
@@ -135,6 +142,13 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         mProject.save(getApplicationContext());
         savePreferences();
         UmlType.saveCustomUmlTypes(this);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @Override
+    protected void onResume() {
+        super.onResume();
+        checkPermissions();
     }
 
 //    **********************************************************************************************
@@ -515,17 +529,21 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     public boolean onOptionsItemSelected(MenuItem menuItem) {
         int itemId = menuItem.getItemId();
         if (itemId == R.id.toolbar_menu_export) {
-            menuItemExport();
+            if(sWriteExternalStoragePermission)
+                menuItemExport();
         } else if (itemId == R.id.toolbar_menu_import) {
-            menuItemImport();
+            if (sReadExternalStoragePermission)
+                menuItemImport();
         } else if (itemId == R.id.toolbar_menu_create_custom_type) {
             menuCreateCustomType();
         } else if (itemId == R.id.toolbar_menu_delete_custom_types) {
             menuDeleteCustomTypes();
         } else if (itemId == R.id.toolbar_menu_export_custom_types) {
-            menuExportCustomTypes();
+            if (sWriteExternalStoragePermission)
+                menuExportCustomTypes();
         } else if (itemId == R.id.toolbar_menu_import_custom_types) {
-            menuImportCustomTypes();
+            if (sReadExternalStoragePermission)
+                menuImportCustomTypes();
         }
         return true;
     }
@@ -626,7 +644,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
     private void menuImportCustomTypes() {
         Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.setType("text/*");
+        intent.setType("*/*");
         startActivityForResult(intent,INTENT_OPEN_DOCUMENT_IMPORT_CUSTOM_TYPES);
     }
 
@@ -655,6 +673,19 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_PERMISSION && grantResults[WRITE_EXTERNAL_STORAGE_INDEX]==PackageManager.PERMISSION_GRANTED)
+            sWriteExternalStoragePermission =true;
+        else
+            sWriteExternalStoragePermission =false;
+
+        if (requestCode == REQUEST_PERMISSION && grantResults[READ_EXTERNAL_STORAGE_INDEX]==PackageManager.PERMISSION_GRANTED)
+            sReadExternalStoragePermission =true;
+        else
+            sReadExternalStoragePermission =false;
+    }
 
 //    **********************************************************************************************
 //    Project management methods
@@ -665,5 +696,23 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         updateNavigationView();
         mProject.save(getApplicationContext());
     }
+
+//    **********************************************************************************************
+//    Check permissions
+//    **********************************************************************************************
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void checkPermissions() {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+            String[] permissionString={Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE};
+
+            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED
+            || checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)!=PackageManager.PERMISSION_GRANTED)
+                requestPermissions(permissionString, REQUEST_PERMISSION);
+        }
+    }
+
 
 }
