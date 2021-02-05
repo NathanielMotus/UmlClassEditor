@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -460,7 +461,7 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
                 && mCallback.getProject().getUmlClasses().indexOf(mCallback.getProject().getUmlClass(getClassName()))!=mClassIndex) {
             Toast.makeText(getContext(),"This name already exists in project",Toast.LENGTH_SHORT).show();
             return false;
-        } else if (UmlType.containsUmlTypeNamed(getClassName())) {
+        } else if (UmlType.containsUmlTypeNamed(getClassName()) && UmlType.valueOf(getClassName(),UmlType.getUmlTypes()).getTypeLevel()!= UmlType.TypeLevel.PROJECT) {
             Toast.makeText(getContext(), "This name already exists as standard or custom type", Toast.LENGTH_SHORT).show();
             return false;
         }else if (mClassIndex == -1) {

@@ -135,6 +135,11 @@ public class UmlClass extends UmlType {
         super.setName(name);
     }
 
+    @Override
+    public String getName() {
+        return super.getName();
+    }
+
 //    **********************************************************************************************
 //    Modifiers
 //    **********************************************************************************************

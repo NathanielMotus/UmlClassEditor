@@ -11,6 +11,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class UmlProject {
 
@@ -64,7 +65,7 @@ public class UmlProject {
 
     public UmlClass getUmlClass(String className) {
         for (UmlClass c:mUmlClasses)
-            if (c.mName.equals(className)) return c;
+            if (Objects.equals(c.getName(), className)) return c;
 
         return null;
     }

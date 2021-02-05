@@ -57,7 +57,6 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         NavigationView.OnNavigationItemSelectedListener{
 
     //todo : user manual
-    //todo : app icon
 
     private UmlProject mProject;
     private boolean mExpectingTouchLocation=false;
