@@ -129,7 +129,18 @@ public class UmlClassMethod {
                 completeString=completeString+", ";
         }
 
-        completeString=completeString+") : "+mUmlType.getName();
+        completeString=completeString+") : ";
+
+        switch (mTypeMultiplicity) {
+            case COLLECTION:
+                completeString=completeString+"<"+mUmlType.getName()+">";
+                break;
+            case ARRAY:
+                completeString=completeString+"["+mUmlType.getName()+"]^"+mArrayDimension;
+                break;
+            default:
+                completeString=completeString+mUmlType.getName();
+        }
 
         return completeString;
     }

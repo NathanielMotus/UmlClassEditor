@@ -113,8 +113,17 @@ public class UmlClassAttribute {
                 break;
         }
 
-        completeString=completeString+mName+" : "+mUmlType.getName();
-
+        switch (mTypeMultiplicity) {
+            case COLLECTION:
+                completeString=completeString+mName+" : <"+mUmlType.getName()+">";
+                break;
+            case ARRAY:
+                completeString=completeString+mName+" : ["+mUmlType.getName()+"]^"+ mArrayDimension;
+                break;
+            default:
+                completeString=completeString+mName+" : "+mUmlType.getName();
+                break;
+        }
         return completeString;
     }
 
