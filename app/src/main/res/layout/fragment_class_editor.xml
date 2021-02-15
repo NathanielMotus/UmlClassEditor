@@ -90,118 +90,26 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/class_attributes_relative"
+        android:layout_height="300dp"
+        android:id="@+id/class_members_relative"
         android:layout_alignStart="@id/class_type_radio_group"
         android:layout_below="@id/class_type_radio_group"
         android:layout_marginBottom="20sp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/class_attributes_text"
-            android:layout_marginBottom="20sp"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
-            android:textSize="18sp"
-            android:text="Attributes"/>
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/class_add_attribute_button"
-            android:layout_alignParentEnd="true"
-            android:layout_alignBaseline="@id/class_attributes_text"
-            android:textSize="18sp"
-            android:text="+"/>
-
-        <ListView
-            android:id="@+id/class_attributes_list"
+        <ExpandableListView
+            android:id="@+id/class_members_list"
             android:layout_width="match_parent"
-            android:layout_height="150dp"
-            android:layout_below="@id/class_attributes_text"
-            android:layout_alignStart="@id/class_attributes_text"/>
-
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/class_methods_relative"
-        android:layout_alignStart="@id/class_attributes_relative"
-        android:layout_below="@id/class_attributes_relative"
-        android:layout_marginBottom="20sp">
-
-        <TextView
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/class_methods_text"
-            android:layout_marginBottom="20sp"
             android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
-            android:textSize="18sp"
-            android:text="Methods"/>
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/class_add_method_button"
-            android:layout_alignBaseline="@id/class_methods_text"
-            android:layout_alignParentEnd="true"
-            android:textSize="18sp"
-            android:text="+"/>
-
-        <ListView
-            android:layout_width="wrap_content"
-            android:layout_height="150dp"
-            android:id="@+id/class_methods_list"
-            android:layout_alignStart="@id/class_methods_text"
-            android:layout_below="@id/class_methods_text"/>
+            android:layout_alignParentTop="true"/>
 
     </RelativeLayout>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/class_values_relative"
-        android:layout_alignStart="@id/class_attributes_relative"
-        android:layout_below="@id/class_methods_relative"
-        android:layout_marginBottom="20sp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/class_values_text"
-            android:layout_marginBottom="20sp"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
-            android:textSize="18sp"
-            android:text="Values"/>
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/class_add_value_button"
-            android:layout_alignBaseline="@id/class_values_text"
-            android:layout_alignParentEnd="true"
-            android:textSize="18sp"
-            android:text="+"/>
-
-        <ListView
-            android:layout_width="wrap_content"
-            android:layout_height="150dp"
-            android:id="@+id/class_values_list"
-            android:layout_alignStart="@id/class_values_text"
-            android:layout_below="@id/class_values_text"/>
-
-    </RelativeLayout>
-
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/class_values_relative"
         android:paddingBottom="18sp"
+        android:layout_below="@id/class_members_relative"
         android:gravity="center_horizontal">
         <Button
             android:layout_width="wrap_content"

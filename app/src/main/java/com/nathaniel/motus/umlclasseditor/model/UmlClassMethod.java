@@ -6,15 +6,17 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-public class UmlClassMethod {
+public class UmlClassMethod implements AdapterItem{
 
     private String mName;
+    private int mMethodIndex;
     private Visibility mVisibility=Visibility.PRIVATE;
     private boolean mStatic =false;
     private UmlType mUmlType;
     private TypeMultiplicity mTypeMultiplicity=TypeMultiplicity.SINGLE;
     private int mArrayDimension =1;
     private ArrayList<MethodParameter> mParameters;
+    private int mParameterCount;
 
     public static final String JSON_CLASS_METHOD_NAME="ClassMethodName";
     public static final String JSON_CLASS_METHOD_VISIBILITY="ClassMethodVisibility";
@@ -23,29 +25,41 @@ public class UmlClassMethod {
     public static final String JSON_CLASS_METHOD_TYPE_MULTIPLICITY="ClassMethodTypeMultiplicity";
     public static final String JSON_CLASS_METHOD_ARRAY_DIMENSION="ClassMethodArrayDimension";
     public static final String JSON_CLASS_METHOD_PARAMETERS="ClassMethodParameters";
+    public static final String JSON_CLASS_METHOD_PARAMETER_COUNT="ClassMethodParameterCount";
+    public static final String JSON_CLASS_METHOD_INDEX="ClassMethodIndex";
 
 //    **********************************************************************************************
 //    Constructors
 //    **********************************************************************************************
 
-    public UmlClassMethod(String name, Visibility visibility, boolean aStatic, UmlType umlType, TypeMultiplicity typeMultiplicity, int arrayDimension) {
+    public UmlClassMethod(String name,int methodIndex, Visibility visibility, boolean aStatic, UmlType umlType, TypeMultiplicity typeMultiplicity, int arrayDimension) {
         mName = name;
+        mMethodIndex=methodIndex;
         mVisibility = visibility;
         mStatic = aStatic;
         mUmlType = umlType;
         mTypeMultiplicity = typeMultiplicity;
         mArrayDimension = arrayDimension;
         mParameters=new ArrayList<>();
+        mParameterCount=0;
     }
 
-    public UmlClassMethod(String mName, Visibility mVisibility, boolean mStatic, UmlType mUmlType, TypeMultiplicity mTypeMultiplicity, int mArrayDimension, ArrayList<MethodParameter> mParameters) {
+    public UmlClassMethod(String mName,int methodIndex, Visibility mVisibility, boolean mStatic, UmlType mUmlType, TypeMultiplicity mTypeMultiplicity, int mArrayDimension, ArrayList<MethodParameter> mParameters, int parameterCount) {
         this.mName = mName;
+        this.mMethodIndex=methodIndex;
         this.mVisibility = mVisibility;
         this.mStatic = mStatic;
         this.mUmlType = mUmlType;
         this.mTypeMultiplicity = mTypeMultiplicity;
         this.mArrayDimension = mArrayDimension;
         this.mParameters = mParameters;
+        this.mParameterCount=parameterCount;
+    }
+
+    public UmlClassMethod(int methodIndex) {
+        mMethodIndex=methodIndex;
+        mParameterCount=0;
+        mParameters=new ArrayList<>();
     }
 
 //    **********************************************************************************************
@@ -104,6 +118,22 @@ public class UmlClassMethod {
         return mParameters;
     }
 
+    public int getMethodIndex() {
+        return mMethodIndex;
+    }
+
+    public void setMethodIndex(int methodIndex) {
+        mMethodIndex = methodIndex;
+    }
+
+    public int getParameterCount() {
+        return mParameterCount;
+    }
+
+    public void setParameterCount(int parameterCount) {
+        mParameterCount = parameterCount;
+    }
+
     public String getMethodCompleteString() {
         //return method name with conventional modifiers
 
@@ -145,6 +175,13 @@ public class UmlClassMethod {
         return completeString;
     }
 
+    public static int indexOf(String methodName, ArrayList<UmlClassMethod> methods) {
+        for (UmlClassMethod m:methods)
+            if (methodName.equals(m.mName)) return methods.indexOf(m);
+
+        return -1;
+    }
+
 //    **********************************************************************************************
 //    Modifiers
 //    **********************************************************************************************
@@ -157,6 +194,10 @@ public class UmlClassMethod {
         mParameters.remove(parameter);
     }
 
+    public void incrementParameterCount() {
+        mParameterCount++;
+    }
+
 //    **********************************************************************************************
 //    JSON methods
 //    **********************************************************************************************
@@ -166,12 +207,14 @@ public class UmlClassMethod {
 
         try {
             jsonObject.put(JSON_CLASS_METHOD_NAME, mName);
+            jsonObject.put(JSON_CLASS_METHOD_INDEX,mMethodIndex);
             jsonObject.put(JSON_CLASS_METHOD_VISIBILITY, mVisibility);
             jsonObject.put(JSON_CLASS_METHOD_STATIC, mStatic);
             jsonObject.put(JSON_CLASS_METHOD_TYPE, mUmlType.getName());
             jsonObject.put(JSON_CLASS_METHOD_TYPE_MULTIPLICITY, mTypeMultiplicity);
             jsonObject.put(JSON_CLASS_METHOD_ARRAY_DIMENSION, mArrayDimension);
             jsonObject.put(JSON_CLASS_METHOD_PARAMETERS, getParametersToJSONArray());
+            jsonObject.put(JSON_CLASS_METHOD_PARAMETER_COUNT,mParameterCount);
             return jsonObject;
         } catch (JSONException jsonException) {
             return null;
@@ -184,12 +227,14 @@ public class UmlClassMethod {
                 UmlType.createUmlType(jsonObject.getString(JSON_CLASS_METHOD_TYPE), UmlType.TypeLevel.CUSTOM);
 
             return new UmlClassMethod(jsonObject.getString(JSON_CLASS_METHOD_NAME),
+                    jsonObject.getInt(JSON_CLASS_METHOD_INDEX),
                     Visibility.valueOf(jsonObject.getString(JSON_CLASS_METHOD_VISIBILITY)),
                     jsonObject.getBoolean(JSON_CLASS_METHOD_STATIC),
                     UmlType.valueOf(jsonObject.getString(JSON_CLASS_METHOD_TYPE), UmlType.getUmlTypes()),
                     TypeMultiplicity.valueOf(jsonObject.getString(JSON_CLASS_METHOD_TYPE_MULTIPLICITY)),
                     jsonObject.getInt(JSON_CLASS_METHOD_ARRAY_DIMENSION),
-                    getParametersFromJSONArray(jsonObject.getJSONArray(JSON_CLASS_METHOD_PARAMETERS)));
+                    getParametersFromJSONArray(jsonObject.getJSONArray(JSON_CLASS_METHOD_PARAMETERS)),
+                    jsonObject.getInt(JSON_CLASS_METHOD_PARAMETER_COUNT));
         } catch (JSONException jsonException) {
             return null;
         }

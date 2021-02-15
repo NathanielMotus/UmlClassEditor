@@ -2,4 +2,10 @@
     <string name="app_name">UML Class Editor</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="new_attribute_string">New attribute...</string>
+    <string name="new_method_string">New method...</string>
+    <string name="attributes_string">Attributes</string>
+    <string name="methods_string">Methods</string>
+    <string name="new_value_string">New value...</string>
+    <string name="values_string">Values</string>
 </resources>

@@ -25,6 +25,8 @@ import com.nathaniel.motus.umlclasseditor.controller.FragmentObserver;
 import com.nathaniel.motus.umlclasseditor.model.MethodParameter;
 import com.nathaniel.motus.umlclasseditor.model.TypeMultiplicity;
 import com.nathaniel.motus.umlclasseditor.model.TypeNameComparator;
+import com.nathaniel.motus.umlclasseditor.model.UmlClass;
+import com.nathaniel.motus.umlclasseditor.model.UmlClassMethod;
 import com.nathaniel.motus.umlclasseditor.model.UmlType;
 
 import java.util.ArrayList;
@@ -39,11 +41,16 @@ import java.util.List;
 public class ParameterEditorFragment extends Fragment implements View.OnClickListener, RadioGroup.OnCheckedChangeListener {
 
     private static final String PARAMETER_INDEX_KEY="parameterIndex";
+    private static final String METHOD_INDEX_KEY="methodIndex";
+    private static final String CLASS_INDEX_KEY="classIndex";
     private static final String METHOD_EDITOR_FRAGMENT_TAG_KEY="methodEditorFragmentTag";
     private int mParameterIndex;
+    private int mMethodIndex;
+    private int mClassIndex;
     private String mMethodEditorFragmentTag;
     private MethodParameter mMethodParameter;
-    private ArrayList<MethodParameter> mMethodParameters;
+    private UmlClassMethod mUmlClassMethod;
+    private UmlClass mUmlClass;
     private FragmentObserver mCallback;
 
     private TextView mEditParameterText;
@@ -71,11 +78,13 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
         // Required empty public constructor
     }
 
-    public static ParameterEditorFragment newInstance(String methodEditorFragmentTag, int parameterIndex) {
+    public static ParameterEditorFragment newInstance(String methodEditorFragmentTag, int parameterIndex,int methodIndex,int classIndex) {
         ParameterEditorFragment fragment = new ParameterEditorFragment();
         Bundle args = new Bundle();
         args.putString(METHOD_EDITOR_FRAGMENT_TAG_KEY,methodEditorFragmentTag);
         args.putInt(PARAMETER_INDEX_KEY,parameterIndex);
+        args.putInt(METHOD_INDEX_KEY,methodIndex);
+        args.putInt(CLASS_INDEX_KEY,classIndex);
         fragment.setArguments(args);
         return fragment;
     }
@@ -86,6 +95,8 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
         if (getArguments() != null) {
             mMethodEditorFragmentTag = getArguments().getString(METHOD_EDITOR_FRAGMENT_TAG_KEY);
             mParameterIndex = getArguments().getInt(PARAMETER_INDEX_KEY);
+            mClassIndex=getArguments().getInt(CLASS_INDEX_KEY);
+            mMethodIndex=getArguments().getInt(METHOD_INDEX_KEY);
         }
     }
 
@@ -100,8 +111,8 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        initializeMembers();
         createCallbackToParentActivity();
+        initializeMembers();
         configureViews();
         initializeFields();
         if (mParameterIndex==-1) setOnCreateDisplay();
@@ -120,6 +131,7 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
         int tag=(int)v.getTag();
         switch (tag) {
             case CANCEL_BUTTON_TAG:
+                if (mParameterIndex==-1) mUmlClassMethod.removeParameter(mMethodParameter);
                 mCallback.closeParameterEditorFragment(this);
                 break;
             case OK_BUTTON_TAG:
@@ -127,25 +139,7 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
                     mCallback.closeParameterEditorFragment(this);
                 break;
             case DELETE_PARAMETER_BUTTON_TAG:
-                final Fragment fragment=this;
-                AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
-                builder.setTitle("Delete Parameter")
-                        .setMessage("Are you sure you to delete this parameter ?")
-                        .setNegativeButton("NO", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-
-                            }
-                        })
-                        .setPositiveButton("YES", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                mMethodParameters.remove(mMethodParameter);
-                                mCallback.closeParameterEditorFragment(fragment);
-                            }
-                        });
-                AlertDialog dialog=builder.create();
-                dialog.show();
+                startDeleteParameterDialog();
                 break;
         }
     }
@@ -162,10 +156,14 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
 //    **********************************************************************************************
 
     private void initializeMembers() {
-        mMethodParameters=((MethodEditorFragment)getFragmentManager().findFragmentByTag(mMethodEditorFragmentTag)).getMethodParameters();
+        mUmlClass=mCallback.getProject().getUmlClasses().get(mClassIndex);
+        mUmlClassMethod=mUmlClass.getMethods().get(mMethodIndex);
 
         if (mParameterIndex != -1) {
-            mMethodParameter=mMethodParameters.get(mParameterIndex);
+            mMethodParameter = mUmlClassMethod.getParameters().get(mParameterIndex);
+        } else {
+            mMethodParameter=new MethodParameter(mUmlClassMethod.getParameterCount());
+            mUmlClassMethod.addParameter(mMethodParameter);
         }
     }
 
@@ -258,14 +256,10 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
             Toast.makeText(getContext(),"Parameter cannot be blank",Toast.LENGTH_SHORT).show();
             return false;
         }else {
-            if (mParameterIndex == -1) {
-                mMethodParameters.add(new MethodParameter(getParameterName(), getParameterType(), getParameterMultiplicity(), getArrayDimension()));
-            } else {
                 mMethodParameter.setName(getParameterName());
                 mMethodParameter.setUmlType(getParameterType());
                 mMethodParameter.setTypeMultiplicity(getParameterMultiplicity());
                 mMethodParameter.setArrayDimension(getArrayDimension());
-            }
             return true;
         }
     }
@@ -287,5 +281,31 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
     private int getArrayDimension() {
         if (mDimEdit.getText().toString().equals("")) return 0;
         return Integer.parseInt(mDimEdit.getText().toString());
+    }
+
+    //    **********************************************************************************************
+//    Alert dialogs
+//    **********************************************************************************************
+    private void startDeleteParameterDialog() {
+        final Fragment fragment=this;
+        AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
+        builder.setTitle("Delete Parameter")
+                .setMessage("Are you sure you to delete this parameter ?")
+                .setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                })
+                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mUmlClassMethod.getParameters().remove(mMethodParameter);
+                        mCallback.closeParameterEditorFragment(fragment);
+                    }
+                });
+        AlertDialog dialog=builder.create();
+        dialog.show();
+
     }
 }

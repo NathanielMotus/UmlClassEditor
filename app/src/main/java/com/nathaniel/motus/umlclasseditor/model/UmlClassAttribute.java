@@ -3,9 +3,12 @@ package com.nathaniel.motus.umlclasseditor.model;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class UmlClassAttribute {
+import java.util.ArrayList;
+
+public class UmlClassAttribute implements AdapterItem{
 
     private String mName;
+    private int mAttributeIndex;
     private Visibility mVisibility=Visibility.PRIVATE;
     private boolean mStatic=false;
     private boolean mFinal =false;
@@ -14,6 +17,7 @@ public class UmlClassAttribute {
     private int mArrayDimension =1; //only used if it's a table
 
     public static final String JSON_CLASS_ATTRIBUTE_NAME="ClassAttributeName";
+    public static final String JSON_CLASS_ATTRIBUTE_INDEX="ClassAttributeIndex";
     public static final String JSON_CLASS_ATTRIBUTE_VISIBILITY ="ClassAttributeVisibility";
     public static final String JSON_CLASS_ATTRIBUTE_STATIC="ClassAttributeStatic";
     public static final String JSON_CLASS_ATTRIBUTE_FINAL="ClassAttributeFinal";
@@ -26,14 +30,19 @@ public class UmlClassAttribute {
 //    Constructors
 //    **********************************************************************************************
 
-    public UmlClassAttribute(String name, Visibility visibility, boolean aStatic, boolean aFinal, UmlType umlType, TypeMultiplicity typeMultiplicity, int arrayDimension) {
+    public UmlClassAttribute(String name,int attributeIndex, Visibility visibility, boolean aStatic, boolean aFinal, UmlType umlType, TypeMultiplicity typeMultiplicity, int arrayDimension) {
         mName = name;
+        mAttributeIndex=attributeIndex;
         mVisibility = visibility;
         mStatic = aStatic;
         mFinal = aFinal;
         mUmlType = umlType;
         mTypeMultiplicity = typeMultiplicity;
         mArrayDimension = arrayDimension;
+    }
+
+    public UmlClassAttribute(int attributeIndex) {
+        mAttributeIndex=attributeIndex;
     }
 
 //    **********************************************************************************************
@@ -127,6 +136,24 @@ public class UmlClassAttribute {
         return completeString;
     }
 
+    public static int indexOf(String attributeName, ArrayList<UmlClassAttribute> attributes) {
+        for (UmlClassAttribute a:attributes)
+            if (attributeName.equals(a.mName)) return attributes.indexOf(a);
+
+        return -1;
+    }
+
+    public int getAttributeIndex() {
+        return mAttributeIndex;
+    }
+
+    public void setAttributeIndex(int attributeIndex) {
+        mAttributeIndex = attributeIndex;
+    }
+
+    //todo : when creating new attribute, check if it already exists
+    //todo : when creating new method, check if it already exists with same signature
+
 //    **********************************************************************************************
 //    JSON methods
 //    **********************************************************************************************
@@ -136,6 +163,7 @@ public class UmlClassAttribute {
 
         try {
             jsonObject.put(JSON_CLASS_ATTRIBUTE_NAME, mName);
+            jsonObject.put(JSON_CLASS_ATTRIBUTE_INDEX,mAttributeIndex);
             jsonObject.put(JSON_CLASS_ATTRIBUTE_VISIBILITY, mVisibility.toString());
             jsonObject.put(JSON_CLASS_ATTRIBUTE_STATIC, mStatic);
             jsonObject.put(JSON_CLASS_ATTRIBUTE_FINAL, mFinal);
@@ -154,6 +182,7 @@ public class UmlClassAttribute {
                 UmlType.createUmlType(jsonObject.getString(JSON_CLASS_ATTRIBUTE_TYPE), UmlType.TypeLevel.CUSTOM);
 
             return new UmlClassAttribute(jsonObject.getString(JSON_CLASS_ATTRIBUTE_NAME),
+                    jsonObject.getInt(JSON_CLASS_ATTRIBUTE_INDEX),
                     Visibility.valueOf(jsonObject.getString(JSON_CLASS_ATTRIBUTE_VISIBILITY)),
                     jsonObject.getBoolean(JSON_CLASS_ATTRIBUTE_STATIC),
                     jsonObject.getBoolean(JSON_CLASS_ATTRIBUTE_FINAL),

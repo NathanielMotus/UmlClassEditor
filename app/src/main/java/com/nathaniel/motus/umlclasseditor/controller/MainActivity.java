@@ -57,6 +57,8 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         NavigationView.OnNavigationItemSelectedListener{
 
     //todo : user manual
+    //todo : isolate alert dialog launchers
+    //todo : programmatically modify expandablelistviews height when collapsed or expanded
 
     private UmlProject mProject;
     private boolean mExpectingTouchLocation=false;
@@ -217,9 +219,9 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
                 .commit();
     }
 
-    private void configureAndDisplayAttributeEditorFragment(int viewContainerId,int attributeIndex) {
+    private void configureAndDisplayAttributeEditorFragment(int viewContainerId,int attributeIndex,int classIndex) {
 
-        mAttributeEditorFragment=AttributeEditorFragment.newInstance(mClassEditorFragment.getTag(),attributeIndex);
+        mAttributeEditorFragment=AttributeEditorFragment.newInstance(mClassEditorFragment.getTag(),attributeIndex,classIndex);
         getSupportFragmentManager().beginTransaction()
                 .hide(mClassEditorFragment)
                 .add(viewContainerId,mAttributeEditorFragment,ATTRIBUTE_EDITOR_FRAGMENT_TAG)
@@ -227,8 +229,8 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
                 .commit();
     }
 
-    private void configureAndDisplayMethodEditorFragment(int viewContainerId, int methodIndex) {
-        mMethodEditorFragment=MethodEditorFragment.newInstance(mClassEditorFragment.getTag(),methodIndex);
+    private void configureAndDisplayMethodEditorFragment(int viewContainerId, int methodIndex,int classIndex) {
+        mMethodEditorFragment=MethodEditorFragment.newInstance(mClassEditorFragment.getTag(),methodIndex,classIndex);
         getSupportFragmentManager().beginTransaction()
                 .hide(mClassEditorFragment)
                 .add(viewContainerId,mMethodEditorFragment,METHOD_EDITOR_FRAGMENT_TAG)
@@ -236,8 +238,8 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
                 .commit();
     }
 
-    private void configureAndDisplayParameterEditorFragment(int viewContainerId, int parameterIndex) {
-        mParameterEditorFragment=ParameterEditorFragment.newInstance(mMethodEditorFragment.getTag(),parameterIndex);
+    private void configureAndDisplayParameterEditorFragment(int viewContainerId, int parameterIndex,int methodIndex,int classIndex) {
+        mParameterEditorFragment=ParameterEditorFragment.newInstance(mMethodEditorFragment.getTag(),parameterIndex,methodIndex,classIndex);
         getSupportFragmentManager().beginTransaction()
                 .hide(mMethodEditorFragment)
                 .add(viewContainerId,mParameterEditorFragment,PARAMETER_EDITOR_FRAGMENT_TAG)
@@ -302,18 +304,18 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     }
 
     @Override
-    public void openAttributeEditorFragment(int attributeIndex) {
-        configureAndDisplayAttributeEditorFragment(R.id.activity_main_frame,attributeIndex);
+    public void openAttributeEditorFragment(int attributeIndex,int classIndex) {
+        configureAndDisplayAttributeEditorFragment(R.id.activity_main_frame,attributeIndex,classIndex);
     }
 
     @Override
-    public void openMethodEditorFragment(int methodIndex) {
-        configureAndDisplayMethodEditorFragment(R.id.activity_main_frame,methodIndex);
+    public void openMethodEditorFragment(int methodIndex,int classIndex) {
+        configureAndDisplayMethodEditorFragment(R.id.activity_main_frame,methodIndex,classIndex);
     }
 
     @Override
-    public void openParameterEditorFragment(int parameterIndex) {
-        configureAndDisplayParameterEditorFragment(R.id.activity_main_frame,parameterIndex);
+    public void openParameterEditorFragment(int parameterIndex,int methodIndex,int classIndex) {
+        configureAndDisplayParameterEditorFragment(R.id.activity_main_frame,parameterIndex,methodIndex,classIndex);
     }
 
     @Override

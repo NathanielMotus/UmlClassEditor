@@ -26,6 +26,7 @@ import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.controller.FragmentObserver;
 import com.nathaniel.motus.umlclasseditor.model.TypeMultiplicity;
 import com.nathaniel.motus.umlclasseditor.model.TypeNameComparator;
+import com.nathaniel.motus.umlclasseditor.model.UmlClass;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassAttribute;
 import com.nathaniel.motus.umlclasseditor.model.UmlType;
 import com.nathaniel.motus.umlclasseditor.model.Visibility;
@@ -44,12 +45,14 @@ import java.util.List;
 public class AttributeEditorFragment extends Fragment implements View.OnClickListener, RadioGroup.OnCheckedChangeListener {
 
     private static final String ATTRIBUTE_INDEX_KEY = "attributeIndex";
+    private static final String CLASS_INDEX_KEY="classIndex";
     private static final String CLASS_EDITOR_FRAGMENT_TAG_KEY="classEditorFragmentTag";
     private int mAttributeIndex;
+    private int mClassIndex;
     private UmlClassAttribute mUmlClassAttribute;
     private String mClassEditorFragmentTag;
-    private ArrayList<UmlClassAttribute> mUmlClassAttributes;
     private FragmentObserver mCallback;
+    private UmlClass mUmlClass;
 
     private TextView mEditAttributeText;
     private Button mDeleteAttributeButton;
@@ -82,10 +85,11 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
         // Required empty public constructor
     }
 
-    public static AttributeEditorFragment newInstance(String classEditorFragmentTag, int attributeIndex) {
+    public static AttributeEditorFragment newInstance(String classEditorFragmentTag, int attributeIndex,int classIndex) {
         AttributeEditorFragment fragment = new AttributeEditorFragment();
         Bundle args = new Bundle();
         args.putInt(ATTRIBUTE_INDEX_KEY,attributeIndex);
+        args.putInt(CLASS_INDEX_KEY,classIndex);
         args.putString(CLASS_EDITOR_FRAGMENT_TAG_KEY,classEditorFragmentTag);
         fragment.setArguments(args);
         return fragment;
@@ -105,6 +109,7 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mAttributeIndex=getArguments().getInt(ATTRIBUTE_INDEX_KEY,-1);
+            mClassIndex=getArguments().getInt(CLASS_INDEX_KEY,-1);
             mClassEditorFragmentTag=getArguments().getString(CLASS_EDITOR_FRAGMENT_TAG_KEY);
         }
     }
@@ -120,8 +125,8 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        configureViews();
         createCallbackToParentActivity();
+        configureViews();
         initializeMembers();
         initializeFields();
         if (mAttributeIndex==-1) setOnCreateDisplay();
@@ -184,11 +189,15 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
     }
 
     private void initializeMembers() {
-        mUmlClassAttributes=((ClassEditorFragment)getFragmentManager().findFragmentByTag(mClassEditorFragmentTag)).getUmlClassAttributes();
+        mUmlClass=mCallback.getProject().getUmlClasses().get(mClassIndex);
 
         if (mAttributeIndex != -1) {
-            mUmlClassAttribute=mUmlClassAttributes.get(mAttributeIndex);
+            mUmlClassAttribute = mUmlClass.getAttributes().get(mAttributeIndex);
+        }else {
+            mUmlClassAttribute=new UmlClassAttribute(mUmlClass.getUmlClassAttributeCount());
+            mUmlClass.addAttribute(mUmlClassAttribute);
         }
+
     }
 
     private void initializeFields() {
@@ -276,35 +285,17 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
                 break;
 
             case CANCEL_BUTTON_TAG:
+                if (mAttributeIndex==-1) mUmlClass.removeAttribute(mUmlClassAttribute);
                 mCallback.closeAttributeEditorFragment(this);
                 break;
 
             case DELETE_ATTRIBUTE_BUTTON_TAG:
-                final Fragment fragment=this;
-                AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
-                builder.setTitle("Delete attribute")
-                        .setMessage("Are you sure you want to delete this attribute ?")
-                        .setNegativeButton("NO", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-
-                            }
-                        })
-                        .setPositiveButton("YES", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                mUmlClassAttributes.remove(mUmlClassAttribute);
-                                mCallback.closeAttributeEditorFragment(fragment);
-                            }
-                        });
-                AlertDialog dialog=builder.create();
-                dialog.show();
+                startDeleteAttributeDialog();
                 break;
 
             default:
                 break;
         }
-
     }
 
     @Override
@@ -322,9 +313,6 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
             Toast.makeText(getContext(), "Attribute name cannot be blank", Toast.LENGTH_SHORT).show();
             return false;
         } else {
-            if (mAttributeIndex == -1) {
-                mUmlClassAttributes.add(new UmlClassAttribute(getAttributeName(), getVisibility(), isStatic(), isFinal(), getType(), getMultiplicity(), getArrayDimension()));
-            } else {
                 mUmlClassAttribute.setName(getAttributeName());
                 mUmlClassAttribute.setVisibility(getVisibility());
                 mUmlClassAttribute.setStatic(isStatic());
@@ -332,7 +320,6 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
                 mUmlClassAttribute.setUmlType(getType());
                 mUmlClassAttribute.setTypeMultiplicity(getMultiplicity());
                 mUmlClassAttribute.setArrayDimension(getArrayDimension());
-            }
             return true;
         }
     }
@@ -368,5 +355,31 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
     private int getArrayDimension() {
         if (mDimEdit.getText().toString().equals("")) return 0;
         return Integer.parseInt(mDimEdit.getText().toString());
+    }
+
+//    **********************************************************************************************
+//    Alert dialogs
+//    **********************************************************************************************
+
+    private void startDeleteAttributeDialog() {
+        final Fragment fragment=this;
+        AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
+        builder.setTitle("Delete attribute")
+                .setMessage("Are you sure you want to delete this attribute ?")
+                .setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                })
+                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mUmlClass.getAttributes().remove(mUmlClassAttribute);
+                        mCallback.closeAttributeEditorFragment(fragment);
+                    }
+                });
+        AlertDialog dialog=builder.create();
+        dialog.show();
     }
 }

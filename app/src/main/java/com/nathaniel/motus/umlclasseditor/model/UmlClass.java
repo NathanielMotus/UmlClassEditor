@@ -11,9 +11,13 @@ public class UmlClass extends UmlType {
     public enum UmlClassType{JAVA_CLASS,ABSTRACT_CLASS,INTERFACE,ENUM}
 
     private UmlClassType mUmlClassType=UmlClassType.JAVA_CLASS;
-    private ArrayList<UmlClassAttribute> mAttributeList;
-    private ArrayList<UmlClassMethod> mMethodList;
-    private ArrayList<String> mValueList; //in case of an Enum
+    private ArrayList<UmlClassAttribute> mAttributes;
+    private int mUmlClassAttributeCount;
+    private ArrayList<UmlClassMethod> mMethods;
+    private int mUmlClassMethodCount;
+    private ArrayList<UmlEnumValue> mEnumValues;
+    private int mValueCount;
+    private int mClassIndex;
 
     private float mUmlClassNormalXPos;
     private float mUmlClassNormalYPos;
@@ -21,16 +25,30 @@ public class UmlClass extends UmlType {
     private float mUmlClassNormalHeight;
 
     private static final String JSON_CLASS_NAME="ClassName";
+    private static final String JSON_CLASS_INDEX="ClassIndex";
     private static final String JSON_CLASS_CLASS_TYPE="ClassClassType";
     private static final String JSON_CLASS_ATTRIBUTES="ClassAttributes";
     private static final String JSON_CLASS_METHODS="ClassMethods";
     private static final String JSON_CLASS_VALUES="ClassValues";
     private static final String JSON_CLASS_NORMAL_XPOS="ClassNormalXPos";
     private static final String JSON_CLASS_NORMAL_YPOS="ClassNormalYPos";
+    private static final String JSON_CLASS_ATTRIBUTE_COUNT ="ClassAttributeCount";
+    private static final String JSON_CLASS_METHOD_COUNT ="ClassMethodCount";
+    private static final String JSON_CLASS_VALUE_COUNT ="ClassValueCount";
 
 //    **********************************************************************************************
 //    Constructors
 //    **********************************************************************************************
+
+    public UmlClass(int classIndex) {
+        mAttributes=new ArrayList<>();
+        mMethods=new ArrayList<>();
+        mEnumValues=new ArrayList<>();
+        mUmlClassAttributeCount=0;
+        mUmlClassMethodCount=0;
+        mValueCount=0;
+        mClassIndex=classIndex;
+    }
 
     public UmlClass(String name) {
         this(name,UmlClassType.JAVA_CLASS);
@@ -39,20 +57,48 @@ public class UmlClass extends UmlType {
     public UmlClass(String name, UmlClassType umlClassType) {
         super(name,TypeLevel.PROJECT);
         mUmlClassType = umlClassType;
-        mAttributeList= new ArrayList<>();
-        mMethodList=new ArrayList<>();
-        mValueList=new ArrayList<>();
+        mAttributes = new ArrayList<>();
+        mUmlClassAttributeCount =0;
+        mMethods =new ArrayList<>();
+        mUmlClassMethodCount =0;
+        mEnumValues =new ArrayList<>();
+        mValueCount =0;
     }
 
-    public UmlClass(String name, UmlClassType umlClassType, ArrayList<UmlClassAttribute> attributeList, ArrayList<UmlClassMethod> methodList, ArrayList<String> valueList, float umlClassNormalXPos, float umlClassNormalYPos) {
+    public UmlClass(String name, int classIndex, UmlClassType umlClassType,
+                    ArrayList<UmlClassAttribute> attributes, int attributeCount,
+                    ArrayList<UmlClassMethod> methods, int methodCount,
+                    ArrayList<UmlEnumValue> values, int valueCount,
+                    float umlClassNormalXPos, float umlClassNormalYPos) {
         super(name,TypeLevel.PROJECT);
+        mClassIndex=classIndex;
         mUmlClassType = umlClassType;
-        mAttributeList = attributeList;
-        mMethodList = methodList;
-        mValueList = valueList;
+        mAttributes = attributes;
+        mUmlClassAttributeCount =attributeCount;
+        mMethods = methods;
+        mUmlClassMethodCount =methodCount;
+        mEnumValues = values;
+        mValueCount =valueCount;
         mUmlClassNormalXPos = umlClassNormalXPos;
         mUmlClassNormalYPos = umlClassNormalYPos;
     }
+    public UmlClass(String name, UmlClassType umlClassType,
+                    ArrayList<UmlClassAttribute> attributes,
+                    ArrayList<UmlClassMethod> methods,
+                    ArrayList<UmlEnumValue> values,
+                    float umlClassNormalXPos, float umlClassNormalYPos) {
+        super(name,TypeLevel.PROJECT);
+        mUmlClassType = umlClassType;
+        mAttributes = attributes;
+        mUmlClassAttributeCount =0;
+        mMethods = methods;
+        mUmlClassMethodCount =0;
+        mEnumValues = values;
+        mValueCount =0;
+        mUmlClassNormalXPos = umlClassNormalXPos;
+        mUmlClassNormalYPos = umlClassNormalYPos;
+    }
+
 
 //    **********************************************************************************************
 //    Getters and setters
@@ -98,16 +144,16 @@ public class UmlClass extends UmlType {
         mUmlClassNormalHeight = umlClassNormalHeight;
     }
 
-    public ArrayList<UmlClassAttribute> getAttributeList() {
-        return mAttributeList;
+    public ArrayList<UmlClassAttribute> getAttributes() {
+        return mAttributes;
     }
 
-    public ArrayList<UmlClassMethod> getMethodList() {
-        return mMethodList;
+    public ArrayList<UmlClassMethod> getMethods() {
+        return mMethods;
     }
 
-    public ArrayList<String> getValueList() {
-        return mValueList;
+    public ArrayList<UmlEnumValue> getValues() {
+        return mEnumValues;
     }
 
     public float getNormalRightEnd() {
@@ -118,16 +164,40 @@ public class UmlClass extends UmlType {
         return mUmlClassNormalYPos+mUmlClassNormalHeight;
     }
 
-    public void setAttributeList(ArrayList<UmlClassAttribute> attributeList) {
-        mAttributeList = attributeList;
+    public void setAttributes(ArrayList<UmlClassAttribute> attributes) {
+        mAttributes = attributes;
     }
 
-    public void setMethodList(ArrayList<UmlClassMethod> methodList) {
-        mMethodList = methodList;
+    public void setMethods(ArrayList<UmlClassMethod> methods) {
+        mMethods = methods;
     }
 
-    public void setValueList(ArrayList<String> valueList) {
-        mValueList = valueList;
+    public void setValues(ArrayList<UmlEnumValue> values) {
+        mEnumValues = values;
+    }
+
+    public void setUmlClassAttributeCount(int umlClassAttributeCount) {
+        mUmlClassAttributeCount = umlClassAttributeCount;
+    }
+
+    public void setUmlClassMethodCount(int umlClassMethodCount) {
+        mUmlClassMethodCount = umlClassMethodCount;
+    }
+
+    public void setValueCount(int valueCount) {
+        mValueCount = valueCount;
+    }
+
+    public int getUmlClassAttributeCount() {
+        return mUmlClassAttributeCount;
+    }
+
+    public int getUmlClassMethodCount() {
+        return mUmlClassMethodCount;
+    }
+
+    public int getValueCount() {
+        return mValueCount;
     }
 
     @Override
@@ -140,32 +210,54 @@ public class UmlClass extends UmlType {
         return super.getName();
     }
 
+    public int getClassIndex() {
+        return mClassIndex;
+    }
+
+    public void setClassIndex(int classIndex) {
+        mClassIndex = classIndex;
+    }
 //    **********************************************************************************************
 //    Modifiers
 //    **********************************************************************************************
 
     public void addMethod(UmlClassMethod method) {
-        mMethodList.add(method);
+        mMethods.add(method);
+        mUmlClassMethodCount++;
     }
 
     public void removeMethod(UmlClassMethod method) {
-        mMethodList.remove(method);
+        mMethods.remove(method);
     }
 
     public void addAttribute(UmlClassAttribute attribute) {
-        mAttributeList.add(attribute);
+        mAttributes.add(attribute);
+        mUmlClassAttributeCount++;
     }
 
     public void removeAttribute(UmlClassAttribute attribute) {
-        mAttributeList.remove(attribute);
+        mAttributes.remove(attribute);
     }
 
-    public void addValue(String value) {
-        mValueList.add(value);
+    public void addValue(UmlEnumValue value) {
+        mEnumValues.add(value);
+        mValueCount++;
     }
 
-    public void removeValue(String value) {
-        mValueList.remove(value);
+    public void removeValue(UmlEnumValue value) {
+        mEnumValues.remove(value);
+    }
+
+    public void incrementUmlClassAttributeCount() {
+        mUmlClassAttributeCount++;
+    }
+
+    public void incrementUmlClassMethodCount() {
+        mUmlClassMethodCount++;
+    }
+
+    public void incrementValueCount() {
+        mValueCount++;
     }
 
 //    **********************************************************************************************
@@ -229,10 +321,14 @@ public class UmlClass extends UmlType {
 
         try {
             jsonObject.put(JSON_CLASS_NAME, this.getName().toString());
+            jsonObject.put(JSON_CLASS_INDEX,mClassIndex);
             jsonObject.put(JSON_CLASS_CLASS_TYPE, mUmlClassType);
             jsonObject.put(JSON_CLASS_ATTRIBUTES, getAttributesToJSONArray());
+            jsonObject.put(JSON_CLASS_ATTRIBUTE_COUNT, mUmlClassAttributeCount);
             jsonObject.put(JSON_CLASS_METHODS, getMethodsToJSONArray());
+            jsonObject.put(JSON_CLASS_METHOD_COUNT, mUmlClassMethodCount);
             jsonObject.put(JSON_CLASS_VALUES, getValuesToJSONArray());
+            jsonObject.put(JSON_CLASS_VALUE_COUNT, mValueCount);
             jsonObject.put(JSON_CLASS_NORMAL_XPOS, mUmlClassNormalXPos);
             jsonObject.put(JSON_CLASS_NORMAL_YPOS, mUmlClassNormalYPos);
             return jsonObject;
@@ -260,12 +356,16 @@ public class UmlClass extends UmlType {
         try {
             UmlClass umlClass=project.getUmlClass(jsonObject.getString(JSON_CLASS_NAME));
 
+            umlClass.setClassIndex(jsonObject.getInt(JSON_CLASS_INDEX));
             umlClass.setUmlClassType(UmlClassType.valueOf(jsonObject.getString(JSON_CLASS_CLASS_TYPE)));
-            umlClass.setAttributeList(getAttributesFromJSONArray(jsonObject.getJSONArray(JSON_CLASS_ATTRIBUTES)));
-            umlClass.setMethodList(getMethodsFromJSONArray(jsonObject.getJSONArray(JSON_CLASS_METHODS)));
-            umlClass.setValueList(getValuesFromJSONArray(jsonObject.getJSONArray(JSON_CLASS_VALUES)));
+            umlClass.setAttributes(getAttributesFromJSONArray(jsonObject.getJSONArray(JSON_CLASS_ATTRIBUTES)));
+            umlClass.setMethods(getMethodsFromJSONArray(jsonObject.getJSONArray(JSON_CLASS_METHODS)));
+            umlClass.setValues(getValuesFromJSONArray(jsonObject.getJSONArray(JSON_CLASS_VALUES)));
             umlClass.setUmlClassNormalXPos(jsonObject.getInt(JSON_CLASS_NORMAL_XPOS));
             umlClass.setUmlClassNormalYPos(jsonObject.getInt(JSON_CLASS_NORMAL_YPOS));
+            umlClass.setUmlClassAttributeCount(jsonObject.getInt(JSON_CLASS_ATTRIBUTE_COUNT));
+            umlClass.setUmlClassMethodCount(jsonObject.getInt(JSON_CLASS_METHOD_COUNT));
+            umlClass.setValueCount(jsonObject.getInt(JSON_CLASS_VALUE_COUNT));
 
         } catch (JSONException ignored) {
 
@@ -275,7 +375,7 @@ public class UmlClass extends UmlType {
     private JSONArray getAttributesToJSONArray() {
         JSONArray jsonArray = new JSONArray();
 
-        for (UmlClassAttribute a:mAttributeList) jsonArray.put(a.toJSONObject());
+        for (UmlClassAttribute a: mAttributes) jsonArray.put(a.toJSONObject());
         return jsonArray;
     }
 
@@ -293,7 +393,7 @@ public class UmlClass extends UmlType {
     private JSONArray getMethodsToJSONArray() {
         JSONArray jsonArray=new JSONArray();
 
-        for (UmlClassMethod m:mMethodList) jsonArray.put(m.toJSONObject());
+        for (UmlClassMethod m: mMethods) jsonArray.put(m.toJSONObject());
         return jsonArray;
     }
 
@@ -311,17 +411,17 @@ public class UmlClass extends UmlType {
     private JSONArray getValuesToJSONArray() {
         JSONArray jsonArray=new JSONArray();
 
-        for (String s:mValueList) jsonArray.put(s);
+        for (UmlEnumValue v: mEnumValues) jsonArray.put(v);
         return jsonArray;
     }
 
-    private static ArrayList<String> getValuesFromJSONArray(JSONArray jsonArray) {
-        ArrayList<String> values = new ArrayList<>();
+    private static ArrayList<UmlEnumValue> getValuesFromJSONArray(JSONArray jsonArray) {
+        ArrayList<UmlEnumValue> values = new ArrayList<>();
 
-        String jsonValue = (String)jsonArray.remove(0);
+        JSONObject jsonValue = (JSONObject)jsonArray.remove(0);
         while (jsonValue != null) {
-            values.add(jsonValue);
-            jsonValue=(String)jsonArray.remove(0);
+            values.add(UmlEnumValue.fromJSONObject(jsonValue));
+            jsonValue=(JSONObject) jsonArray.remove(0);
         }
         return values;
     }

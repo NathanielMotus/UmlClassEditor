@@ -29,6 +29,7 @@ import com.nathaniel.motus.umlclasseditor.controller.FragmentObserver;
 import com.nathaniel.motus.umlclasseditor.model.MethodParameter;
 import com.nathaniel.motus.umlclasseditor.model.TypeMultiplicity;
 import com.nathaniel.motus.umlclasseditor.model.TypeNameComparator;
+import com.nathaniel.motus.umlclasseditor.model.UmlClass;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassMethod;
 import com.nathaniel.motus.umlclasseditor.model.UmlType;
 import com.nathaniel.motus.umlclasseditor.model.Visibility;
@@ -47,11 +48,13 @@ import java.util.List;
 public class MethodEditorFragment extends Fragment implements View.OnClickListener, RadioGroup.OnCheckedChangeListener, AdapterView.OnItemClickListener {
 
     private static final String METHOD_INDEX_KEY ="methodIndex";
+    private static final String CLASS_INDEX_KEY="classIndex";
     private static final String CLASS_EDITOR_FRAGMENT_TAG_KEY="classEditorFragmentTag";
     private int mMethodIndex;
+    private int mClassIndex;
     private UmlClassMethod mUmlClassMethod;
+    private UmlClass mUmlClass;
     private String mClassEditorFragmentTag;
-    private ArrayList<UmlClassMethod> mUmlClassMethods;
     private ArrayList<MethodParameter> mMethodParameters;
     private FragmentObserver mCallback;
 
@@ -88,11 +91,12 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
         // Required empty public constructor
     }
 
-    public static MethodEditorFragment newInstance(String classEditorFragmentTag, int methodIndex) {
+    public static MethodEditorFragment newInstance(String classEditorFragmentTag, int methodIndex,int classIndex) {
         MethodEditorFragment fragment = new MethodEditorFragment();
         Bundle args = new Bundle();
         args.putString(CLASS_EDITOR_FRAGMENT_TAG_KEY, classEditorFragmentTag);
         args.putInt(METHOD_INDEX_KEY, methodIndex);
+        args.putInt(CLASS_INDEX_KEY,classIndex);
         fragment.setArguments(args);
         return fragment;
     }
@@ -117,6 +121,7 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
         if (getArguments() != null) {
             mClassEditorFragmentTag =getArguments().getString(CLASS_EDITOR_FRAGMENT_TAG_KEY);
             mMethodIndex = getArguments().getInt(METHOD_INDEX_KEY);
+            mClassIndex=getArguments().getInt(CLASS_INDEX_KEY);
         }
     }
 
@@ -131,9 +136,9 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        createCallbackToParentActivity();
         initializeMembers();
         configureViews();
-        createCallbackToParentActivity();
         initializeFields();
         if (mMethodIndex!=-1) setOnEditDisplay();
         else setOnCreateDisplay();
@@ -198,13 +203,13 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
     }
 
     private void initializeMembers() {
-        mUmlClassMethods=((ClassEditorFragment)getFragmentManager().findFragmentByTag(mClassEditorFragmentTag)).getUmlClassMethods();
+        mUmlClass=mCallback.getProject().getUmlClasses().get(mClassIndex);
 
         if (mMethodIndex != -1) {
-            mUmlClassMethod = mUmlClassMethods.get(mMethodIndex);
-            mMethodParameters = mUmlClassMethod.getParameters();
+            mUmlClassMethod = mUmlClass.getMethods().get(mMethodIndex);
         } else {
-            mMethodParameters=new ArrayList<>();
+            mUmlClassMethod=new UmlClassMethod(mUmlClass.getUmlClassMethodCount());
+            mUmlClass.addMethod(mUmlClassMethod);
         }
 
     }
@@ -297,6 +302,7 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
 
         switch (tag) {
             case CANCEL_BUTTON_TAG:
+                if (mMethodIndex==-1) mUmlClass.removeMethod(mUmlClassMethod);
                 mCallback.closeMethodEditorFragment(this);
                 break;
             case OK_BUTTON_TAG:
@@ -304,28 +310,10 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
                     mCallback.closeMethodEditorFragment(this);
                 break;
             case DELETE_METHOD_BUTTON_TAG:
-                final Fragment fragment=this;
-                AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
-                builder.setTitle("Delete method ?")
-                        .setMessage("Are you sure you want to delete this method ?")
-                        .setNegativeButton("NO", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-
-                            }
-                        })
-                        .setPositiveButton("YES", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                mUmlClassMethods.remove(mUmlClassMethod);
-                                mCallback.closeMethodEditorFragment(fragment);
-                            }
-                        });
-                AlertDialog dialog=builder.create();
-                dialog.show();
+                startDeleteMethodDialog();
                 break;
             case ADD_PARAMETER_BUTTON_TAG:
-                mCallback.openParameterEditorFragment(-1);
+                mCallback.openParameterEditorFragment(-1,mMethodIndex,mClassIndex);
                 break;
             default:
                 break;
@@ -340,7 +328,8 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        mCallback.openParameterEditorFragment(position);
+//        mCallback.openParameterEditorFragment(position);
+        //todo : modify onItemClick
     }
 
 //    **********************************************************************************************
@@ -352,18 +341,14 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
             Toast.makeText(getContext(), "Method name cannot be blank", Toast.LENGTH_SHORT).show();
             return false;
         } else {
-            if (mMethodIndex == -1) {
-                mUmlClassMethods.add(new UmlClassMethod(getMethodName(), getMethodVisibility(), isStatic(), getMethodType(), getMethodMultiplicity(), getArrayDimension(),mMethodParameters));
-            } else {
                 mUmlClassMethod.setName(getMethodName());
                 mUmlClassMethod.setVisibility(getMethodVisibility());
                 mUmlClassMethod.setStatic(isStatic());
                 mUmlClassMethod.setUmlType(getMethodType());
                 mUmlClassMethod.setTypeMultiplicity(getMethodMultiplicity());
                 mUmlClassMethod.setArrayDimension(getArrayDimension());
-            }
-            return true;
         }
+            return true;
     }
 
     private String getMethodName() {
@@ -397,5 +382,30 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
 
     public void updateLists() {
         populateParameterListView();
+    }
+
+    //    **********************************************************************************************
+//    Alert dialogs
+//    **********************************************************************************************
+    private void startDeleteMethodDialog() {
+        final Fragment fragment=this;
+        AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
+        builder.setTitle("Delete method ?")
+                .setMessage("Are you sure you want to delete this method ?")
+                .setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                })
+                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mUmlClass.getMethods().remove(mUmlClassMethod);
+                        mCallback.closeMethodEditorFragment(fragment);
+                    }
+                });
+        AlertDialog dialog=builder.create();
+        dialog.show();
     }
 }

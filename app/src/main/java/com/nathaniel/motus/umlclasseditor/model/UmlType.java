@@ -35,6 +35,10 @@ public class UmlType {
 //    Constructors
 //    **********************************************************************************************
 
+    public UmlType() {
+        this.mTypeLevel=TypeLevel.PROJECT;
+    }
+
     public UmlType(String name, TypeLevel typeLevel) {
         this.mName = name;
         this.mTypeLevel=typeLevel;

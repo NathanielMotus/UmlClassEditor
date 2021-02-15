@@ -2,6 +2,7 @@ package com.nathaniel.motus.umlclasseditor.model;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 
 import com.nathaniel.motus.umlclasseditor.controller.IOUtils;
 
@@ -17,6 +18,7 @@ public class UmlProject {
 
     private String mName;
     private ArrayList<UmlClass> mUmlClasses;
+    private int mUmlClassCount;
     private ArrayList<UmlRelation> mUmlRelations;
     private int mAppVersionCode;
     private float mZoom=1;
@@ -24,6 +26,7 @@ public class UmlProject {
     private float mYOffset=0;
 
     public static final String JSON_PROJECT_NAME = "ProjectName";
+    public static final String JSON_PROJECT_CLASS_COUNT="ProjectClassCount";
     public static final String JSON_PROJECT_CLASSES = "ProjectClasses";
     public static final String JSON_PROJECT_RELATIONS = "ProjectRelations";
     public static final String JSON_PROJECT_PACKAGE_VERSION_CODE ="ProjectPackageVersionCode";
@@ -40,6 +43,7 @@ public class UmlProject {
     public UmlProject(String name,Context context) {
         mName = name;
         mUmlClasses=new ArrayList<UmlClass>();
+        mUmlClassCount=0;
         mUmlRelations=new ArrayList<UmlRelation>();
     }
 
@@ -102,6 +106,13 @@ public class UmlProject {
         return mYOffset;
     }
 
+    public int getUmlClassCount() {
+        return mUmlClassCount;
+    }
+
+    public void setUmlClassCount(int umlClassCount) {
+        mUmlClassCount = umlClassCount;
+    }
 //    **********************************************************************************************
 //    Initialization
 //    **********************************************************************************************
@@ -112,6 +123,7 @@ public class UmlProject {
 
     public void addUmlClass(UmlClass umlClass) {
         mUmlClasses.add(umlClass);
+        mUmlClassCount++;
     }
 
     public void removeUmlClass(UmlClass umlClass) {
@@ -143,7 +155,7 @@ public class UmlProject {
 
     public void removeAttributesOfType(UmlType umlType) {
         for (UmlClass c : this.getUmlClasses()) {
-            for (UmlClassAttribute a : c.getAttributeList()) {
+            for (UmlClassAttribute a : c.getAttributes()) {
                 if (a.getUmlType()==umlType) c.removeAttribute(a);
             }
         }
@@ -151,7 +163,7 @@ public class UmlProject {
 
     public void removeMethodsOfType(UmlType umlType) {
         for (UmlClass c : this.getUmlClasses()) {
-            for (UmlClassMethod m : c.getMethodList()) {
+            for (UmlClassMethod m : c.getMethods()) {
                 if (m.getUmlType()==umlType) c.removeMethod(m);
             }
         }
@@ -159,12 +171,16 @@ public class UmlProject {
 
     public void removeParametersOfType(UmlType umlType) {
         for (UmlClass c : this.getUmlClasses()) {
-            for (UmlClassMethod m : c.getMethodList()) {
+            for (UmlClassMethod m : c.getMethods()) {
                 for (MethodParameter p : m.getParameters()) {
                     if (p.getUmlType() == umlType) m.removeParameter(p);
                 }
             }
         }
+    }
+
+    public void incrementClassCount() {
+        mUmlClassCount++;
     }
 
 //    **********************************************************************************************
@@ -194,7 +210,7 @@ public class UmlProject {
         //check whether a class with className already exists in this project
 
         for (UmlClass c:this.getUmlClasses())
-            if (c.getName().equals(className)) return true;
+            if (c.getName()!=null && c.getName().equals(className)) return true;
 
         return false;
     }
@@ -213,6 +229,7 @@ public class UmlProject {
             jsonObject.put(JSON_PROJECT_Y_OFFSET,mYOffset);
             jsonObject.put(JSON_PROJECT_NAME, mName);
             jsonObject.put(JSON_PROJECT_CLASSES, getClassesToJSONArray());
+            jsonObject.put(JSON_PROJECT_CLASS_COUNT,mUmlClassCount);
             jsonObject.put(JSON_PROJECT_RELATIONS, getRelationsToJSONArray());
             return jsonObject;
         } catch (JSONException e) {
@@ -228,6 +245,7 @@ public class UmlProject {
             project.setZoom((float)(jsonObject.getDouble(JSON_PROJECT_ZOOM)));
             project.setXOffset((float)(jsonObject.getDouble(JSON_PROJECT_X_OFFSET)));
             project.setYOffset((float)(jsonObject.getDouble(JSON_PROJECT_Y_OFFSET)));
+            project.setUmlClassCount(jsonObject.getInt(JSON_PROJECT_CLASS_COUNT));
 
             //copy jsonObject because it is cleared in getClassesFromJSONArray
             JSONObject jsonObjectCopy=new JSONObject(jsonObject.toString());

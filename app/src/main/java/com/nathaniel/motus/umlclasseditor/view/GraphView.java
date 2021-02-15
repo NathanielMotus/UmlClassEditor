@@ -20,6 +20,7 @@ import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.model.UmlClass;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassAttribute;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassMethod;
+import com.nathaniel.motus.umlclasseditor.model.UmlEnumValue;
 import com.nathaniel.motus.umlclasseditor.model.UmlProject;
 import com.nathaniel.motus.umlclasseditor.model.UmlRelation;
 
@@ -264,7 +265,7 @@ public class GraphView extends View implements View.OnTouchListener{
                 linePaint);
 
         float currentY=umlClass.getUmlClassNormalYPos()+getClassHeaderNormalHeight(umlClass)+INTERLINE+FONT_SIZE;
-        for (UmlClassAttribute a : umlClass.getAttributeList()) {
+        for (UmlClassAttribute a : umlClass.getAttributes()) {
             if (a.isStatic()) canvas.drawText(a.getAttributeCompleteString(),
                     visibleX(umlClass.getUmlClassNormalXPos()+INTERLINE),
                     visibleY(currentY),
@@ -285,7 +286,7 @@ public class GraphView extends View implements View.OnTouchListener{
                 linePaint);
 
         float currentY=umlClass.getUmlClassNormalYPos()+getClassHeaderNormalHeight(umlClass)+getAttributeBoxNormalHeight(umlClass)+INTERLINE+FONT_SIZE;
-        for (UmlClassMethod m : umlClass.getMethodList()) {
+        for (UmlClassMethod m : umlClass.getMethods()) {
             if (m.isStatic()) canvas.drawText(m.getMethodCompleteString(),
                     visibleX(umlClass.getUmlClassNormalXPos()+INTERLINE),
                     visibleY(currentY),
@@ -306,8 +307,8 @@ public class GraphView extends View implements View.OnTouchListener{
                 linePaint);
 
         float currentY=umlClass.getUmlClassNormalYPos()+getClassHeaderNormalHeight(umlClass)+INTERLINE+FONT_SIZE;
-        for (String s : umlClass.getValueList()) {
-            canvas.drawText(s,
+        for (UmlEnumValue v : umlClass.getValues()) {
+            canvas.drawText(v.getName(),
                     visibleX(umlClass.getUmlClassNormalXPos()+INTERLINE),
                     visibleY(currentY),
                     plainTextPaint);
@@ -704,7 +705,7 @@ public class GraphView extends View implements View.OnTouchListener{
 
     private float getAttributeBoxNormalWidth(UmlClass umlClass) {
         float currentWidth=0;
-        for (UmlClassAttribute a:umlClass.getAttributeList())
+        for (UmlClassAttribute a:umlClass.getAttributes())
             if (getTextNormalWidth(a.getAttributeCompleteString())>currentWidth)
                 currentWidth=getTextNormalWidth(a.getAttributeCompleteString());
 
@@ -713,12 +714,12 @@ public class GraphView extends View implements View.OnTouchListener{
 
     private float getAttributeBoxNormalHeight(UmlClass umlClass) {
 
-        return umlClass.getAttributeList().size()*FONT_SIZE+(umlClass.getAttributeList().size()+1)*INTERLINE;
+        return umlClass.getAttributes().size()*FONT_SIZE+(umlClass.getAttributes().size()+1)*INTERLINE;
     }
 
     private float getMethodBoxNormalWidth(UmlClass umlClass) {
         float currentWidth=0;
-        for (UmlClassMethod m:umlClass.getMethodList())
+        for (UmlClassMethod m:umlClass.getMethods())
             if (getTextNormalWidth(m.getMethodCompleteString())>currentWidth)
                 currentWidth=getTextNormalWidth(m.getMethodCompleteString());
 
@@ -727,21 +728,21 @@ public class GraphView extends View implements View.OnTouchListener{
 
     private float getMethodBoxNormalHeight(UmlClass umlClass) {
 
-        return umlClass.getMethodList().size()*FONT_SIZE+(umlClass.getMethodList().size()+1)*INTERLINE;
+        return umlClass.getMethods().size()*FONT_SIZE+(umlClass.getMethods().size()+1)*INTERLINE;
     }
 
     private float getValueBoxNormalWidth(UmlClass umlClass) {
         float currentWidth=0;
-        for (String s:umlClass.getValueList())
-            if (getTextNormalWidth(s)>currentWidth)
-                currentWidth=getTextNormalWidth(s);
+        for (UmlEnumValue v:umlClass.getValues())
+            if (getTextNormalWidth(v.getName())>currentWidth)
+                currentWidth=getTextNormalWidth(v.getName());
 
         return currentWidth+2*INTERLINE;
     }
 
     private float getValueBoxNormalHeight(UmlClass umlClass) {
 
-        return umlClass.getValueList().size()*FONT_SIZE+(umlClass.getValueList().size()+1)*INTERLINE;
+        return umlClass.getValues().size()*FONT_SIZE+(umlClass.getValues().size()+1)*INTERLINE;
     }
 
     private float getTextNormalWidth(String text) {

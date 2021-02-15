@@ -17,9 +17,9 @@ import com.nathaniel.motus.umlclasseditor.model.UmlProject;
         void closeMethodEditorFragment(Fragment fragment);
         void closeParameterEditorFragment(Fragment fragment);
         void closeValueEditorFragment(Fragment fragment);
-        void openAttributeEditorFragment(int attributeIndex);
-        void openMethodEditorFragment(int methodIndex);
-        void openParameterEditorFragment(int parameterIndex);
+        void openAttributeEditorFragment(int attributeIndex,int classIndex);
+        void openMethodEditorFragment(int methodIndex,int classIndex);
+        void openParameterEditorFragment(int parameterIndex,int methodIndex,int classIndex);
 
         enum Purpose{NONE,CREATE_CLASS,EDIT_CLASS,CREATE_ATTRIBUTE,EDIT_ATTRIBUTE,CREATE_METHOD,EDIT_METHOD,CREATE_PARAMETER,EDIT_PARAMETER}
 }
