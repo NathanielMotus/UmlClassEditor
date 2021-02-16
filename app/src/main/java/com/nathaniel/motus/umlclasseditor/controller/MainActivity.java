@@ -32,6 +32,7 @@ import androidx.core.view.GravityCompat;
 import androidx.core.view.MenuCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.google.android.material.navigation.NavigationView;
 import com.nathaniel.motus.umlclasseditor.R;
@@ -57,8 +58,8 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         NavigationView.OnNavigationItemSelectedListener{
 
     //todo : user manual
-    //todo : isolate alert dialog launchers
     //todo : programmatically modify expandablelistviews height when collapsed or expanded
+    //todo : for import and merge, increment members count
 
     private UmlProject mProject;
     private boolean mExpectingTouchLocation=false;
@@ -208,10 +209,10 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
                 .commit();
     }
 
-    private void configureAndDisplayClassEditorFragment(int viewContainerId,float xLocation,float yLocation,int classIndex) {
+    private void configureAndDisplayClassEditorFragment(int viewContainerId,float xLocation,float yLocation,int classOrder) {
         //handle class editor fragment
 
-        mClassEditorFragment=ClassEditorFragment.newInstance(xLocation,yLocation,classIndex);
+        mClassEditorFragment=ClassEditorFragment.newInstance(xLocation,yLocation,classOrder);
         getSupportFragmentManager().beginTransaction()
                 .hide(mGraphFragment)
                 .add(viewContainerId,mClassEditorFragment,CLASS_EDITOR_FRAGMENT_TAG)
@@ -219,9 +220,9 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
                 .commit();
     }
 
-    private void configureAndDisplayAttributeEditorFragment(int viewContainerId,int attributeIndex,int classIndex) {
+    private void configureAndDisplayAttributeEditorFragment(int viewContainerId,int attributeOrder,int classOrder) {
 
-        mAttributeEditorFragment=AttributeEditorFragment.newInstance(mClassEditorFragment.getTag(),attributeIndex,classIndex);
+        mAttributeEditorFragment=AttributeEditorFragment.newInstance(mClassEditorFragment.getTag(),attributeOrder,classOrder);
         getSupportFragmentManager().beginTransaction()
                 .hide(mClassEditorFragment)
                 .add(viewContainerId,mAttributeEditorFragment,ATTRIBUTE_EDITOR_FRAGMENT_TAG)
@@ -229,8 +230,8 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
                 .commit();
     }
 
-    private void configureAndDisplayMethodEditorFragment(int viewContainerId, int methodIndex,int classIndex) {
-        mMethodEditorFragment=MethodEditorFragment.newInstance(mClassEditorFragment.getTag(),methodIndex,classIndex);
+    private void configureAndDisplayMethodEditorFragment(int viewContainerId, int methodOrder,int classOrder) {
+        mMethodEditorFragment=MethodEditorFragment.newInstance(mClassEditorFragment.getTag(),methodOrder,classOrder);
         getSupportFragmentManager().beginTransaction()
                 .hide(mClassEditorFragment)
                 .add(viewContainerId,mMethodEditorFragment,METHOD_EDITOR_FRAGMENT_TAG)
@@ -238,8 +239,8 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
                 .commit();
     }
 
-    private void configureAndDisplayParameterEditorFragment(int viewContainerId, int parameterIndex,int methodIndex,int classIndex) {
-        mParameterEditorFragment=ParameterEditorFragment.newInstance(mMethodEditorFragment.getTag(),parameterIndex,methodIndex,classIndex);
+    private void configureAndDisplayParameterEditorFragment(int viewContainerId, int parameterOrder,int methodOrder,int classOrder) {
+        mParameterEditorFragment=ParameterEditorFragment.newInstance(mMethodEditorFragment.getTag(),parameterOrder,methodOrder,classOrder);
         getSupportFragmentManager().beginTransaction()
                 .hide(mMethodEditorFragment)
                 .add(viewContainerId,mParameterEditorFragment,PARAMETER_EDITOR_FRAGMENT_TAG)
@@ -304,18 +305,18 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     }
 
     @Override
-    public void openAttributeEditorFragment(int attributeIndex,int classIndex) {
-        configureAndDisplayAttributeEditorFragment(R.id.activity_main_frame,attributeIndex,classIndex);
+    public void openAttributeEditorFragment(int attributeOrder,int classOrder) {
+        configureAndDisplayAttributeEditorFragment(R.id.activity_main_frame,attributeOrder,classOrder);
     }
 
     @Override
-    public void openMethodEditorFragment(int methodIndex,int classIndex) {
-        configureAndDisplayMethodEditorFragment(R.id.activity_main_frame,methodIndex,classIndex);
+    public void openMethodEditorFragment(int methodOrder,int classOrder) {
+        configureAndDisplayMethodEditorFragment(R.id.activity_main_frame,methodOrder,classOrder);
     }
 
     @Override
-    public void openParameterEditorFragment(int parameterIndex,int methodIndex,int classIndex) {
-        configureAndDisplayParameterEditorFragment(R.id.activity_main_frame,parameterIndex,methodIndex,classIndex);
+    public void openParameterEditorFragment(int parameterOrder,int methodOrder,int classOrder) {
+        configureAndDisplayParameterEditorFragment(R.id.activity_main_frame,parameterOrder,methodOrder,classOrder);
     }
 
     @Override
@@ -337,7 +338,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
     @Override
     public void editClass(UmlClass umlClass) {
-        configureAndDisplayClassEditorFragment(R.id.activity_main_frame,0,0,mProject.getUmlClasses().indexOf(umlClass));
+        configureAndDisplayClassEditorFragment(R.id.activity_main_frame,0,0,umlClass.getClassOrder());
     }
 
     @Override
@@ -367,6 +368,25 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         this.mDrawerLayout.closeDrawer(GravityCompat.START);
 
         return true;
+    }
+
+    @Override
+    public void onBackPressed() {
+        //clear unfinished members when backpress is pressed instead of cancel button
+
+        Fragment lastFragment;
+        lastFragment=getSupportFragmentManager().getFragments().get(getSupportFragmentManager().getFragments().size()-1);
+
+        if (lastFragment.getTag()==CLASS_EDITOR_FRAGMENT_TAG && ((ClassEditorFragment)lastFragment).getUmlClass().getName()==null)
+            mProject.removeUmlClass(((ClassEditorFragment)lastFragment).getUmlClass());
+        else if (lastFragment.getTag()==ATTRIBUTE_EDITOR_FRAGMENT_TAG && ((AttributeEditorFragment)lastFragment).getUmlClassAttribute().getName()==null)
+            ((AttributeEditorFragment)lastFragment).getUmlClass().removeAttribute(((AttributeEditorFragment)lastFragment).getUmlClassAttribute());
+        else if (lastFragment.getTag()==METHOD_EDITOR_FRAGMENT_TAG && ((MethodEditorFragment)lastFragment).getUmlClassMethod().getName()==null)
+            ((MethodEditorFragment)lastFragment).getUmlClass().removeMethod(((MethodEditorFragment)lastFragment).getUmlClassMethod());
+        else if (lastFragment.getTag()==PARAMETER_EDITOR_FRAGMENT_TAG && ((ParameterEditorFragment)lastFragment).getMethodParameter().getName()==null)
+            ((ParameterEditorFragment)lastFragment).getUmlClassMethod().removeParameter(((ParameterEditorFragment)lastFragment).getMethodParameter());
+
+        super.onBackPressed();
     }
 
 //    **********************************************************************************************

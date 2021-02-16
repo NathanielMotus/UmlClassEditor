@@ -8,4 +8,6 @@
     <string name="methods_string">Methods</string>
     <string name="new_value_string">New value...</string>
     <string name="values_string">Values</string>
+    <string name="parameters_string">Parameters</string>
+    <string name="new_parameter_string">New parameter...</string>
 </resources>

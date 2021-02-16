@@ -17,7 +17,7 @@ public class UmlClass extends UmlType {
     private int mUmlClassMethodCount;
     private ArrayList<UmlEnumValue> mEnumValues;
     private int mValueCount;
-    private int mClassIndex;
+    private int mClassOrder;
 
     private float mUmlClassNormalXPos;
     private float mUmlClassNormalYPos;
@@ -40,14 +40,14 @@ public class UmlClass extends UmlType {
 //    Constructors
 //    **********************************************************************************************
 
-    public UmlClass(int classIndex) {
+    public UmlClass(int classOrder) {
         mAttributes=new ArrayList<>();
         mMethods=new ArrayList<>();
         mEnumValues=new ArrayList<>();
         mUmlClassAttributeCount=0;
         mUmlClassMethodCount=0;
         mValueCount=0;
-        mClassIndex=classIndex;
+        mClassOrder = classOrder;
     }
 
     public UmlClass(String name) {
@@ -65,13 +65,13 @@ public class UmlClass extends UmlType {
         mValueCount =0;
     }
 
-    public UmlClass(String name, int classIndex, UmlClassType umlClassType,
+    public UmlClass(String name, int classOrder, UmlClassType umlClassType,
                     ArrayList<UmlClassAttribute> attributes, int attributeCount,
                     ArrayList<UmlClassMethod> methods, int methodCount,
                     ArrayList<UmlEnumValue> values, int valueCount,
                     float umlClassNormalXPos, float umlClassNormalYPos) {
         super(name,TypeLevel.PROJECT);
-        mClassIndex=classIndex;
+        mClassOrder = classOrder;
         mUmlClassType = umlClassType;
         mAttributes = attributes;
         mUmlClassAttributeCount =attributeCount;
@@ -210,13 +210,32 @@ public class UmlClass extends UmlType {
         return super.getName();
     }
 
-    public int getClassIndex() {
-        return mClassIndex;
+    public int getClassOrder() {
+        return mClassOrder;
     }
 
-    public void setClassIndex(int classIndex) {
-        mClassIndex = classIndex;
+    public void setClassOrder(int classOrder) {
+        mClassOrder = classOrder;
     }
+
+    public UmlClassAttribute findAttributeByOrder(int attributeOrder) {
+        for (UmlClassAttribute a:mAttributes)
+            if (a.getAttributeOrder()==attributeOrder) return a;
+        return null;
+    }
+
+    public UmlClassMethod findMethodByOrder(int methodOrder) {
+        for (UmlClassMethod m:mMethods)
+            if (m.getMethodOrder()==methodOrder) return m;
+            return null;
+    }
+
+    public UmlEnumValue findValueByOrder(int valueOrder) {
+        for (UmlEnumValue v:mEnumValues)
+            if (v.getValueOrder()==valueOrder) return v;
+            return null;
+    }
+
 //    **********************************************************************************************
 //    Modifiers
 //    **********************************************************************************************
@@ -321,7 +340,7 @@ public class UmlClass extends UmlType {
 
         try {
             jsonObject.put(JSON_CLASS_NAME, this.getName().toString());
-            jsonObject.put(JSON_CLASS_INDEX,mClassIndex);
+            jsonObject.put(JSON_CLASS_INDEX, mClassOrder);
             jsonObject.put(JSON_CLASS_CLASS_TYPE, mUmlClassType);
             jsonObject.put(JSON_CLASS_ATTRIBUTES, getAttributesToJSONArray());
             jsonObject.put(JSON_CLASS_ATTRIBUTE_COUNT, mUmlClassAttributeCount);
@@ -356,7 +375,7 @@ public class UmlClass extends UmlType {
         try {
             UmlClass umlClass=project.getUmlClass(jsonObject.getString(JSON_CLASS_NAME));
 
-            umlClass.setClassIndex(jsonObject.getInt(JSON_CLASS_INDEX));
+            umlClass.setClassOrder(jsonObject.getInt(JSON_CLASS_INDEX));
             umlClass.setUmlClassType(UmlClassType.valueOf(jsonObject.getString(JSON_CLASS_CLASS_TYPE)));
             umlClass.setAttributes(getAttributesFromJSONArray(jsonObject.getJSONArray(JSON_CLASS_ATTRIBUTES)));
             umlClass.setMethods(getMethodsFromJSONArray(jsonObject.getJSONArray(JSON_CLASS_METHODS)));
@@ -411,7 +430,7 @@ public class UmlClass extends UmlType {
     private JSONArray getValuesToJSONArray() {
         JSONArray jsonArray=new JSONArray();
 
-        for (UmlEnumValue v: mEnumValues) jsonArray.put(v);
+        for (UmlEnumValue v: mEnumValues) jsonArray.put(v.toJSONObject());
         return jsonArray;
     }
 

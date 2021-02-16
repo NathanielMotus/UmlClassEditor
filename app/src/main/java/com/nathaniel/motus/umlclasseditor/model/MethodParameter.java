@@ -1,14 +1,12 @@
 package com.nathaniel.motus.umlclasseditor.model;
 
-import android.util.Log;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class MethodParameter implements AdapterItem{
 
     private String mName;
-    private int mParameterIndex;
+    private int mParameterOrder;
     private UmlType mUmlType;
     private TypeMultiplicity mTypeMultiplicity=TypeMultiplicity.SINGLE;
     private int mArrayDimension =1;
@@ -23,16 +21,16 @@ public class MethodParameter implements AdapterItem{
 //    Constructors
 //    **********************************************************************************************
 
-    public MethodParameter(String name,int parameterIndex, UmlType umlType, TypeMultiplicity typeMultiplicity, int arrayDimension) {
+    public MethodParameter(String name, int parameterOrder, UmlType umlType, TypeMultiplicity typeMultiplicity, int arrayDimension) {
         mName = name;
-        mParameterIndex=parameterIndex;
+        mParameterOrder = parameterOrder;
         mUmlType = umlType;
         mTypeMultiplicity = typeMultiplicity;
         mArrayDimension = arrayDimension;
     }
 
-    public MethodParameter(int parameterIndex) {
-        mParameterIndex=parameterIndex;
+    public MethodParameter(int parameterOrder) {
+        mParameterOrder = parameterOrder;
     }
 
 //    **********************************************************************************************
@@ -71,12 +69,12 @@ public class MethodParameter implements AdapterItem{
         mArrayDimension = arrayDimension;
     }
 
-    public int getParameterIndex() {
-        return mParameterIndex;
+    public int getParameterOrder() {
+        return mParameterOrder;
     }
 
-    public void setParameterIndex(int parameterIndex) {
-        mParameterIndex = parameterIndex;
+    public void setParameterOrder(int parameterOrder) {
+        mParameterOrder = parameterOrder;
     }
 
 //    **********************************************************************************************
@@ -88,7 +86,7 @@ public class MethodParameter implements AdapterItem{
 
         try {
             jsonObject.put(JSON_METHOD_PARAMETER_NAME, mName);
-            jsonObject.put(JSON_METHOD_PARAMETER_INDEX,mParameterIndex);
+            jsonObject.put(JSON_METHOD_PARAMETER_INDEX, mParameterOrder);
             jsonObject.put(JSON_METHOD_PARAMETER_TYPE, mUmlType.getName());
             jsonObject.put(JSON_METHOD_PARAMETER_TYPE_MULTIPLICITY, mTypeMultiplicity);
             jsonObject.put(JSON_METHOD_PARAMETER_ARRAY_DIMENSION, mArrayDimension);

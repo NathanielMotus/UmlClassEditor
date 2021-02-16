@@ -6,7 +6,7 @@ import org.json.JSONObject;
 public class UmlEnumValue implements AdapterItem{
 
     private String mName;
-    private int mValueIndex;
+    private int mValueOrder;
 
     private static final String JSON_ENUM_VALUE_NAME="EnumValueName";
     private static final String JSON_ENUM_VALUE_INDEX="EnumValueIndex";
@@ -15,9 +15,9 @@ public class UmlEnumValue implements AdapterItem{
 //    Constructors
 //    **********************************************************************************************
 
-    public UmlEnumValue(String name, int valueIndex) {
+    public UmlEnumValue(String name, int valueOrder) {
         mName = name;
-        mValueIndex = valueIndex;
+        mValueOrder = valueOrder;
     }
 
 //    **********************************************************************************************
@@ -32,8 +32,8 @@ public class UmlEnumValue implements AdapterItem{
         mName = name;
     }
 
-    public int getValueIndex() {
-        return mValueIndex;
+    public int getValueOrder() {
+        return mValueOrder;
     }
 
 //    **********************************************************************************************
@@ -44,7 +44,7 @@ public class UmlEnumValue implements AdapterItem{
 
         try {
             jsonObject.put(JSON_ENUM_VALUE_NAME, mName);
-            jsonObject.put(JSON_ENUM_VALUE_INDEX, mValueIndex);
+            jsonObject.put(JSON_ENUM_VALUE_INDEX, mValueOrder);
             return jsonObject;
         } catch (JSONException jsonException) {
             return null;

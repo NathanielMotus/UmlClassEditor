@@ -4,12 +4,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,9 +13,12 @@ import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.controller.CustomExpandableListViewAdapter;
@@ -53,7 +50,6 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
     private RadioButton mAbstractRadio;
     private RadioButton mInterfaceRadio;
     private RadioButton mEnumRadio;
-    private RelativeLayout mMemberRelative;
     private ExpandableListView mMemberListView;
     private Button mOKButton;
     private Button mCancelButton;
@@ -74,13 +70,13 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
 
     private float mXPos;
     private float mYPos;
-    private int mClassIndex;
+    private int mClassOrder;
     private UmlClass mUmlClass;
     //class index in current project, -1 if new class
 
     private static final String XPOS_KEY="xPos";
     private static final String YPOS_KEY="yPos";
-    private static final String CLASS_INDEX_KEY="classIndex";
+    private static final String CLASS_ORDER_KEY ="classOrder";
 
 
 
@@ -92,12 +88,12 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         // Required empty public constructor
     }
 
-    public static ClassEditorFragment newInstance(float xPos, float yPos,int classIndex) {
+    public static ClassEditorFragment newInstance(float xPos, float yPos,int classOrder) {
         ClassEditorFragment fragment = new ClassEditorFragment();
         Bundle args = new Bundle();
         args.putFloat(XPOS_KEY,xPos);
         args.putFloat(YPOS_KEY,yPos);
-        args.putInt(CLASS_INDEX_KEY,classIndex);
+        args.putInt(CLASS_ORDER_KEY,classOrder);
         fragment.setArguments(args);
         return fragment;
     }
@@ -105,6 +101,10 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
 //    **********************************************************************************************
 //    Getters and setters
 //    **********************************************************************************************
+
+    public UmlClass getUmlClass() {
+        return mUmlClass;
+    }
 
 
 //    **********************************************************************************************
@@ -118,7 +118,7 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         if (getArguments() != null) {
             mXPos=getArguments().getFloat(XPOS_KEY);
             mYPos=getArguments().getFloat(YPOS_KEY);
-            mClassIndex=getArguments().getInt(CLASS_INDEX_KEY,-1);
+            mClassOrder =getArguments().getInt(CLASS_ORDER_KEY,-1);
         }
     }
 
@@ -137,9 +137,9 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         configureViews();
         initializeMembers();
         initializeFields();
-        if (mClassIndex==-1) setOnCreateDisplay();
+        if (mClassOrder ==-1) setOnCreateDisplay();
         else setOnEditDisplay();
-        if (mClassIndex!=-1 && mUmlClass.getUmlClassType()== UmlClass.UmlClassType.ENUM) sIsJavaClass=false;
+        if (mClassOrder !=-1 && mUmlClass.getUmlClassType()== UmlClass.UmlClassType.ENUM) sIsJavaClass=false;
         else sIsJavaClass=true;
     }
 
@@ -164,8 +164,6 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         mInterfaceRadio=getActivity().findViewById(R.id.class_interface_radio);
         mEnumRadio=getActivity().findViewById(R.id.class_enum_radio);
 
-        mMemberRelative =getActivity().findViewById(R.id.class_members_relative);
-
         mMemberListView =getActivity().findViewById(R.id.class_members_list);
         mMemberListView.setTag(MEMBER_LIST_TAG);
         mMemberListView.setOnChildClickListener(this);
@@ -185,8 +183,8 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
     }
 
     private void initializeMembers() {
-        if (mClassIndex != -1) {
-            mUmlClass = mCallback.getProject().getUmlClasses().get(mClassIndex);
+        if (mClassOrder != -1) {
+            mUmlClass = mCallback.getProject().findClassByOrder(mClassOrder);
         } else {
             mUmlClass=new UmlClass(mCallback.getProject().getUmlClassCount());
             mCallback.getProject().addUmlClass(mUmlClass);
@@ -194,7 +192,7 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
     }
 
     private void initializeFields() {
-        if (mClassIndex != -1) {
+        if (mClassOrder != -1) {
 
             mClassNameEdit.setText(mUmlClass.getName());
 
@@ -287,7 +285,7 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
                 break;
 
             case CANCEL_BUTTON_TAG:
-                if (mClassIndex==-1) mCallback.getProject().getUmlClasses().remove(mUmlClass);
+                if (mClassOrder ==-1) mCallback.getProject().getUmlClasses().remove(mUmlClass);
                 mCallback.closeClassEditorFragment(this);
                 break;
 
@@ -298,8 +296,9 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
             default:
                 break;
         }
-
     }
+
+
 
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
@@ -310,8 +309,16 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         int groupPos=expandableListView.getPackedPositionGroup(pos);
         int childPos=expandableListView.getPackedPositionChild(pos);
 
-        Log.i("TEST",Integer.toString(groupPos)+"-"+Integer.toString(childPos));
+        if (itemType == ExpandableListView.PACKED_POSITION_TYPE_CHILD) {
+            AdapterItem item=(AdapterItem)expandableListView.getExpandableListAdapter().getChild(groupPos,childPos);
 
+            if ((expandableListView.getExpandableListAdapter().getGroup(groupPos)).equals(getString(R.string.values_string)) && childPos!=0)
+                startDeleteValueDialog(((UmlEnumValue)item).getValueOrder());
+            else if ((expandableListView.getExpandableListAdapter().getGroup(groupPos)).equals(getString(R.string.attributes_string)) && childPos!=0)
+                startDeleteAttributeDialog(((UmlClassAttribute)item).getAttributeOrder());
+            else if ((expandableListView.getExpandableListAdapter().getGroup(groupPos)).equals(getString(R.string.methods_string)) && childPos!=0)
+                startDeleteMethodDialog(((UmlClassMethod)item).getMethodOrder());
+        }
         return true;
     }
 
@@ -328,16 +335,18 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         AdapterItem item=(AdapterItem) expandableListView.getExpandableListAdapter().getChild(i,i1);
 
         if (item.getName().equals(getString(R.string.new_attribute_string)))
-            mCallback.openAttributeEditorFragment(-1,mUmlClass.getClassIndex());
+            mCallback.openAttributeEditorFragment(-1,mUmlClass.getClassOrder());
         else if(item.getName().equals(getString(R.string.new_method_string)))
-            mCallback.openMethodEditorFragment(-1,mUmlClass.getClassIndex());
+            mCallback.openMethodEditorFragment(-1,mUmlClass.getClassOrder());
         else if (item.getName().equals(getString(R.string.new_value_string)))
             startNewValueDialog();
         else{
             if (title.equals(getString(R.string.attributes_string)))
-                mCallback.openAttributeEditorFragment(mUmlClass.getAttributes().indexOf((UmlClassAttribute)item),mUmlClass.getClassIndex());
+                mCallback.openAttributeEditorFragment(((UmlClassAttribute)item).getAttributeOrder(),mUmlClass.getClassOrder());
             else if (title.equals(getString(R.string.methods_string)))
-                mCallback.openMethodEditorFragment(mUmlClass.getMethods().indexOf((UmlClassMethod)item),mUmlClass.getClassIndex());
+                mCallback.openMethodEditorFragment(((UmlClassMethod)item).getMethodOrder(),mUmlClass.getClassOrder());
+            else if (title.equals(getString(R.string.values_string)))
+                startRenameValueDialog(((UmlEnumValue)item).getValueOrder());
         }
         return true;
     }
@@ -352,7 +361,7 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
             Toast.makeText(getContext(),"Name cannot be blank",Toast.LENGTH_SHORT).show();
             return false;
         } else if (mCallback.getProject().containsClassNamed(getClassName())
-                && mCallback.getProject().getUmlClasses().indexOf(mCallback.getProject().getUmlClass(getClassName()))!=mClassIndex) {
+                && mCallback.getProject().getUmlClass(getClassName()).getClassOrder()!= mClassOrder) {
             Toast.makeText(getContext(),"This name already exists in project",Toast.LENGTH_SHORT).show();
             return false;
         } else if (UmlType.containsUmlTypeNamed(getClassName()) && UmlType.valueOf(getClassName(),UmlType.getUmlTypes()).getTypeLevel()!= UmlType.TypeLevel.PROJECT) {
@@ -361,7 +370,7 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         } else {
             mUmlClass.setName(getClassName());
             mUmlClass.setUmlClassType(getClassType());
-            if (mClassIndex == -1) {
+            if (mClassOrder == -1) {
                 mUmlClass.setUmlClassNormalXPos(mXPos);
                 mUmlClass.setUmlClassNormalYPos(mYPos);
             }
@@ -399,7 +408,7 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        mUmlClass.getValues().add(new UmlEnumValue(input.getText().toString(),mUmlClass.getValueCount()));
+                        mUmlClass.addValue(new UmlEnumValue(input.getText().toString(),mUmlClass.getValueCount()));
                         updateLists();
                     }
                 });
@@ -429,9 +438,32 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         dialog.show();
     }
 
-    private void startDeleteValueDialog(final int position) {
+    private void startRenameValueDialog(final int valueOrder) {
         AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
-        builder.setTitle("Delete value")
+        final EditText editText=new EditText(getContext());
+        builder.setView(editText)
+                .setTitle("Rename Enum value")
+                .setMessage("Enter a new name :")
+                .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                })
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        mUmlClass.findValueByOrder(valueOrder).setName(editText.getText().toString());
+                        updateLists();
+                    }
+                })
+                .create()
+                .show();
+    }
+
+    private void startDeleteValueDialog(final int valueOrder) {
+        AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
+        builder.setTitle("Delete value ?")
             .setMessage("Are you sure you want to delete this value ?")
             .setNegativeButton("NO", new DialogInterface.OnClickListener() {
                 @Override
@@ -442,12 +474,55 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
             .setPositiveButton("YES", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    mUmlClass.getValues().remove(position);
+                    mUmlClass.removeValue(mUmlClass.findValueByOrder(valueOrder));
                     updateLists();
                 }
             });
         AlertDialog dialog=builder.create();
         dialog.show();
     }
+
+    private void startDeleteAttributeDialog(final int attributeOrder) {
+        AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
+        builder.setTitle("Delete attribute ?")
+                .setMessage("Are you sure you want to delete this attribute ?")
+                .setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                })
+                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mUmlClass.removeAttribute(mUmlClass.findAttributeByOrder(attributeOrder));
+                        updateLists();
+                    }
+                });
+        AlertDialog dialog=builder.create();
+        dialog.show();
+    }
+
+    private void startDeleteMethodDialog(final int methodOrder) {
+        AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
+        builder.setTitle("Delete method ?")
+                .setMessage("Are you sure you want to delete this method ?")
+                .setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                })
+                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mUmlClass.removeMethod(mUmlClass.findMethodByOrder(methodOrder));
+                        updateLists();
+                    }
+                });
+        AlertDialog dialog=builder.create();
+        dialog.show();
+    }
+
 
 }

@@ -40,13 +40,13 @@ import java.util.List;
  */
 public class ParameterEditorFragment extends Fragment implements View.OnClickListener, RadioGroup.OnCheckedChangeListener {
 
-    private static final String PARAMETER_INDEX_KEY="parameterIndex";
-    private static final String METHOD_INDEX_KEY="methodIndex";
-    private static final String CLASS_INDEX_KEY="classIndex";
+    private static final String PARAMETER_ORDER_KEY ="parameterOrder";
+    private static final String METHOD_ORDER_KEY ="methodOrder";
+    private static final String CLASS_ORDER_KEY ="classOrder";
     private static final String METHOD_EDITOR_FRAGMENT_TAG_KEY="methodEditorFragmentTag";
-    private int mParameterIndex;
-    private int mMethodIndex;
-    private int mClassIndex;
+    private int mParameterOrder;
+    private int mMethodOrder;
+    private int mClassOrder;
     private String mMethodEditorFragmentTag;
     private MethodParameter mMethodParameter;
     private UmlClassMethod mUmlClassMethod;
@@ -78,13 +78,13 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
         // Required empty public constructor
     }
 
-    public static ParameterEditorFragment newInstance(String methodEditorFragmentTag, int parameterIndex,int methodIndex,int classIndex) {
+    public static ParameterEditorFragment newInstance(String methodEditorFragmentTag, int parameterOrder,int methodOrder,int classOrder) {
         ParameterEditorFragment fragment = new ParameterEditorFragment();
         Bundle args = new Bundle();
         args.putString(METHOD_EDITOR_FRAGMENT_TAG_KEY,methodEditorFragmentTag);
-        args.putInt(PARAMETER_INDEX_KEY,parameterIndex);
-        args.putInt(METHOD_INDEX_KEY,methodIndex);
-        args.putInt(CLASS_INDEX_KEY,classIndex);
+        args.putInt(PARAMETER_ORDER_KEY,parameterOrder);
+        args.putInt(METHOD_ORDER_KEY,methodOrder);
+        args.putInt(CLASS_ORDER_KEY,classOrder);
         fragment.setArguments(args);
         return fragment;
     }
@@ -94,9 +94,9 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mMethodEditorFragmentTag = getArguments().getString(METHOD_EDITOR_FRAGMENT_TAG_KEY);
-            mParameterIndex = getArguments().getInt(PARAMETER_INDEX_KEY);
-            mClassIndex=getArguments().getInt(CLASS_INDEX_KEY);
-            mMethodIndex=getArguments().getInt(METHOD_INDEX_KEY);
+            mParameterOrder = getArguments().getInt(PARAMETER_ORDER_KEY);
+            mClassOrder =getArguments().getInt(CLASS_ORDER_KEY);
+            mMethodOrder =getArguments().getInt(METHOD_ORDER_KEY);
         }
     }
 
@@ -115,12 +115,29 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
         initializeMembers();
         configureViews();
         initializeFields();
-        if (mParameterIndex==-1) setOnCreateDisplay();
+        if (mParameterOrder ==-1) setOnCreateDisplay();
         else setOnEditDisplay();
-        if (mParameterIndex!=-1 && mMethodParameter.getTypeMultiplicity()==TypeMultiplicity.ARRAY)
+        if (mParameterOrder !=-1 && mMethodParameter.getTypeMultiplicity()==TypeMultiplicity.ARRAY)
             setOnArrayDisplay();
         else setOnSingleDisplay();
     }
+
+//    **********************************************************************************************
+//    Getters and setters
+//    **********************************************************************************************
+
+    public MethodParameter getMethodParameter() {
+        return mMethodParameter;
+    }
+
+    public UmlClassMethod getUmlClassMethod() {
+        return mUmlClassMethod;
+    }
+
+    public UmlClass getUmlClass() {
+        return mUmlClass;
+    }
+
 
 //    **********************************************************************************************
 //    UI events
@@ -131,7 +148,7 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
         int tag=(int)v.getTag();
         switch (tag) {
             case CANCEL_BUTTON_TAG:
-                if (mParameterIndex==-1) mUmlClassMethod.removeParameter(mMethodParameter);
+                if (mParameterOrder ==-1) mUmlClassMethod.removeParameter(mMethodParameter);
                 mCallback.closeParameterEditorFragment(this);
                 break;
             case OK_BUTTON_TAG:
@@ -156,11 +173,11 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
 //    **********************************************************************************************
 
     private void initializeMembers() {
-        mUmlClass=mCallback.getProject().getUmlClasses().get(mClassIndex);
-        mUmlClassMethod=mUmlClass.getMethods().get(mMethodIndex);
+        mUmlClass=mCallback.getProject().findClassByOrder(mClassOrder);
+        mUmlClassMethod=mUmlClass.findMethodByOrder(mMethodOrder);
 
-        if (mParameterIndex != -1) {
-            mMethodParameter = mUmlClassMethod.getParameters().get(mParameterIndex);
+        if (mParameterOrder != -1) {
+            mMethodParameter = mUmlClassMethod.findParameterByOrder(mParameterOrder);
         } else {
             mMethodParameter=new MethodParameter(mUmlClassMethod.getParameterCount());
             mUmlClassMethod.addParameter(mMethodParameter);
@@ -205,7 +222,7 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
     }
 
     private void initializeFields() {
-        if (mParameterIndex != -1) {
+        if (mParameterOrder != -1) {
             mParameterNameEdit.setText(mMethodParameter.getName());
             if (mMethodParameter.getTypeMultiplicity()== TypeMultiplicity.SINGLE) mSingleRadio.setChecked(true);
             if (mMethodParameter.getTypeMultiplicity()==TypeMultiplicity.COLLECTION) mCollectionRadio.setChecked(true);
@@ -223,7 +240,7 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
         ArrayAdapter<String> adapter=new ArrayAdapter<>(getContext(),android.R.layout.simple_spinner_item,arrayList);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mParameterTypeSpinner.setAdapter(adapter);
-        if (mParameterIndex!=-1)
+        if (mParameterOrder !=-1)
             mParameterTypeSpinner.setSelection(arrayList.indexOf(mMethodParameter.getUmlType().getName()));
     }
 
@@ -300,7 +317,7 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
                 .setPositiveButton("YES", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        mUmlClassMethod.getParameters().remove(mMethodParameter);
+                        mUmlClassMethod.removeParameter(mMethodParameter);
                         mCallback.closeParameterEditorFragment(fragment);
                     }
                 });

@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public class UmlClassAttribute implements AdapterItem{
 
     private String mName;
-    private int mAttributeIndex;
+    private int mAttributeOrder;
     private Visibility mVisibility=Visibility.PRIVATE;
     private boolean mStatic=false;
     private boolean mFinal =false;
@@ -30,9 +30,9 @@ public class UmlClassAttribute implements AdapterItem{
 //    Constructors
 //    **********************************************************************************************
 
-    public UmlClassAttribute(String name,int attributeIndex, Visibility visibility, boolean aStatic, boolean aFinal, UmlType umlType, TypeMultiplicity typeMultiplicity, int arrayDimension) {
+    public UmlClassAttribute(String name, int attributeOrder, Visibility visibility, boolean aStatic, boolean aFinal, UmlType umlType, TypeMultiplicity typeMultiplicity, int arrayDimension) {
         mName = name;
-        mAttributeIndex=attributeIndex;
+        mAttributeOrder = attributeOrder;
         mVisibility = visibility;
         mStatic = aStatic;
         mFinal = aFinal;
@@ -41,8 +41,8 @@ public class UmlClassAttribute implements AdapterItem{
         mArrayDimension = arrayDimension;
     }
 
-    public UmlClassAttribute(int attributeIndex) {
-        mAttributeIndex=attributeIndex;
+    public UmlClassAttribute(int attributeOrder) {
+        mAttributeOrder = attributeOrder;
     }
 
 //    **********************************************************************************************
@@ -143,12 +143,12 @@ public class UmlClassAttribute implements AdapterItem{
         return -1;
     }
 
-    public int getAttributeIndex() {
-        return mAttributeIndex;
+    public int getAttributeOrder() {
+        return mAttributeOrder;
     }
 
-    public void setAttributeIndex(int attributeIndex) {
-        mAttributeIndex = attributeIndex;
+    public void setAttributeOrder(int attributeOrder) {
+        mAttributeOrder = attributeOrder;
     }
 
     //todo : when creating new attribute, check if it already exists
@@ -163,7 +163,7 @@ public class UmlClassAttribute implements AdapterItem{
 
         try {
             jsonObject.put(JSON_CLASS_ATTRIBUTE_NAME, mName);
-            jsonObject.put(JSON_CLASS_ATTRIBUTE_INDEX,mAttributeIndex);
+            jsonObject.put(JSON_CLASS_ATTRIBUTE_INDEX, mAttributeOrder);
             jsonObject.put(JSON_CLASS_ATTRIBUTE_VISIBILITY, mVisibility.toString());
             jsonObject.put(JSON_CLASS_ATTRIBUTE_STATIC, mStatic);
             jsonObject.put(JSON_CLASS_ATTRIBUTE_FINAL, mFinal);

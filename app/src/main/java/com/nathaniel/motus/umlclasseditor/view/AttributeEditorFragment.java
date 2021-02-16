@@ -8,7 +8,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,8 +30,6 @@ import com.nathaniel.motus.umlclasseditor.model.UmlClassAttribute;
 import com.nathaniel.motus.umlclasseditor.model.UmlType;
 import com.nathaniel.motus.umlclasseditor.model.Visibility;
 
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -44,11 +41,11 @@ import java.util.List;
  */
 public class AttributeEditorFragment extends Fragment implements View.OnClickListener, RadioGroup.OnCheckedChangeListener {
 
-    private static final String ATTRIBUTE_INDEX_KEY = "attributeIndex";
-    private static final String CLASS_INDEX_KEY="classIndex";
+    private static final String ATTRIBUTE_ORDER_KEY = "attributeOrder";
+    private static final String CLASS_ORDER_KEY ="classOrder";
     private static final String CLASS_EDITOR_FRAGMENT_TAG_KEY="classEditorFragmentTag";
-    private int mAttributeIndex;
-    private int mClassIndex;
+    private int mAttributeOrder;
+    private int mClassOrder;
     private UmlClassAttribute mUmlClassAttribute;
     private String mClassEditorFragmentTag;
     private FragmentObserver mCallback;
@@ -85,11 +82,11 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
         // Required empty public constructor
     }
 
-    public static AttributeEditorFragment newInstance(String classEditorFragmentTag, int attributeIndex,int classIndex) {
+    public static AttributeEditorFragment newInstance(String classEditorFragmentTag, int attributeOrder,int classOrder) {
         AttributeEditorFragment fragment = new AttributeEditorFragment();
         Bundle args = new Bundle();
-        args.putInt(ATTRIBUTE_INDEX_KEY,attributeIndex);
-        args.putInt(CLASS_INDEX_KEY,classIndex);
+        args.putInt(ATTRIBUTE_ORDER_KEY,attributeOrder);
+        args.putInt(CLASS_ORDER_KEY,classOrder);
         args.putString(CLASS_EDITOR_FRAGMENT_TAG_KEY,classEditorFragmentTag);
         fragment.setArguments(args);
         return fragment;
@@ -98,6 +95,14 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
 //    **********************************************************************************************
 //    Getters and setters
 //    **********************************************************************************************
+
+    public UmlClassAttribute getUmlClassAttribute() {
+        return mUmlClassAttribute;
+    }
+
+    public UmlClass getUmlClass() {
+        return mUmlClass;
+    }
 
 
 //    **********************************************************************************************
@@ -108,8 +113,8 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mAttributeIndex=getArguments().getInt(ATTRIBUTE_INDEX_KEY,-1);
-            mClassIndex=getArguments().getInt(CLASS_INDEX_KEY,-1);
+            mAttributeOrder =getArguments().getInt(ATTRIBUTE_ORDER_KEY,-1);
+            mClassOrder =getArguments().getInt(CLASS_ORDER_KEY,-1);
             mClassEditorFragmentTag=getArguments().getString(CLASS_EDITOR_FRAGMENT_TAG_KEY);
         }
     }
@@ -129,9 +134,9 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
         configureViews();
         initializeMembers();
         initializeFields();
-        if (mAttributeIndex==-1) setOnCreateDisplay();
+        if (mAttributeOrder ==-1) setOnCreateDisplay();
         else setOnEditDisplay();
-        if (mAttributeIndex!=-1 && mUmlClassAttribute.getTypeMultiplicity()==TypeMultiplicity.ARRAY) setOnArrayDisplay();
+        if (mAttributeOrder !=-1 && mUmlClassAttribute.getTypeMultiplicity()==TypeMultiplicity.ARRAY) setOnArrayDisplay();
         else setOnSingleDisplay();
     }
 
@@ -189,10 +194,10 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
     }
 
     private void initializeMembers() {
-        mUmlClass=mCallback.getProject().getUmlClasses().get(mClassIndex);
+        mUmlClass=mCallback.getProject().findClassByOrder(mClassOrder);
 
-        if (mAttributeIndex != -1) {
-            mUmlClassAttribute = mUmlClass.getAttributes().get(mAttributeIndex);
+        if (mAttributeOrder != -1) {
+            mUmlClassAttribute = mUmlClass.findAttributeByOrder(mAttributeOrder);
         }else {
             mUmlClassAttribute=new UmlClassAttribute(mUmlClass.getUmlClassAttributeCount());
             mUmlClass.addAttribute(mUmlClassAttribute);
@@ -201,7 +206,7 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
     }
 
     private void initializeFields() {
-        if (mAttributeIndex != -1) {
+        if (mAttributeOrder != -1) {
             mAttributeNameEdit.setText(mUmlClassAttribute.getName());
 
             switch (mUmlClassAttribute.getVisibility()) {
@@ -243,7 +248,7 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
         ArrayAdapter<String> adapter=new ArrayAdapter<>(getContext(),android.R.layout.simple_spinner_item,spinnerArray);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mTypeSpinner.setAdapter(adapter);
-        if (mAttributeIndex!=-1)
+        if (mAttributeOrder !=-1)
             mTypeSpinner.setSelection(spinnerArray.indexOf(mUmlClassAttribute.getUmlType().getName()));
     }
 
@@ -285,7 +290,7 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
                 break;
 
             case CANCEL_BUTTON_TAG:
-                if (mAttributeIndex==-1) mUmlClass.removeAttribute(mUmlClassAttribute);
+                if (mAttributeOrder ==-1) mUmlClass.removeAttribute(mUmlClassAttribute);
                 mCallback.closeAttributeEditorFragment(this);
                 break;
 

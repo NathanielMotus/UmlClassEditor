@@ -163,47 +163,16 @@
         android:layout_marginBottom="20sp"
         android:inputType="number"/>
 
-    <RelativeLayout
+    <ExpandableListView
+        android:id="@+id/method_parameters_list"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/method_parameters_relative"
-        android:layout_alignStart="@id/method_multiplicity_radio_group"
-        android:layout_below="@id/method_multiplicity_radio_group"
-        android:layout_marginBottom="20sp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/method_parameters_text"
-            android:layout_marginBottom="20sp"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
-            android:textSize="18sp"
-            android:text="Parameters"/>
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/method_add_parameter_button"
-            android:layout_alignParentEnd="true"
-            android:layout_alignBaseline="@id/method_parameters_text"
-            android:textSize="18sp"
-            android:text="+"/>
-
-        <ListView
-            android:id="@+id/method_parameters_list"
-            android:layout_width="match_parent"
-            android:layout_height="150dp"
-            android:layout_below="@id/method_parameters_text"
-            android:layout_alignStart="@id/method_parameters_text"/>
-
-    </RelativeLayout>
-
+        android:layout_height="150dp"
+        android:layout_below="@id/method_dimension_text"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/method_parameters_relative"
+        android:layout_below="@id/method_parameters_list"
         android:gravity="center_horizontal">
         <Button
             android:layout_width="wrap_content"

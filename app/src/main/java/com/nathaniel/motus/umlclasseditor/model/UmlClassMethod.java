@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public class UmlClassMethod implements AdapterItem{
 
     private String mName;
-    private int mMethodIndex;
+    private int mMethodOrder;
     private Visibility mVisibility=Visibility.PRIVATE;
     private boolean mStatic =false;
     private UmlType mUmlType;
@@ -32,9 +32,9 @@ public class UmlClassMethod implements AdapterItem{
 //    Constructors
 //    **********************************************************************************************
 
-    public UmlClassMethod(String name,int methodIndex, Visibility visibility, boolean aStatic, UmlType umlType, TypeMultiplicity typeMultiplicity, int arrayDimension) {
+    public UmlClassMethod(String name, int methodOrder, Visibility visibility, boolean aStatic, UmlType umlType, TypeMultiplicity typeMultiplicity, int arrayDimension) {
         mName = name;
-        mMethodIndex=methodIndex;
+        mMethodOrder = methodOrder;
         mVisibility = visibility;
         mStatic = aStatic;
         mUmlType = umlType;
@@ -44,9 +44,9 @@ public class UmlClassMethod implements AdapterItem{
         mParameterCount=0;
     }
 
-    public UmlClassMethod(String mName,int methodIndex, Visibility mVisibility, boolean mStatic, UmlType mUmlType, TypeMultiplicity mTypeMultiplicity, int mArrayDimension, ArrayList<MethodParameter> mParameters, int parameterCount) {
+    public UmlClassMethod(String mName, int methodOrder, Visibility mVisibility, boolean mStatic, UmlType mUmlType, TypeMultiplicity mTypeMultiplicity, int mArrayDimension, ArrayList<MethodParameter> mParameters, int parameterCount) {
         this.mName = mName;
-        this.mMethodIndex=methodIndex;
+        this.mMethodOrder = methodOrder;
         this.mVisibility = mVisibility;
         this.mStatic = mStatic;
         this.mUmlType = mUmlType;
@@ -56,8 +56,8 @@ public class UmlClassMethod implements AdapterItem{
         this.mParameterCount=parameterCount;
     }
 
-    public UmlClassMethod(int methodIndex) {
-        mMethodIndex=methodIndex;
+    public UmlClassMethod(int methodOrder) {
+        mMethodOrder = methodOrder;
         mParameterCount=0;
         mParameters=new ArrayList<>();
     }
@@ -118,12 +118,12 @@ public class UmlClassMethod implements AdapterItem{
         return mParameters;
     }
 
-    public int getMethodIndex() {
-        return mMethodIndex;
+    public int getMethodOrder() {
+        return mMethodOrder;
     }
 
-    public void setMethodIndex(int methodIndex) {
-        mMethodIndex = methodIndex;
+    public void setMethodOrder(int methodOrder) {
+        mMethodOrder = methodOrder;
     }
 
     public int getParameterCount() {
@@ -182,6 +182,12 @@ public class UmlClassMethod implements AdapterItem{
         return -1;
     }
 
+    public MethodParameter findParameterByOrder(int parameterOrder) {
+        for (MethodParameter p:mParameters)
+            if (p.getParameterOrder()==parameterOrder) return p;
+            return null;
+    }
+
 //    **********************************************************************************************
 //    Modifiers
 //    **********************************************************************************************
@@ -207,7 +213,7 @@ public class UmlClassMethod implements AdapterItem{
 
         try {
             jsonObject.put(JSON_CLASS_METHOD_NAME, mName);
-            jsonObject.put(JSON_CLASS_METHOD_INDEX,mMethodIndex);
+            jsonObject.put(JSON_CLASS_METHOD_INDEX, mMethodOrder);
             jsonObject.put(JSON_CLASS_METHOD_VISIBILITY, mVisibility);
             jsonObject.put(JSON_CLASS_METHOD_STATIC, mStatic);
             jsonObject.put(JSON_CLASS_METHOD_TYPE, mUmlType.getName());

@@ -8,7 +8,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,7 +16,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.ListView;
+import android.widget.ExpandableListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
@@ -25,7 +24,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.nathaniel.motus.umlclasseditor.R;
+import com.nathaniel.motus.umlclasseditor.controller.CustomExpandableListViewAdapter;
 import com.nathaniel.motus.umlclasseditor.controller.FragmentObserver;
+import com.nathaniel.motus.umlclasseditor.model.AdapterItem;
+import com.nathaniel.motus.umlclasseditor.model.AdapterItemComparator;
+import com.nathaniel.motus.umlclasseditor.model.AddItemString;
 import com.nathaniel.motus.umlclasseditor.model.MethodParameter;
 import com.nathaniel.motus.umlclasseditor.model.TypeMultiplicity;
 import com.nathaniel.motus.umlclasseditor.model.TypeNameComparator;
@@ -34,10 +37,9 @@ import com.nathaniel.motus.umlclasseditor.model.UmlClassMethod;
 import com.nathaniel.motus.umlclasseditor.model.UmlType;
 import com.nathaniel.motus.umlclasseditor.model.Visibility;
 
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -45,17 +47,19 @@ import java.util.List;
  * Use the {@link MethodEditorFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class MethodEditorFragment extends Fragment implements View.OnClickListener, RadioGroup.OnCheckedChangeListener, AdapterView.OnItemClickListener {
+public class MethodEditorFragment extends Fragment implements View.OnClickListener,
+        RadioGroup.OnCheckedChangeListener,
+        AdapterView.OnItemLongClickListener,
+        ExpandableListView.OnChildClickListener{
 
-    private static final String METHOD_INDEX_KEY ="methodIndex";
-    private static final String CLASS_INDEX_KEY="classIndex";
+    private static final String METHOD_ORDER_KEY ="methodOrder";
+    private static final String CLASS_ORDER_KEY ="classOrder";
     private static final String CLASS_EDITOR_FRAGMENT_TAG_KEY="classEditorFragmentTag";
-    private int mMethodIndex;
-    private int mClassIndex;
+    private int mMethodOrder;
+    private int mClassOrder;
     private UmlClassMethod mUmlClassMethod;
     private UmlClass mUmlClass;
     private String mClassEditorFragmentTag;
-    private ArrayList<MethodParameter> mMethodParameters;
     private FragmentObserver mCallback;
 
     private TextView mEditMethodText;
@@ -72,8 +76,7 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
     private RadioButton mArrayRadio;
     private TextView mDimText;
     private EditText mDimEdit;
-    private ListView mParameterList;
-    private Button mAddParameterButton;
+    private ExpandableListView mParameterList;
     private Button mCancelButton;
     private Button mOKButton;
 
@@ -91,12 +94,12 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
         // Required empty public constructor
     }
 
-    public static MethodEditorFragment newInstance(String classEditorFragmentTag, int methodIndex,int classIndex) {
+    public static MethodEditorFragment newInstance(String classEditorFragmentTag, int methodOrder,int classOrder) {
         MethodEditorFragment fragment = new MethodEditorFragment();
         Bundle args = new Bundle();
         args.putString(CLASS_EDITOR_FRAGMENT_TAG_KEY, classEditorFragmentTag);
-        args.putInt(METHOD_INDEX_KEY, methodIndex);
-        args.putInt(CLASS_INDEX_KEY,classIndex);
+        args.putInt(METHOD_ORDER_KEY, methodOrder);
+        args.putInt(CLASS_ORDER_KEY,classOrder);
         fragment.setArguments(args);
         return fragment;
     }
@@ -106,10 +109,13 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
 //    Getters and setters
 //    **********************************************************************************************
 
-    public ArrayList<MethodParameter> getMethodParameters() {
-        return mMethodParameters;
+    public UmlClassMethod getUmlClassMethod() {
+        return mUmlClassMethod;
     }
 
+    public UmlClass getUmlClass() {
+        return mUmlClass;
+    }
 
 //    **********************************************************************************************
 //    Fragment events
@@ -120,8 +126,8 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mClassEditorFragmentTag =getArguments().getString(CLASS_EDITOR_FRAGMENT_TAG_KEY);
-            mMethodIndex = getArguments().getInt(METHOD_INDEX_KEY);
-            mClassIndex=getArguments().getInt(CLASS_INDEX_KEY);
+            mMethodOrder = getArguments().getInt(METHOD_ORDER_KEY);
+            mClassOrder =getArguments().getInt(CLASS_ORDER_KEY);
         }
     }
 
@@ -140,9 +146,9 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
         initializeMembers();
         configureViews();
         initializeFields();
-        if (mMethodIndex!=-1) setOnEditDisplay();
+        if (mMethodOrder !=-1) setOnEditDisplay();
         else setOnCreateDisplay();
-        if (mMethodIndex!=-1 && mUmlClassMethod.getTypeMultiplicity()== TypeMultiplicity.ARRAY) setOnArrayDisplay();
+        if (mMethodOrder !=-1 && mUmlClassMethod.getTypeMultiplicity()== TypeMultiplicity.ARRAY) setOnArrayDisplay();
         else setOnSingleDisplay();
     }
 
@@ -183,11 +189,8 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
         mDimEdit=getActivity().findViewById(R.id.method_dimension_input);
 
         mParameterList=getActivity().findViewById(R.id.method_parameters_list);
-        mParameterList.setOnItemClickListener(this);
-
-        mAddParameterButton=getActivity().findViewById(R.id.method_add_parameter_button);
-        mAddParameterButton.setTag(ADD_PARAMETER_BUTTON_TAG);
-        mAddParameterButton.setOnClickListener(this);
+        mParameterList.setOnChildClickListener(this);
+        mParameterList.setOnItemLongClickListener(this);
 
         mCancelButton=getActivity().findViewById(R.id.method_cancel_button);
         mCancelButton.setOnClickListener(this);
@@ -203,10 +206,10 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
     }
 
     private void initializeMembers() {
-        mUmlClass=mCallback.getProject().getUmlClasses().get(mClassIndex);
+        mUmlClass=mCallback.getProject().findClassByOrder(mClassOrder);
 
-        if (mMethodIndex != -1) {
-            mUmlClassMethod = mUmlClass.getMethods().get(mMethodIndex);
+        if (mMethodOrder != -1) {
+            mUmlClassMethod = mUmlClass.findMethodByOrder(mMethodOrder);
         } else {
             mUmlClassMethod=new UmlClassMethod(mUmlClass.getUmlClassMethodCount());
             mUmlClass.addMethod(mUmlClassMethod);
@@ -215,7 +218,7 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
     }
 
     private void initializeFields() {
-        if (mMethodIndex != -1) {
+        if (mMethodOrder != -1) {
             mMethodNameEdit.setText(mUmlClassMethod.getName());
 
             switch (mUmlClassMethod.getVisibility()) {
@@ -245,9 +248,9 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
             }
 
             mDimEdit.setText(Integer.toString(mUmlClassMethod.getArrayDimension()));
-            populateParameterListView();
         }
         populateTypeSpinner();
+        populateParameterListView();
     }
 
     private void populateTypeSpinner() {
@@ -258,17 +261,25 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
         ArrayAdapter<String> adapter=new ArrayAdapter<>(getContext(),android.R.layout.simple_spinner_item,spinnerArray);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mTypeSpinner.setAdapter(adapter);
-        if (mMethodIndex!=-1)
+        if (mMethodOrder !=-1)
             mTypeSpinner.setSelection(spinnerArray.indexOf(mUmlClassMethod.getUmlType().getName()));
         else mTypeSpinner.setSelection(spinnerArray.indexOf("void"));
     }
 
     private void populateParameterListView() {
-        List<String> listViewArray=new ArrayList<>();
-        for (MethodParameter p:mMethodParameters)
-            listViewArray.add(p.getName());
-        ArrayAdapter<String> adapter=new ArrayAdapter<>(getContext(),android.R.layout.simple_list_item_1,listViewArray);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        List<AdapterItem> parameterList=new ArrayList<>();
+        for (MethodParameter p:mUmlClassMethod.getParameters())
+            parameterList.add(p);
+        Collections.sort(parameterList,new AdapterItemComparator());
+        parameterList.add(0,new AddItemString(getString(R.string.new_parameter_string)));
+
+        HashMap<String,List<AdapterItem>> hashMap=new HashMap<>();
+        hashMap.put(getString(R.string.parameters_string),parameterList);
+
+        List<String> title=new ArrayList<>();
+        title.add(getString(R.string.parameters_string));
+
+        CustomExpandableListViewAdapter adapter=new CustomExpandableListViewAdapter(getContext(),title,hashMap);
         mParameterList.setAdapter(adapter);
     }
 
@@ -302,7 +313,7 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
 
         switch (tag) {
             case CANCEL_BUTTON_TAG:
-                if (mMethodIndex==-1) mUmlClass.removeMethod(mUmlClassMethod);
+                if (mMethodOrder ==-1) mUmlClass.removeMethod(mUmlClassMethod);
                 mCallback.closeMethodEditorFragment(this);
                 break;
             case OK_BUTTON_TAG:
@@ -311,9 +322,6 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
                 break;
             case DELETE_METHOD_BUTTON_TAG:
                 startDeleteMethodDialog();
-                break;
-            case ADD_PARAMETER_BUTTON_TAG:
-                mCallback.openParameterEditorFragment(-1,mMethodIndex,mClassIndex);
                 break;
             default:
                 break;
@@ -327,9 +335,31 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
     }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//        mCallback.openParameterEditorFragment(position);
-        //todo : modify onItemClick
+    public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long id) {
+        ExpandableListView expandableListView=(ExpandableListView)view.getParent();
+        long pos=expandableListView.getExpandableListPosition(position);
+
+        int itemType=expandableListView.getPackedPositionType(pos);
+        int groupPos=expandableListView.getPackedPositionGroup(pos);
+        int childPos=expandableListView.getPackedPositionChild(pos);
+
+        AdapterItem item=(AdapterItem)expandableListView.getExpandableListAdapter().getChild(groupPos,childPos);
+
+        if (itemType==ExpandableListView.PACKED_POSITION_TYPE_CHILD && childPos!=0)
+            startDeleteParameterDialog(((MethodParameter)item).getParameterOrder());
+
+        return true;
+    }
+
+    @Override
+    public boolean onChildClick(ExpandableListView expandableListView, View view, int i, int i1, long l) {
+        AdapterItem item=(AdapterItem) expandableListView.getExpandableListAdapter().getChild(i,i1);
+        if (item.getName().equals(getString(R.string.new_parameter_string)))
+            mCallback.openParameterEditorFragment(-1,mUmlClassMethod.getMethodOrder(),mUmlClass.getClassOrder());
+        else
+            mCallback.openParameterEditorFragment(((MethodParameter)item).getParameterOrder(),
+                    mUmlClassMethod.getMethodOrder(),mUmlClass.getClassOrder());
+        return true;
     }
 
 //    **********************************************************************************************
@@ -384,7 +414,7 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
         populateParameterListView();
     }
 
-    //    **********************************************************************************************
+//    **********************************************************************************************
 //    Alert dialogs
 //    **********************************************************************************************
     private void startDeleteMethodDialog() {
@@ -401,11 +431,32 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
                 .setPositiveButton("YES", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        mUmlClass.getMethods().remove(mUmlClassMethod);
+                        mUmlClass.removeMethod(mUmlClassMethod);
                         mCallback.closeMethodEditorFragment(fragment);
                     }
                 });
         AlertDialog dialog=builder.create();
         dialog.show();
+    }
+
+    private void startDeleteParameterDialog(final int parameterIndex) {
+        AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
+        builder.setTitle("Delete parameter ?")
+                .setMessage("Are you sure you want delete this parameter ?")
+                .setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                })
+                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        mUmlClassMethod.removeParameter(mUmlClassMethod.findParameterByOrder(parameterIndex));
+                        updateLists();
+                    }
+                })
+                .create()
+                .show();
     }
 }

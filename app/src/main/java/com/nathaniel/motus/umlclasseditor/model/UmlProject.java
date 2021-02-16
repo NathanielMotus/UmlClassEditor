@@ -2,7 +2,6 @@ package com.nathaniel.motus.umlclasseditor.model;
 
 import android.content.Context;
 import android.net.Uri;
-import android.util.Log;
 
 import com.nathaniel.motus.umlclasseditor.controller.IOUtils;
 
@@ -113,6 +112,13 @@ public class UmlProject {
     public void setUmlClassCount(int umlClassCount) {
         mUmlClassCount = umlClassCount;
     }
+
+    public UmlClass findClassByOrder(int classOrder) {
+        for (UmlClass c:mUmlClasses)
+            if (c.getClassOrder()==classOrder) return c;
+            return null;
+    }
+
 //    **********************************************************************************************
 //    Initialization
 //    **********************************************************************************************
