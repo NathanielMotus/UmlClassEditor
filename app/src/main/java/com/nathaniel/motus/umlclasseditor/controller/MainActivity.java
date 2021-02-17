@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     //todo : user manual
     //todo : programmatically modify expandablelistviews height when collapsed or expanded
     //todo : for import and merge, increment members count
+    //todo : replace onBackPressed by onBackPressedCallBack in fragments
 
     private UmlProject mProject;
     private boolean mExpectingTouchLocation=false;
