@@ -334,6 +334,7 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         String title=(String) expandableListView.getExpandableListAdapter().getGroup(i);
         AdapterItem item=(AdapterItem) expandableListView.getExpandableListAdapter().getChild(i,i1);
 
+            //todo : check whether new_member_string is on i1=0
         if (item.getName().equals(getString(R.string.new_attribute_string)))
             mCallback.openAttributeEditorFragment(-1,mUmlClass.getClassOrder());
         else if(item.getName().equals(getString(R.string.new_method_string)))
