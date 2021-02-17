@@ -151,9 +151,6 @@ public class UmlClassAttribute implements AdapterItem{
         mAttributeOrder = attributeOrder;
     }
 
-    //todo : when creating new attribute, check if it already exists
-    //todo : when creating new method, check if it already exists with same signature
-
 //    **********************************************************************************************
 //    JSON methods
 //    **********************************************************************************************

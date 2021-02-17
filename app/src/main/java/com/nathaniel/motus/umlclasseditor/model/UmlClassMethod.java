@@ -194,6 +194,7 @@ public class UmlClassMethod implements AdapterItem{
 
     public void addParameter(MethodParameter parameter) {
         mParameters.add(parameter);
+        mParameterCount++;
     }
 
     public void removeParameter(MethodParameter parameter) {
@@ -202,6 +203,32 @@ public class UmlClassMethod implements AdapterItem{
 
     public void incrementParameterCount() {
         mParameterCount++;
+    }
+
+//    **********************************************************************************************
+//    Test methods
+//    **********************************************************************************************
+    public boolean containsParameterNamed(String parameterName) {
+        for (MethodParameter p:mParameters)
+            if (p.getName()!=null && p.getName().equals(parameterName))
+                return true;
+        return false;
+    }
+
+    public boolean isEquivalentTo(UmlClassMethod method) {
+        if (this.mMethodOrder==method.mMethodOrder)
+            return false;
+        if (!this.mName.equals(method.mName))
+            return false;
+        if (this.mUmlType!=method.mUmlType)
+            return false;
+        if (this.mParameters.size()!=method.mParameters.size())
+            return false;
+        for (int i = 0; i < this.mParameters.size(); i++) {
+            if (!this.mParameters.get(i).isEquivalentTo(method.mParameters.get(i)))
+                return false;
+        }
+        return true;
     }
 
 //    **********************************************************************************************

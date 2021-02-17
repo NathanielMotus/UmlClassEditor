@@ -78,6 +78,18 @@ public class MethodParameter implements AdapterItem{
     }
 
 //    **********************************************************************************************
+//    Test methods
+//    **********************************************************************************************
+    public boolean isEquivalentTo(MethodParameter methodParameter) {
+        if (this.mTypeMultiplicity!=TypeMultiplicity.ARRAY)
+            return (this.mUmlType==methodParameter.mUmlType && this.mTypeMultiplicity==methodParameter.mTypeMultiplicity);
+        else
+            return (this.mUmlType==methodParameter.mUmlType &&
+                    this.mTypeMultiplicity==methodParameter.mTypeMultiplicity &&
+                    this.mArrayDimension==methodParameter.mArrayDimension);
+    }
+
+//    **********************************************************************************************
 //    JSON methods
 //    **********************************************************************************************
 

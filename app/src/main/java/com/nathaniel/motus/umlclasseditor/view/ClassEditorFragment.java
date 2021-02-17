@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -120,6 +122,7 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
             mYPos=getArguments().getFloat(YPOS_KEY);
             mClassOrder =getArguments().getInt(CLASS_ORDER_KEY,-1);
         }
+        setOnBackPressedCallback();
     }
 
     @Override
@@ -268,6 +271,16 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         mDeleteClassButton.setVisibility(View.INVISIBLE);
     }
 
+    private void setOnBackPressedCallback() {
+        OnBackPressedCallback onBackPressedCallback=new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                onCancelButtonClicked();
+            }
+        };
+        requireActivity().getOnBackPressedDispatcher().addCallback(this,onBackPressedCallback);
+    }
+
 //    **********************************************************************************************
 //    UI events
 //    **********************************************************************************************
@@ -285,8 +298,7 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
                 break;
 
             case CANCEL_BUTTON_TAG:
-                if (mClassOrder ==-1) mCallback.getProject().getUmlClasses().remove(mUmlClass);
-                mCallback.closeClassEditorFragment(this);
+               onCancelButtonClicked();
                 break;
 
             case DELETE_CLASS_BUTTON_TAG:
@@ -334,12 +346,11 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         String title=(String) expandableListView.getExpandableListAdapter().getGroup(i);
         AdapterItem item=(AdapterItem) expandableListView.getExpandableListAdapter().getChild(i,i1);
 
-            //todo : check whether new_member_string is on i1=0
-        if (item.getName().equals(getString(R.string.new_attribute_string)))
+        if (item.getName().equals(getString(R.string.new_attribute_string)) && i1==0)
             mCallback.openAttributeEditorFragment(-1,mUmlClass.getClassOrder());
-        else if(item.getName().equals(getString(R.string.new_method_string)))
+        else if(item.getName().equals(getString(R.string.new_method_string)) && i1==0)
             mCallback.openMethodEditorFragment(-1,mUmlClass.getClassOrder());
-        else if (item.getName().equals(getString(R.string.new_value_string)))
+        else if (item.getName().equals(getString(R.string.new_value_string)) && i1==0)
             startNewValueDialog();
         else{
             if (title.equals(getString(R.string.attributes_string)))
@@ -350,6 +361,11 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
                 startRenameValueDialog(((UmlEnumValue)item).getValueOrder());
         }
         return true;
+    }
+
+    private void onCancelButtonClicked() {
+        if (mClassOrder ==-1) mCallback.getProject().getUmlClasses().remove(mUmlClass);
+        mCallback.closeClassEditorFragment(this);
     }
 
 //    **********************************************************************************************

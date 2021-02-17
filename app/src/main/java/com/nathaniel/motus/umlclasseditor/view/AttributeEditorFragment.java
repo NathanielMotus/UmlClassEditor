@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -117,6 +118,7 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
             mClassOrder =getArguments().getInt(CLASS_ORDER_KEY,-1);
             mClassEditorFragmentTag=getArguments().getString(CLASS_EDITOR_FRAGMENT_TAG_KEY);
         }
+        setOnBackPressedCallback();
     }
 
     @Override
@@ -272,6 +274,16 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
         mDimEdit.setVisibility(View.INVISIBLE);
     }
 
+    private void setOnBackPressedCallback() {
+        OnBackPressedCallback onBackPressedCallback=new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                onCancelButtonClicked();
+            }
+        };
+        requireActivity().getOnBackPressedDispatcher().addCallback(this,onBackPressedCallback);
+    }
+
 //    **********************************************************************************************
 //    UI events
 //    **********************************************************************************************
@@ -290,8 +302,7 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
                 break;
 
             case CANCEL_BUTTON_TAG:
-                if (mAttributeOrder ==-1) mUmlClass.removeAttribute(mUmlClassAttribute);
-                mCallback.closeAttributeEditorFragment(this);
+                onCancelButtonClicked();
                 break;
 
             case DELETE_ATTRIBUTE_BUTTON_TAG:
@@ -309,6 +320,11 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
         else setOnSingleDisplay();
     }
 
+    private void onCancelButtonClicked() {
+        if (mAttributeOrder ==-1) mUmlClass.removeAttribute(mUmlClassAttribute);
+        mCallback.closeAttributeEditorFragment(this);
+    }
+
 //    **********************************************************************************************
 //    Edition methods
 //    **********************************************************************************************
@@ -316,6 +332,9 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
     private boolean createOrUpdateAttribute() {
         if (getAttributeName().equals("")) {
             Toast.makeText(getContext(), "Attribute name cannot be blank", Toast.LENGTH_SHORT).show();
+            return false;
+        } else if (mUmlClass.containsAttributeNamed(getAttributeName())) {
+            Toast.makeText(getContext(),"This named is already used",Toast.LENGTH_SHORT).show();
             return false;
         } else {
                 mUmlClassAttribute.setName(getAttributeName());

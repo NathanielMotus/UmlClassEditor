@@ -59,8 +59,6 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
     //todo : user manual
     //todo : programmatically modify expandablelistviews height when collapsed or expanded
-    //todo : for import and merge, increment members count
-    //todo : replace onBackPressed by onBackPressedCallBack in fragments
 
     private UmlProject mProject;
     private boolean mExpectingTouchLocation=false;
@@ -369,25 +367,6 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         this.mDrawerLayout.closeDrawer(GravityCompat.START);
 
         return true;
-    }
-
-    @Override
-    public void onBackPressed() {
-        //clear unfinished members when backpress is pressed instead of cancel button
-
-        Fragment lastFragment;
-        lastFragment=getSupportFragmentManager().getFragments().get(getSupportFragmentManager().getFragments().size()-1);
-
-        if (lastFragment.getTag()==CLASS_EDITOR_FRAGMENT_TAG && ((ClassEditorFragment)lastFragment).getUmlClass().getName()==null)
-            mProject.removeUmlClass(((ClassEditorFragment)lastFragment).getUmlClass());
-        else if (lastFragment.getTag()==ATTRIBUTE_EDITOR_FRAGMENT_TAG && ((AttributeEditorFragment)lastFragment).getUmlClassAttribute().getName()==null)
-            ((AttributeEditorFragment)lastFragment).getUmlClass().removeAttribute(((AttributeEditorFragment)lastFragment).getUmlClassAttribute());
-        else if (lastFragment.getTag()==METHOD_EDITOR_FRAGMENT_TAG && ((MethodEditorFragment)lastFragment).getUmlClassMethod().getName()==null)
-            ((MethodEditorFragment)lastFragment).getUmlClass().removeMethod(((MethodEditorFragment)lastFragment).getUmlClassMethod());
-        else if (lastFragment.getTag()==PARAMETER_EDITOR_FRAGMENT_TAG && ((ParameterEditorFragment)lastFragment).getMethodParameter().getName()==null)
-            ((ParameterEditorFragment)lastFragment).getUmlClassMethod().removeParameter(((ParameterEditorFragment)lastFragment).getMethodParameter());
-
-        super.onBackPressed();
     }
 
 //    **********************************************************************************************

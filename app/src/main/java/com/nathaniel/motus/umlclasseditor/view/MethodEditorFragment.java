@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -129,6 +130,7 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
             mMethodOrder = getArguments().getInt(METHOD_ORDER_KEY);
             mClassOrder =getArguments().getInt(CLASS_ORDER_KEY);
         }
+        setOnBackPressedCallback();
     }
 
     @Override
@@ -303,6 +305,16 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
         mDimEdit.setVisibility(View.INVISIBLE);
     }
 
+    private void setOnBackPressedCallback() {
+        OnBackPressedCallback onBackPressedCallback=new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                onCancelButtonClicked();
+            }
+        };
+        requireActivity().getOnBackPressedDispatcher().addCallback(this,onBackPressedCallback);
+    }
+
 //    **********************************************************************************************
 //    UI events
 //    **********************************************************************************************
@@ -313,8 +325,7 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
 
         switch (tag) {
             case CANCEL_BUTTON_TAG:
-                if (mMethodOrder ==-1) mUmlClass.removeMethod(mUmlClassMethod);
-                mCallback.closeMethodEditorFragment(this);
+                onCancelButtonClicked();
                 break;
             case OK_BUTTON_TAG:
                 if(createOrUpdateMethod())
@@ -354,12 +365,17 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
     @Override
     public boolean onChildClick(ExpandableListView expandableListView, View view, int i, int i1, long l) {
         AdapterItem item=(AdapterItem) expandableListView.getExpandableListAdapter().getChild(i,i1);
-        if (item.getName().equals(getString(R.string.new_parameter_string)))
+        if (item.getName().equals(getString(R.string.new_parameter_string)) && i1==0)
             mCallback.openParameterEditorFragment(-1,mUmlClassMethod.getMethodOrder(),mUmlClass.getClassOrder());
         else
             mCallback.openParameterEditorFragment(((MethodParameter)item).getParameterOrder(),
                     mUmlClassMethod.getMethodOrder(),mUmlClass.getClassOrder());
         return true;
+    }
+
+    private void onCancelButtonClicked() {
+        if (mMethodOrder ==-1) mUmlClass.removeMethod(mUmlClassMethod);
+        mCallback.closeMethodEditorFragment(this);
     }
 
 //    **********************************************************************************************
@@ -378,6 +394,10 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
                 mUmlClassMethod.setTypeMultiplicity(getMethodMultiplicity());
                 mUmlClassMethod.setArrayDimension(getArrayDimension());
         }
+        if (mUmlClass.containsEquivalentMethodTo(mUmlClassMethod)) {
+            Toast.makeText(getContext(), "This method is already defined", Toast.LENGTH_SHORT).show();
+            return false;
+        }else
             return true;
     }
 

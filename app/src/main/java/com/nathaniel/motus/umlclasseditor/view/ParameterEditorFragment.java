@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -98,6 +99,7 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
             mClassOrder =getArguments().getInt(CLASS_ORDER_KEY);
             mMethodOrder =getArguments().getInt(METHOD_ORDER_KEY);
         }
+        setOnBackPressedCallback();
     }
 
     @Override
@@ -148,8 +150,7 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
         int tag=(int)v.getTag();
         switch (tag) {
             case CANCEL_BUTTON_TAG:
-                if (mParameterOrder ==-1) mUmlClassMethod.removeParameter(mMethodParameter);
-                mCallback.closeParameterEditorFragment(this);
+                onCancelButtonClicked();
                 break;
             case OK_BUTTON_TAG:
                 if (createOrUpdateParameter())
@@ -167,6 +168,10 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
         else setOnSingleDisplay();
     }
 
+    private void onCancelButtonClicked() {
+        if (mParameterOrder ==-1) mUmlClassMethod.removeParameter(mMethodParameter);
+        mCallback.closeParameterEditorFragment(this);
+    }
 
 //    **********************************************************************************************
 //    Configuration methods
@@ -264,13 +269,26 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
         mDimEdit.setVisibility(View.VISIBLE);
     }
 
+    private void setOnBackPressedCallback() {
+        OnBackPressedCallback onBackPressedCallback=new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                onCancelButtonClicked();
+            }
+        };
+        requireActivity().getOnBackPressedDispatcher().addCallback(this,onBackPressedCallback);
+    }
+
 //    **********************************************************************************************
 //    Edition methods
 //    **********************************************************************************************
 
     private boolean createOrUpdateParameter() {
         if (getParameterName().equals("")) {
-            Toast.makeText(getContext(),"Parameter cannot be blank",Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Parameter cannot be blank", Toast.LENGTH_SHORT).show();
+            return false;
+        } else if (mUmlClassMethod.containsParameterNamed(getParameterName())) {
+            Toast.makeText(getContext(),"This named is already used",Toast.LENGTH_SHORT).show();
             return false;
         }else {
                 mMethodParameter.setName(getParameterName());

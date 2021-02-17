@@ -331,6 +331,20 @@ public class UmlClass extends UmlType {
         return false;
     }
 
+    public boolean containsAttributeNamed(String attributeName) {
+        for (UmlClassAttribute a:mAttributes)
+            if (a.getName()!=null && a.getName().equals(attributeName))
+                return true;
+        return false;
+    }
+
+    public boolean containsEquivalentMethodTo(UmlClassMethod method) {
+        for (UmlClassMethod m:mMethods)
+            if (m.isEquivalentTo(method))
+                return true;
+        return false;
+    }
+
 //    **********************************************************************************************
 //    JSON methods
 //    **********************************************************************************************
