@@ -86,6 +86,8 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
     private static final int OK_BUTTON_TAG=430;
     private static final int ADD_PARAMETER_BUTTON_TAG=440;
 
+    private static OnBackPressedCallback mOnBackPressedCallback;
+
 
 //    **********************************************************************************************
 //    Constructors
@@ -130,6 +132,7 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
             mMethodOrder = getArguments().getInt(METHOD_ORDER_KEY);
             mClassOrder =getArguments().getInt(CLASS_ORDER_KEY);
         }
+        createOnBackPressedCallback();
         setOnBackPressedCallback();
     }
 
@@ -145,8 +148,8 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
         super.onViewCreated(view, savedInstanceState);
 
         createCallbackToParentActivity();
-        initializeMembers();
         configureViews();
+        initializeMembers();
         initializeFields();
         if (mMethodOrder !=-1) setOnEditDisplay();
         else setOnCreateDisplay();
@@ -269,6 +272,10 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
     }
 
     private void populateParameterListView() {
+        boolean parameterGroupIsExpanded=false;
+        if (mParameterList.getExpandableListAdapter()!=null && mParameterList.isGroupExpanded(0))
+            parameterGroupIsExpanded=true;
+
         List<AdapterItem> parameterList=new ArrayList<>();
         for (MethodParameter p:mUmlClassMethod.getParameters())
             parameterList.add(p);
@@ -283,6 +290,8 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
 
         CustomExpandableListViewAdapter adapter=new CustomExpandableListViewAdapter(getContext(),title,hashMap);
         mParameterList.setAdapter(adapter);
+        if (parameterGroupIsExpanded)
+            mParameterList.expandGroup(0);
     }
 
     private void setOnEditDisplay() {
@@ -305,14 +314,29 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
         mDimEdit.setVisibility(View.INVISIBLE);
     }
 
-    private void setOnBackPressedCallback() {
-        OnBackPressedCallback onBackPressedCallback=new OnBackPressedCallback(true) {
+    private void createOnBackPressedCallback() {
+        mOnBackPressedCallback=new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
                 onCancelButtonClicked();
             }
         };
-        requireActivity().getOnBackPressedDispatcher().addCallback(this,onBackPressedCallback);
+    }
+
+    private void setOnBackPressedCallback() {
+        requireActivity().getOnBackPressedDispatcher().addCallback(this,mOnBackPressedCallback);
+    }
+
+    public void updateMethodEditorFragment(int methodOrder,int classOrder) {
+        mMethodOrder=methodOrder;
+        mClassOrder=classOrder;
+        initializeMembers();
+        initializeFields();
+        if (mMethodOrder !=-1) setOnEditDisplay();
+        else setOnCreateDisplay();
+        if (mMethodOrder !=-1 && mUmlClassMethod.getTypeMultiplicity()== TypeMultiplicity.ARRAY) setOnArrayDisplay();
+        else setOnSingleDisplay();
+        setOnBackPressedCallback();
     }
 
 //    **********************************************************************************************
@@ -329,6 +353,7 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
                 break;
             case OK_BUTTON_TAG:
                 if(createOrUpdateMethod())
+                    mOnBackPressedCallback.remove();
                     mCallback.closeMethodEditorFragment(this);
                 break;
             case DELETE_METHOD_BUTTON_TAG:
@@ -375,6 +400,7 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
 
     private void onCancelButtonClicked() {
         if (mMethodOrder ==-1) mUmlClass.removeMethod(mUmlClassMethod);
+        mOnBackPressedCallback.remove();
         mCallback.closeMethodEditorFragment(this);
     }
 

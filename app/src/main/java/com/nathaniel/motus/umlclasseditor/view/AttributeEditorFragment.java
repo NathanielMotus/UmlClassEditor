@@ -75,6 +75,8 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
     private static final int CANCEL_BUTTON_TAG=330;
     private static final int DELETE_ATTRIBUTE_BUTTON_TAG=340;
 
+    private static OnBackPressedCallback mOnBackPressedCallback;
+
 //    **********************************************************************************************
 //    Constructors
 //    **********************************************************************************************
@@ -118,6 +120,7 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
             mClassOrder =getArguments().getInt(CLASS_ORDER_KEY,-1);
             mClassEditorFragmentTag=getArguments().getString(CLASS_EDITOR_FRAGMENT_TAG_KEY);
         }
+        createOnBackPressedCallback();
         setOnBackPressedCallback();
     }
 
@@ -274,14 +277,29 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
         mDimEdit.setVisibility(View.INVISIBLE);
     }
 
-    private void setOnBackPressedCallback() {
-        OnBackPressedCallback onBackPressedCallback=new OnBackPressedCallback(true) {
+    public void updateAttributeEditorFragment(int attributeOrder, int classOrder) {
+        mAttributeOrder=attributeOrder;
+        mClassOrder=classOrder;
+        initializeMembers();
+        initializeFields();
+        if (mAttributeOrder ==-1) setOnCreateDisplay();
+        else setOnEditDisplay();
+        if (mAttributeOrder !=-1 && mUmlClassAttribute.getTypeMultiplicity()==TypeMultiplicity.ARRAY) setOnArrayDisplay();
+        else setOnSingleDisplay();
+        setOnBackPressedCallback();
+    }
+
+    private void createOnBackPressedCallback() {
+        mOnBackPressedCallback=new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
                 onCancelButtonClicked();
             }
         };
-        requireActivity().getOnBackPressedDispatcher().addCallback(this,onBackPressedCallback);
+    }
+
+    private void setOnBackPressedCallback() {
+        requireActivity().getOnBackPressedDispatcher().addCallback(this,mOnBackPressedCallback);
     }
 
 //    **********************************************************************************************
@@ -298,6 +316,7 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
 
             case OK_BUTTON_TAG:
                 if(createOrUpdateAttribute())
+                    mOnBackPressedCallback.remove();
                     mCallback.closeAttributeEditorFragment(this);
                 break;
 
@@ -322,6 +341,7 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
 
     private void onCancelButtonClicked() {
         if (mAttributeOrder ==-1) mUmlClass.removeAttribute(mUmlClassAttribute);
+        mOnBackPressedCallback.remove();
         mCallback.closeAttributeEditorFragment(this);
     }
 

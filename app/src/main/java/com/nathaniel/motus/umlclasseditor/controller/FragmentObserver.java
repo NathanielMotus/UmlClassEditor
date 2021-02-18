@@ -16,7 +16,6 @@ import com.nathaniel.motus.umlclasseditor.model.UmlProject;
         void closeAttributeEditorFragment(Fragment fragment);
         void closeMethodEditorFragment(Fragment fragment);
         void closeParameterEditorFragment(Fragment fragment);
-        void closeValueEditorFragment(Fragment fragment);
         void openAttributeEditorFragment(int attributeIndex,int classIndex);
         void openMethodEditorFragment(int methodIndex,int classIndex);
         void openParameterEditorFragment(int parameterIndex,int methodIndex,int classIndex);

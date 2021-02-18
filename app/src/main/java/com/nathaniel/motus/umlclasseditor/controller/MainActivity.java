@@ -32,7 +32,6 @@ import androidx.core.view.GravityCompat;
 import androidx.core.view.MenuCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 
 import com.google.android.material.navigation.NavigationView;
 import com.nathaniel.motus.umlclasseditor.R;
@@ -205,53 +204,75 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         mGraphFragment=new GraphFragment();
         getSupportFragmentManager().beginTransaction()
                 .add(viewContainerId,mGraphFragment,GRAPH_FRAGMENT_TAG)
-                .commit();
+                .commitNow();
     }
 
     private void configureAndDisplayClassEditorFragment(int viewContainerId,float xLocation,float yLocation,int classOrder) {
         //handle class editor fragment
 
-        mClassEditorFragment=ClassEditorFragment.newInstance(xLocation,yLocation,classOrder);
-        getSupportFragmentManager().beginTransaction()
-                .hide(mGraphFragment)
-                .add(viewContainerId,mClassEditorFragment,CLASS_EDITOR_FRAGMENT_TAG)
-                .addToBackStack(CLASS_EDITOR_FRAGMENT_TAG)
-                .commit();
+        if (mClassEditorFragment==null) {
+            mClassEditorFragment = ClassEditorFragment.newInstance(xLocation, yLocation, classOrder);
+            getSupportFragmentManager().beginTransaction()
+                    .hide(mGraphFragment)
+                    .add(viewContainerId, mClassEditorFragment, CLASS_EDITOR_FRAGMENT_TAG)
+                    .commitNow();
+        }
+        else {
+            mClassEditorFragment.updateClassEditorFragment(xLocation, yLocation, classOrder);
+            getSupportFragmentManager().beginTransaction()
+                    .hide(mGraphFragment)
+                    .show(mClassEditorFragment)
+                    .commitNow();
+        }
     }
 
     private void configureAndDisplayAttributeEditorFragment(int viewContainerId,int attributeOrder,int classOrder) {
 
-        mAttributeEditorFragment=AttributeEditorFragment.newInstance(mClassEditorFragment.getTag(),attributeOrder,classOrder);
-        getSupportFragmentManager().beginTransaction()
-                .hide(mClassEditorFragment)
-                .add(viewContainerId,mAttributeEditorFragment,ATTRIBUTE_EDITOR_FRAGMENT_TAG)
-                .addToBackStack(ATTRIBUTE_EDITOR_FRAGMENT_TAG)
-                .commit();
+        if (mAttributeEditorFragment == null) {
+            mAttributeEditorFragment = AttributeEditorFragment.newInstance(mClassEditorFragment.getTag(), attributeOrder, classOrder);
+            getSupportFragmentManager().beginTransaction()
+                    .hide(mClassEditorFragment)
+                    .add(viewContainerId, mAttributeEditorFragment, ATTRIBUTE_EDITOR_FRAGMENT_TAG)
+                    .commitNow();
+        } else {
+            mAttributeEditorFragment.updateAttributeEditorFragment(attributeOrder,classOrder);
+            getSupportFragmentManager().beginTransaction()
+                    .hide(mClassEditorFragment)
+                    .show(mAttributeEditorFragment)
+                  .commitNow();
+        }
     }
 
     private void configureAndDisplayMethodEditorFragment(int viewContainerId, int methodOrder,int classOrder) {
-        mMethodEditorFragment=MethodEditorFragment.newInstance(mClassEditorFragment.getTag(),methodOrder,classOrder);
-        getSupportFragmentManager().beginTransaction()
-                .hide(mClassEditorFragment)
-                .add(viewContainerId,mMethodEditorFragment,METHOD_EDITOR_FRAGMENT_TAG)
-                .addToBackStack(METHOD_EDITOR_FRAGMENT_TAG)
-                .commit();
+        if (mMethodEditorFragment == null) {
+            mMethodEditorFragment = MethodEditorFragment.newInstance(mClassEditorFragment.getTag(), methodOrder, classOrder);
+            getSupportFragmentManager().beginTransaction()
+                    .hide(mClassEditorFragment)
+                    .add(viewContainerId, mMethodEditorFragment, METHOD_EDITOR_FRAGMENT_TAG)
+                    .commitNow();
+        } else {
+            mMethodEditorFragment.updateMethodEditorFragment(methodOrder,classOrder);
+            getSupportFragmentManager().beginTransaction()
+                    .hide(mClassEditorFragment)
+                    .show(mMethodEditorFragment)
+                    .commitNow();
+        }
     }
 
     private void configureAndDisplayParameterEditorFragment(int viewContainerId, int parameterOrder,int methodOrder,int classOrder) {
-        mParameterEditorFragment=ParameterEditorFragment.newInstance(mMethodEditorFragment.getTag(),parameterOrder,methodOrder,classOrder);
-        getSupportFragmentManager().beginTransaction()
-                .hide(mMethodEditorFragment)
-                .add(viewContainerId,mParameterEditorFragment,PARAMETER_EDITOR_FRAGMENT_TAG)
-                .addToBackStack(PARAMETER_EDITOR_FRAGMENT_TAG)
-                .commit();
-    }
-
-    private void closeFragment(Fragment fragment) {
-        getSupportFragmentManager().beginTransaction()
-                .remove(fragment)
-                .commit();
-        getSupportFragmentManager().popBackStackImmediate();
+        if (mParameterEditorFragment == null) {
+            mParameterEditorFragment = ParameterEditorFragment.newInstance(mMethodEditorFragment.getTag(), parameterOrder, methodOrder, classOrder);
+            getSupportFragmentManager().beginTransaction()
+                    .hide(mMethodEditorFragment)
+                    .add(viewContainerId, mParameterEditorFragment, PARAMETER_EDITOR_FRAGMENT_TAG)
+                    .commitNow();
+        } else {
+            mParameterEditorFragment.updateParameterEditorFragment(parameterOrder,methodOrder,classOrder);
+            getSupportFragmentManager().beginTransaction()
+                    .hide(mMethodEditorFragment)
+                    .show(mParameterEditorFragment)
+                    .commitNow();
+        }
     }
 
 //    **********************************************************************************************
@@ -275,32 +296,38 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
     @Override
     public void closeClassEditorFragment(Fragment fragment) {
-        closeFragment(fragment);
+        getSupportFragmentManager().beginTransaction()
+                .hide(fragment)
+                .show(mGraphFragment)
+                .commitNow();
         mGraphView.invalidate();
     }
 
     @Override
     public void closeAttributeEditorFragment(Fragment fragment) {
-        closeFragment(fragment);
+        getSupportFragmentManager().beginTransaction()
+                .hide(fragment)
+                .show(mClassEditorFragment)
+                .commit();
         mClassEditorFragment.updateLists();
     }
 
     @Override
     public void closeMethodEditorFragment(Fragment fragment) {
-        closeFragment(fragment);
+        getSupportFragmentManager().beginTransaction()
+                .hide(fragment)
+                .show(mClassEditorFragment)
+                .commitNow();
         mClassEditorFragment.updateLists();
     }
 
     @Override
     public void closeParameterEditorFragment(Fragment fragment) {
-        closeFragment(fragment);
+        getSupportFragmentManager().beginTransaction()
+                .hide(fragment)
+                .show(mMethodEditorFragment)
+                .commitNow();
         mMethodEditorFragment.updateLists();
-    }
-
-    @Override
-    public void closeValueEditorFragment(Fragment fragment) {
-        closeFragment(fragment);
-        mClassEditorFragment.updateLists();
     }
 
     @Override

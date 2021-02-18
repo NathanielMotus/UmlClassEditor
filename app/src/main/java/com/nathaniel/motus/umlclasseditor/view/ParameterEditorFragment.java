@@ -71,6 +71,8 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
     private static final int CANCEL_BUTTON_TAG=520;
     private static final int OK_BUTTON_TAG=530;
 
+    private static OnBackPressedCallback mOnBackPressedCallback;
+
 //    **********************************************************************************************
 //    Constructors
 //    **********************************************************************************************
@@ -99,6 +101,7 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
             mClassOrder =getArguments().getInt(CLASS_ORDER_KEY);
             mMethodOrder =getArguments().getInt(METHOD_ORDER_KEY);
         }
+        createOnBackPressedCallback();
         setOnBackPressedCallback();
     }
 
@@ -114,8 +117,8 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
         super.onViewCreated(view, savedInstanceState);
 
         createCallbackToParentActivity();
-        initializeMembers();
         configureViews();
+        initializeMembers();
         initializeFields();
         if (mParameterOrder ==-1) setOnCreateDisplay();
         else setOnEditDisplay();
@@ -154,6 +157,7 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
                 break;
             case OK_BUTTON_TAG:
                 if (createOrUpdateParameter())
+                    mOnBackPressedCallback.remove();
                     mCallback.closeParameterEditorFragment(this);
                 break;
             case DELETE_PARAMETER_BUTTON_TAG:
@@ -170,6 +174,7 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
 
     private void onCancelButtonClicked() {
         if (mParameterOrder ==-1) mUmlClassMethod.removeParameter(mMethodParameter);
+        mOnBackPressedCallback.remove();
         mCallback.closeParameterEditorFragment(this);
     }
 
@@ -269,15 +274,33 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
         mDimEdit.setVisibility(View.VISIBLE);
     }
 
-    private void setOnBackPressedCallback() {
-        OnBackPressedCallback onBackPressedCallback=new OnBackPressedCallback(true) {
+    private void createOnBackPressedCallback() {
+        mOnBackPressedCallback=new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
                 onCancelButtonClicked();
             }
         };
-        requireActivity().getOnBackPressedDispatcher().addCallback(this,onBackPressedCallback);
     }
+
+    private void setOnBackPressedCallback() {
+        requireActivity().getOnBackPressedDispatcher().addCallback(this,mOnBackPressedCallback);
+    }
+
+    public void updateParameterEditorFragment(int parameterOrder,int methodOrder,int classOrder) {
+        mParameterOrder=parameterOrder;
+        mMethodOrder=methodOrder;
+        mClassOrder=classOrder;
+        initializeMembers();
+        initializeFields();
+        if (mParameterOrder ==-1) setOnCreateDisplay();
+        else setOnEditDisplay();
+        if (mParameterOrder !=-1 && mMethodParameter.getTypeMultiplicity()==TypeMultiplicity.ARRAY)
+            setOnArrayDisplay();
+        else setOnSingleDisplay();
+        setOnBackPressedCallback();
+    }
+
 
 //    **********************************************************************************************
 //    Edition methods

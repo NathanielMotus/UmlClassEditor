@@ -604,7 +604,7 @@ public class GraphView extends View implements View.OnTouchListener{
                 if (event.getEventTime()-mActionDownEventTime<=CLICK_DELAY) {
                     mFirstClickTime = event.getEventTime();
 
-                    //locate new classe
+                    //locate new class
                     if (mGraphFragment.isExpectingTouchLocation()) {
                         mGraphFragment.setExpectingTouchLocation(false);
                         mGraphFragment.clearPrompt();

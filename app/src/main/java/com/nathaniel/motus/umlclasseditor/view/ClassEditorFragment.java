@@ -80,6 +80,8 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
     private static final String YPOS_KEY="yPos";
     private static final String CLASS_ORDER_KEY ="classOrder";
 
+    private static OnBackPressedCallback mOnBackPressedCallback;
+
 
 
 //    **********************************************************************************************
@@ -122,6 +124,7 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
             mYPos=getArguments().getFloat(YPOS_KEY);
             mClassOrder =getArguments().getInt(CLASS_ORDER_KEY,-1);
         }
+        createOnBackPressedCallback();
         setOnBackPressedCallback();
     }
 
@@ -218,6 +221,15 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
     }
 
     private void populateMemberListViewForJavaClass() {
+        boolean attributeGroupIsExpanded=false;
+        boolean methodGroupIsExpanded=false;
+        if (mMemberListView.getExpandableListAdapter() != null) {
+            if (mMemberListView.isGroupExpanded(0))
+                attributeGroupIsExpanded = true;
+            if (mMemberListView.isGroupExpanded(1))
+                methodGroupIsExpanded=true;
+        }
+
         List<AdapterItem> attributeList=new ArrayList<>();
         for (UmlClassAttribute a:mUmlClass.getAttributes())
             attributeList.add(a);
@@ -239,6 +251,11 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         hashMap.put(getString(R.string.methods_string),methodList);
         CustomExpandableListViewAdapter adapter=new CustomExpandableListViewAdapter(getContext(),title,hashMap);
         mMemberListView.setAdapter(adapter);
+
+        if (attributeGroupIsExpanded)
+            mMemberListView.expandGroup(0);
+        if (methodGroupIsExpanded)
+            mMemberListView.expandGroup(1);
     }
 
     private void populateMemberListViewForEnum() {
@@ -271,14 +288,30 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         mDeleteClassButton.setVisibility(View.INVISIBLE);
     }
 
-    private void setOnBackPressedCallback() {
-        OnBackPressedCallback onBackPressedCallback=new OnBackPressedCallback(true) {
+    private void createOnBackPressedCallback() {
+        mOnBackPressedCallback=new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
                 onCancelButtonClicked();
             }
         };
-        requireActivity().getOnBackPressedDispatcher().addCallback(this,onBackPressedCallback);
+    }
+
+    private void setOnBackPressedCallback() {
+        requireActivity().getOnBackPressedDispatcher().addCallback(this,mOnBackPressedCallback);
+    }
+
+    public void updateClassEditorFragment(float xPos, float yPos, int classOrder) {
+        mXPos=xPos;
+        mYPos=yPos;
+        mClassOrder=classOrder;
+        initializeMembers();
+        initializeFields();
+        if (mClassOrder ==-1) setOnCreateDisplay();
+        else setOnEditDisplay();
+        if (mClassOrder !=-1 && mUmlClass.getUmlClassType()== UmlClass.UmlClassType.ENUM) sIsJavaClass=false;
+        else sIsJavaClass=true;
+        setOnBackPressedCallback();
     }
 
 //    **********************************************************************************************
@@ -294,6 +327,7 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
 
             case OK_BUTTON_TAG:
                  if(createOrUpdateClass())
+                     mOnBackPressedCallback.remove();
                      mCallback.closeClassEditorFragment(this);
                 break;
 
@@ -364,7 +398,8 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
     }
 
     private void onCancelButtonClicked() {
-        if (mClassOrder ==-1) mCallback.getProject().getUmlClasses().remove(mUmlClass);
+        if (mClassOrder ==-1) mCallback.getProject().removeUmlClass(mUmlClass);
+        mOnBackPressedCallback.remove();
         mCallback.closeClassEditorFragment(this);
     }
 
