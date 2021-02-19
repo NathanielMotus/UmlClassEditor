@@ -103,15 +103,6 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
     }
 
 //    **********************************************************************************************
-//    Getters and setters
-//    **********************************************************************************************
-
-    public UmlClass getUmlClass() {
-        return mUmlClass;
-    }
-
-
-//    **********************************************************************************************
 //    Fragment events
 //    **********************************************************************************************
 
@@ -145,8 +136,6 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         initializeFields();
         if (mClassOrder ==-1) setOnCreateDisplay();
         else setOnEditDisplay();
-        if (mClassOrder !=-1 && mUmlClass.getUmlClassType()== UmlClass.UmlClassType.ENUM) sIsJavaClass=false;
-        else sIsJavaClass=true;
     }
 
 //    **********************************************************************************************
@@ -195,6 +184,8 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
             mUmlClass=new UmlClass(mCallback.getProject().getUmlClassCount());
             mCallback.getProject().addUmlClass(mUmlClass);
         }
+        if (mClassOrder !=-1 && mUmlClass.getUmlClassType()== UmlClass.UmlClassType.ENUM) sIsJavaClass=false;
+        else sIsJavaClass=true;
     }
 
     private void initializeFields() {
@@ -326,9 +317,10 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         switch (tag) {
 
             case OK_BUTTON_TAG:
-                 if(createOrUpdateClass())
+                 if(createOrUpdateClass()) {
                      mOnBackPressedCallback.remove();
                      mCallback.closeClassEditorFragment(this);
+                 }
                 break;
 
             case CANCEL_BUTTON_TAG:
