@@ -1,6 +1,7 @@
 package com.nathaniel.motus.umlclasseditor.model;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import androidx.activity.OnBackPressedCallback;
@@ -12,8 +13,8 @@ import com.nathaniel.motus.umlclasseditor.controller.FragmentObserver;
 
 public abstract class EditorFragment extends Fragment {
 
-    private FragmentObserver mCallback;
-    private OnBackPressedCallback mOnBackPressedCallback;
+    protected FragmentObserver mCallback;
+    protected OnBackPressedCallback mOnBackPressedCallback;
 
 //    **********************************************************************************************
 //    Abstract methods
@@ -30,7 +31,8 @@ public abstract class EditorFragment extends Fragment {
 //    **********************************************************************************************
 //    Common methods
 //    **********************************************************************************************
-    private void createOnBackPressedCallback() {
+
+    protected void createOnBackPressedCallback() {
         mOnBackPressedCallback=new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -39,24 +41,24 @@ public abstract class EditorFragment extends Fragment {
         };
     }
 
-    private void onCancelButtonCLicked() {
+    protected void onCancelButtonCLicked() {
         clearDraftObject();
         mOnBackPressedCallback.remove();
         closeFragment();
     }
 
-    private void onOKButtonClicked() {
+    protected void onOKButtonClicked() {
         if (createOrUpdateObject()) {
             mOnBackPressedCallback.remove();
             closeFragment();
         }
     }
 
-    private void setOnBackPressedCallback() {
+    protected void setOnBackPressedCallback() {
         requireActivity().getOnBackPressedDispatcher().addCallback(this,mOnBackPressedCallback);
     }
 
-    private void createCallbackToParentActivity() {
+    protected void createCallbackToParentActivity() {
         mCallback=(FragmentObserver)getActivity();
     }
 

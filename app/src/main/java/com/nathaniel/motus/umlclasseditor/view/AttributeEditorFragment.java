@@ -24,6 +24,7 @@ import android.widget.Toast;
 
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.controller.FragmentObserver;
+import com.nathaniel.motus.umlclasseditor.model.EditorFragment;
 import com.nathaniel.motus.umlclasseditor.model.TypeMultiplicity;
 import com.nathaniel.motus.umlclasseditor.model.TypeNameComparator;
 import com.nathaniel.motus.umlclasseditor.model.UmlClass;
@@ -40,7 +41,7 @@ import java.util.List;
  * Use the {@link AttributeEditorFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class AttributeEditorFragment extends Fragment implements View.OnClickListener, RadioGroup.OnCheckedChangeListener {
+public class AttributeEditorFragment extends EditorFragment implements View.OnClickListener, RadioGroup.OnCheckedChangeListener {
 
     private static final String ATTRIBUTE_ORDER_KEY = "attributeOrder";
     private static final String CLASS_ORDER_KEY ="classOrder";
@@ -49,7 +50,6 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
     private int mClassOrder;
     private UmlClassAttribute mUmlClassAttribute;
     private String mClassEditorFragmentTag;
-    private FragmentObserver mCallback;
     private UmlClass mUmlClass;
 
     private TextView mEditAttributeText;
@@ -75,8 +75,6 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
     private static final int CANCEL_BUTTON_TAG=330;
     private static final int DELETE_ATTRIBUTE_BUTTON_TAG=340;
 
-    private static OnBackPressedCallback mOnBackPressedCallback;
-
 //    **********************************************************************************************
 //    Constructors
 //    **********************************************************************************************
@@ -96,33 +94,8 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
     }
 
 //    **********************************************************************************************
-//    Getters and setters
-//    **********************************************************************************************
-
-    public UmlClassAttribute getUmlClassAttribute() {
-        return mUmlClassAttribute;
-    }
-
-    public UmlClass getUmlClass() {
-        return mUmlClass;
-    }
-
-
-//    **********************************************************************************************
 //    Fragment events
 //    **********************************************************************************************
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mAttributeOrder =getArguments().getInt(ATTRIBUTE_ORDER_KEY,-1);
-            mClassOrder =getArguments().getInt(CLASS_ORDER_KEY,-1);
-            mClassEditorFragmentTag=getArguments().getString(CLASS_EDITOR_FRAGMENT_TAG_KEY);
-        }
-        createOnBackPressedCallback();
-        setOnBackPressedCallback();
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -131,25 +104,25 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
         return inflater.inflate(R.layout.fragment_attribute_editor, container, false);
     }
 
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        createCallbackToParentActivity();
-        configureViews();
-        initializeMembers();
-        initializeFields();
-        if (mAttributeOrder ==-1) setOnCreateDisplay();
-        else setOnEditDisplay();
-        if (mAttributeOrder !=-1 && mUmlClassAttribute.getTypeMultiplicity()==TypeMultiplicity.ARRAY) setOnArrayDisplay();
-        else setOnSingleDisplay();
-    }
-
 //    **********************************************************************************************
 //    Configuration methods
 //    **********************************************************************************************
 
-    public void configureViews() {
+    @Override
+    protected void readBundle() {
+        mAttributeOrder =getArguments().getInt(ATTRIBUTE_ORDER_KEY,-1);
+        mClassOrder =getArguments().getInt(CLASS_ORDER_KEY,-1);
+        mClassEditorFragmentTag=getArguments().getString(CLASS_EDITOR_FRAGMENT_TAG_KEY);
+    }
+
+    @Override
+    protected void setOnCreateOrEditDisplay() {
+        if (mAttributeOrder ==-1) setOnCreateDisplay();
+        else setOnEditDisplay();
+    }
+
+    @Override
+    protected void configureViews() {
         mEditAttributeText=getActivity().findViewById(R.id.edit_attribute_text);
 
         mDeleteAttributeButton=getActivity().findViewById(R.id.delete_attribute_button);
@@ -194,11 +167,8 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
 
     }
 
-    private void createCallbackToParentActivity() {
-        mCallback=(FragmentObserver)getActivity();
-    }
-
-    private void initializeMembers() {
+    @Override
+    protected void initializeMembers() {
         mUmlClass=mCallback.getProject().findClassByOrder(mClassOrder);
 
         if (mAttributeOrder != -1) {
@@ -210,7 +180,8 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
 
     }
 
-    private void initializeFields() {
+    @Override
+    protected void initializeFields() {
         if (mAttributeOrder != -1) {
             mAttributeNameEdit.setText(mUmlClassAttribute.getName());
 
@@ -241,6 +212,19 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
                     break;
             }
             mDimEdit.setText(Integer.toString(mUmlClassAttribute.getArrayDimension()));
+            if (mUmlClassAttribute.getTypeMultiplicity() == TypeMultiplicity.ARRAY)
+                setOnArrayDisplay();
+            else
+                setOnSingleDisplay();
+
+        } else {
+            mAttributeNameEdit.setText("");
+            mPublicRadio.setChecked(true);
+            mStaticCheck.setChecked(false);
+            mFinalCheck.setChecked(false);
+            mSimpleRadio.setChecked(true);
+            mDimEdit.setText("");
+            setOnSingleDisplay();
         }
         populateTypeSpinner();
     }
@@ -289,20 +273,12 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
         setOnBackPressedCallback();
     }
 
-    private void createOnBackPressedCallback() {
-        mOnBackPressedCallback=new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                onCancelButtonClicked();
-            }
-        };
+    @Override
+    protected void closeFragment() {
+        mCallback.closeAttributeEditorFragment(this);
     }
 
-    private void setOnBackPressedCallback() {
-        requireActivity().getOnBackPressedDispatcher().addCallback(this,mOnBackPressedCallback);
-    }
-
-//    **********************************************************************************************
+    //    **********************************************************************************************
 //    UI events
 //    **********************************************************************************************
 
@@ -315,13 +291,11 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
         switch (tag) {
 
             case OK_BUTTON_TAG:
-                if(createOrUpdateAttribute())
-                    mOnBackPressedCallback.remove();
-                    mCallback.closeAttributeEditorFragment(this);
+                onOKButtonClicked();
                 break;
 
             case CANCEL_BUTTON_TAG:
-                onCancelButtonClicked();
+                onCancelButtonCLicked();
                 break;
 
             case DELETE_ATTRIBUTE_BUTTON_TAG:
@@ -339,15 +313,20 @@ public class AttributeEditorFragment extends Fragment implements View.OnClickLis
         else setOnSingleDisplay();
     }
 
-    private void onCancelButtonClicked() {
-        if (mAttributeOrder ==-1) mUmlClass.removeAttribute(mUmlClassAttribute);
-        mOnBackPressedCallback.remove();
-        mCallback.closeAttributeEditorFragment(this);
-    }
-
 //    **********************************************************************************************
 //    Edition methods
 //    **********************************************************************************************
+
+    @Override
+    protected boolean createOrUpdateObject() {
+        return createOrUpdateAttribute();
+    }
+
+    @Override
+    protected void clearDraftObject() {
+        if (mAttributeOrder==-1)
+            mUmlClass.removeAttribute(mUmlClassAttribute);
+    }
 
     private boolean createOrUpdateAttribute() {
         if (getAttributeName().equals("")) {

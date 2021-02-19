@@ -30,6 +30,7 @@ import com.nathaniel.motus.umlclasseditor.controller.FragmentObserver;
 import com.nathaniel.motus.umlclasseditor.model.AdapterItem;
 import com.nathaniel.motus.umlclasseditor.model.AdapterItemComparator;
 import com.nathaniel.motus.umlclasseditor.model.AddItemString;
+import com.nathaniel.motus.umlclasseditor.model.EditorFragment;
 import com.nathaniel.motus.umlclasseditor.model.MethodParameter;
 import com.nathaniel.motus.umlclasseditor.model.TypeMultiplicity;
 import com.nathaniel.motus.umlclasseditor.model.TypeNameComparator;
@@ -48,7 +49,7 @@ import java.util.List;
  * Use the {@link MethodEditorFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class MethodEditorFragment extends Fragment implements View.OnClickListener,
+public class MethodEditorFragment extends EditorFragment implements View.OnClickListener,
         RadioGroup.OnCheckedChangeListener,
         AdapterView.OnItemLongClickListener,
         ExpandableListView.OnChildClickListener{
@@ -61,7 +62,6 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
     private UmlClassMethod mUmlClassMethod;
     private UmlClass mUmlClass;
     private String mClassEditorFragmentTag;
-    private FragmentObserver mCallback;
 
     private TextView mEditMethodText;
     private Button mDeleteMethodButton;
@@ -86,9 +86,6 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
     private static final int OK_BUTTON_TAG=430;
     private static final int ADD_PARAMETER_BUTTON_TAG=440;
 
-    private static OnBackPressedCallback mOnBackPressedCallback;
-
-
 //    **********************************************************************************************
 //    Constructors
 //    **********************************************************************************************
@@ -107,34 +104,9 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
         return fragment;
     }
 
-
-//    **********************************************************************************************
-//    Getters and setters
-//    **********************************************************************************************
-
-    public UmlClassMethod getUmlClassMethod() {
-        return mUmlClassMethod;
-    }
-
-    public UmlClass getUmlClass() {
-        return mUmlClass;
-    }
-
 //    **********************************************************************************************
 //    Fragment events
 //    **********************************************************************************************
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mClassEditorFragmentTag =getArguments().getString(CLASS_EDITOR_FRAGMENT_TAG_KEY);
-            mMethodOrder = getArguments().getInt(METHOD_ORDER_KEY);
-            mClassOrder =getArguments().getInt(CLASS_ORDER_KEY);
-        }
-        createOnBackPressedCallback();
-        setOnBackPressedCallback();
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -143,25 +115,26 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
         return inflater.inflate(R.layout.fragment_method_editor, container, false);
     }
 
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        createCallbackToParentActivity();
-        configureViews();
-        initializeMembers();
-        initializeFields();
-        if (mMethodOrder !=-1) setOnEditDisplay();
-        else setOnCreateDisplay();
-        if (mMethodOrder !=-1 && mUmlClassMethod.getTypeMultiplicity()== TypeMultiplicity.ARRAY) setOnArrayDisplay();
-        else setOnSingleDisplay();
-    }
-
 //    **********************************************************************************************
 //    Configuration methods
 //    **********************************************************************************************
 
-    private void configureViews() {
+    @Override
+    protected void readBundle() {
+        mClassEditorFragmentTag =getArguments().getString(CLASS_EDITOR_FRAGMENT_TAG_KEY);
+        mMethodOrder = getArguments().getInt(METHOD_ORDER_KEY);
+        mClassOrder =getArguments().getInt(CLASS_ORDER_KEY);
+    }
+
+    @Override
+    protected void setOnCreateOrEditDisplay() {
+        if (mMethodOrder!=-1)
+            setOnEditDisplay();
+        else
+            setOnCreateDisplay();
+    }
+
+    protected void configureViews() {
         mEditMethodText=getActivity().findViewById(R.id.edit_method_text);
 
         mDeleteMethodButton=getActivity().findViewById(R.id.delete_method_button);
@@ -206,11 +179,7 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
         mOKButton.setTag(OK_BUTTON_TAG);
     }
 
-    private void createCallbackToParentActivity() {
-        mCallback=(FragmentObserver)getActivity();
-    }
-
-    private void initializeMembers() {
+    protected void initializeMembers() {
         mUmlClass=mCallback.getProject().findClassByOrder(mClassOrder);
 
         if (mMethodOrder != -1) {
@@ -219,10 +188,9 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
             mUmlClassMethod=new UmlClassMethod(mUmlClass.getUmlClassMethodCount());
             mUmlClass.addMethod(mUmlClassMethod);
         }
-
     }
 
-    private void initializeFields() {
+    protected void initializeFields() {
         if (mMethodOrder != -1) {
             mMethodNameEdit.setText(mUmlClassMethod.getName());
 
@@ -253,6 +221,16 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
             }
 
             mDimEdit.setText(Integer.toString(mUmlClassMethod.getArrayDimension()));
+            if (mUmlClassMethod.getTypeMultiplicity() == TypeMultiplicity.ARRAY)
+                setOnArrayDisplay();
+            else setOnSingleDisplay();
+        } else {
+            mMethodNameEdit.setText("");
+            mPublicRadio.setChecked(true);
+            mStaticCheck.setChecked(false);
+            mSingleRadio.setChecked(true);
+            mDimEdit.setText("");
+            setOnSingleDisplay();
         }
         populateTypeSpinner();
         populateParameterListView();
@@ -314,19 +292,6 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
         mDimEdit.setVisibility(View.INVISIBLE);
     }
 
-    private void createOnBackPressedCallback() {
-        mOnBackPressedCallback=new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                onCancelButtonClicked();
-            }
-        };
-    }
-
-    private void setOnBackPressedCallback() {
-        requireActivity().getOnBackPressedDispatcher().addCallback(this,mOnBackPressedCallback);
-    }
-
     public void updateMethodEditorFragment(int methodOrder,int classOrder) {
         mMethodOrder=methodOrder;
         mClassOrder=classOrder;
@@ -339,6 +304,11 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
         setOnBackPressedCallback();
     }
 
+    @Override
+    protected void closeFragment() {
+        mCallback.closeMethodEditorFragment(this);
+    }
+
 //    **********************************************************************************************
 //    UI events
 //    **********************************************************************************************
@@ -349,12 +319,10 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
 
         switch (tag) {
             case CANCEL_BUTTON_TAG:
-                onCancelButtonClicked();
+                onCancelButtonCLicked();
                 break;
             case OK_BUTTON_TAG:
-                if(createOrUpdateMethod())
-                    mOnBackPressedCallback.remove();
-                    mCallback.closeMethodEditorFragment(this);
+                onOKButtonClicked();
                 break;
             case DELETE_METHOD_BUTTON_TAG:
                 startDeleteMethodDialog();
@@ -398,15 +366,20 @@ public class MethodEditorFragment extends Fragment implements View.OnClickListen
         return true;
     }
 
-    private void onCancelButtonClicked() {
-        if (mMethodOrder ==-1) mUmlClass.removeMethod(mUmlClassMethod);
-        mOnBackPressedCallback.remove();
-        mCallback.closeMethodEditorFragment(this);
-    }
-
 //    **********************************************************************************************
 //    Edition methods
 //    **********************************************************************************************
+
+    @Override
+    protected void clearDraftObject() {
+        if (mMethodOrder==-1)
+            mUmlClass.removeMethod(mUmlClassMethod);
+    }
+
+    @Override
+    protected boolean createOrUpdateObject() {
+        return createOrUpdateMethod();
+    }
 
     private boolean createOrUpdateMethod() {
         if (getMethodName().equals("")) {

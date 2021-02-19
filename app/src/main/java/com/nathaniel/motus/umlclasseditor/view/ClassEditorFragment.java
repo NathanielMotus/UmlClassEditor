@@ -28,6 +28,7 @@ import com.nathaniel.motus.umlclasseditor.controller.FragmentObserver;
 import com.nathaniel.motus.umlclasseditor.model.AdapterItem;
 import com.nathaniel.motus.umlclasseditor.model.AdapterItemComparator;
 import com.nathaniel.motus.umlclasseditor.model.AddItemString;
+import com.nathaniel.motus.umlclasseditor.model.EditorFragment;
 import com.nathaniel.motus.umlclasseditor.model.UmlClass;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassAttribute;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassMethod;
@@ -39,7 +40,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-public class ClassEditorFragment extends Fragment implements View.OnClickListener
+public class ClassEditorFragment extends EditorFragment implements View.OnClickListener
         , AdapterView.OnItemLongClickListener,
         RadioGroup.OnCheckedChangeListener,
         ExpandableListView.OnChildClickListener{
@@ -68,8 +69,6 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
     private static final int NEW_VALUE_BUTTON_TAG=280;
     private static final int VALUE_LIST_TAG=290;
 
-    private FragmentObserver mCallback;
-
     private float mXPos;
     private float mYPos;
     private int mClassOrder;
@@ -79,10 +78,6 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
     private static final String XPOS_KEY="xPos";
     private static final String YPOS_KEY="yPos";
     private static final String CLASS_ORDER_KEY ="classOrder";
-
-    private static OnBackPressedCallback mOnBackPressedCallback;
-
-
 
 //    **********************************************************************************************
 //    Constructors
@@ -107,42 +102,30 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
 //    **********************************************************************************************
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        if (getArguments() != null) {
-            mXPos=getArguments().getFloat(XPOS_KEY);
-            mYPos=getArguments().getFloat(YPOS_KEY);
-            mClassOrder =getArguments().getInt(CLASS_ORDER_KEY,-1);
-        }
-        createOnBackPressedCallback();
-        setOnBackPressedCallback();
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_class_editor, container, false);
     }
 
+//    **********************************************************************************************
+//    Configuration methods
+//    **********************************************************************************************
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    protected void readBundle() {
+        mXPos=getArguments().getFloat(XPOS_KEY);
+        mYPos=getArguments().getFloat(YPOS_KEY);
+        mClassOrder =getArguments().getInt(CLASS_ORDER_KEY,-1);
+    }
 
-        createCallbackToParentActivity();
-        configureViews();
-        initializeMembers();
-        initializeFields();
+    @Override
+    protected void setOnCreateOrEditDisplay() {
         if (mClassOrder ==-1) setOnCreateDisplay();
         else setOnEditDisplay();
     }
 
-//    **********************************************************************************************
-//    Configuration methods
-//    **********************************************************************************************
-
-    private void configureViews() {
+    @Override
+    protected void configureViews() {
         mEditClassText =getActivity().findViewById(R.id.edit_class_text);
 
         mClassNameEdit=getActivity().findViewById(R.id.class_name_input);
@@ -173,11 +156,8 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         mCancelButton.setOnClickListener(this);
     }
 
-    private void createCallbackToParentActivity() {
-        mCallback=(FragmentObserver)getActivity();
-    }
-
-    private void initializeMembers() {
+    @Override
+    protected void initializeMembers() {
         if (mClassOrder != -1) {
             mUmlClass = mCallback.getProject().findClassByOrder(mClassOrder);
         } else {
@@ -188,7 +168,8 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         else sIsJavaClass=true;
     }
 
-    private void initializeFields() {
+    @Override
+    protected void initializeFields() {
         if (mClassOrder != -1) {
 
             mClassNameEdit.setText(mUmlClass.getName());
@@ -207,6 +188,9 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
                     mEnumRadio.setChecked(true);
                     break;
             }
+        } else {
+            mClassNameEdit.setText("");
+            mJavaRadio.setChecked(true);
         }
         updateLists();
     }
@@ -279,19 +263,6 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         mDeleteClassButton.setVisibility(View.INVISIBLE);
     }
 
-    private void createOnBackPressedCallback() {
-        mOnBackPressedCallback=new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                onCancelButtonClicked();
-            }
-        };
-    }
-
-    private void setOnBackPressedCallback() {
-        requireActivity().getOnBackPressedDispatcher().addCallback(this,mOnBackPressedCallback);
-    }
-
     public void updateClassEditorFragment(float xPos, float yPos, int classOrder) {
         mXPos=xPos;
         mYPos=yPos;
@@ -303,6 +274,11 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         if (mClassOrder !=-1 && mUmlClass.getUmlClassType()== UmlClass.UmlClassType.ENUM) sIsJavaClass=false;
         else sIsJavaClass=true;
         setOnBackPressedCallback();
+    }
+
+    @Override
+    protected void closeFragment() {
+        mCallback.closeClassEditorFragment(this);
     }
 
 //    **********************************************************************************************
@@ -317,14 +293,11 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         switch (tag) {
 
             case OK_BUTTON_TAG:
-                 if(createOrUpdateClass()) {
-                     mOnBackPressedCallback.remove();
-                     mCallback.closeClassEditorFragment(this);
-                 }
+                onOKButtonClicked();
                 break;
 
             case CANCEL_BUTTON_TAG:
-               onCancelButtonClicked();
+                onCancelButtonCLicked();
                 break;
 
             case DELETE_CLASS_BUTTON_TAG:
@@ -389,15 +362,18 @@ public class ClassEditorFragment extends Fragment implements View.OnClickListene
         return true;
     }
 
-    private void onCancelButtonClicked() {
-        if (mClassOrder ==-1) mCallback.getProject().removeUmlClass(mUmlClass);
-        mOnBackPressedCallback.remove();
-        mCallback.closeClassEditorFragment(this);
-    }
-
 //    **********************************************************************************************
 //    Edition methods
 //    **********************************************************************************************
+    @Override
+    protected void clearDraftObject() {
+        if (mClassOrder ==-1) mCallback.getProject().removeUmlClass(mUmlClass);
+    }
+
+    @Override
+    protected boolean createOrUpdateObject() {
+        return createOrUpdateClass();
+    }
 
     private boolean createOrUpdateClass() {
 

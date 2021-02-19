@@ -23,6 +23,7 @@ import android.widget.Toast;
 
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.controller.FragmentObserver;
+import com.nathaniel.motus.umlclasseditor.model.EditorFragment;
 import com.nathaniel.motus.umlclasseditor.model.MethodParameter;
 import com.nathaniel.motus.umlclasseditor.model.TypeMultiplicity;
 import com.nathaniel.motus.umlclasseditor.model.TypeNameComparator;
@@ -39,7 +40,7 @@ import java.util.List;
  * Use the {@link ParameterEditorFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class ParameterEditorFragment extends Fragment implements View.OnClickListener, RadioGroup.OnCheckedChangeListener {
+public class ParameterEditorFragment extends EditorFragment implements View.OnClickListener, RadioGroup.OnCheckedChangeListener {
 
     private static final String PARAMETER_ORDER_KEY ="parameterOrder";
     private static final String METHOD_ORDER_KEY ="methodOrder";
@@ -52,7 +53,6 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
     private MethodParameter mMethodParameter;
     private UmlClassMethod mUmlClassMethod;
     private UmlClass mUmlClass;
-    private FragmentObserver mCallback;
 
     private TextView mEditParameterText;
     private Button mDeleteParameterButton;
@@ -70,8 +70,6 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
     private static final int DELETE_PARAMETER_BUTTON_TAG=510;
     private static final int CANCEL_BUTTON_TAG=520;
     private static final int OK_BUTTON_TAG=530;
-
-    private static OnBackPressedCallback mOnBackPressedCallback;
 
 //    **********************************************************************************************
 //    Constructors
@@ -93,56 +91,11 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mMethodEditorFragmentTag = getArguments().getString(METHOD_EDITOR_FRAGMENT_TAG_KEY);
-            mParameterOrder = getArguments().getInt(PARAMETER_ORDER_KEY);
-            mClassOrder =getArguments().getInt(CLASS_ORDER_KEY);
-            mMethodOrder =getArguments().getInt(METHOD_ORDER_KEY);
-        }
-        createOnBackPressedCallback();
-        setOnBackPressedCallback();
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_parameter_editor, container, false);
     }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        createCallbackToParentActivity();
-        configureViews();
-        initializeMembers();
-        initializeFields();
-        if (mParameterOrder ==-1) setOnCreateDisplay();
-        else setOnEditDisplay();
-        if (mParameterOrder !=-1 && mMethodParameter.getTypeMultiplicity()==TypeMultiplicity.ARRAY)
-            setOnArrayDisplay();
-        else setOnSingleDisplay();
-    }
-
-//    **********************************************************************************************
-//    Getters and setters
-//    **********************************************************************************************
-
-    public MethodParameter getMethodParameter() {
-        return mMethodParameter;
-    }
-
-    public UmlClassMethod getUmlClassMethod() {
-        return mUmlClassMethod;
-    }
-
-    public UmlClass getUmlClass() {
-        return mUmlClass;
-    }
-
 
 //    **********************************************************************************************
 //    UI events
@@ -156,9 +109,7 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
                 onCancelButtonClicked();
                 break;
             case OK_BUTTON_TAG:
-                if (createOrUpdateParameter())
-                    mOnBackPressedCallback.remove();
-                    mCallback.closeParameterEditorFragment(this);
+                onOKButtonClicked();
                 break;
             case DELETE_PARAMETER_BUTTON_TAG:
                 startDeleteParameterDialog();
@@ -182,7 +133,23 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
 //    Configuration methods
 //    **********************************************************************************************
 
-    private void initializeMembers() {
+    @Override
+    protected void setOnCreateOrEditDisplay() {
+        if (mParameterOrder==-1)
+            setOnCreateDisplay();
+        else
+            setOnEditDisplay();
+    }
+
+    @Override
+    protected void readBundle() {
+        mMethodEditorFragmentTag = getArguments().getString(METHOD_EDITOR_FRAGMENT_TAG_KEY);
+        mParameterOrder = getArguments().getInt(PARAMETER_ORDER_KEY);
+        mClassOrder =getArguments().getInt(CLASS_ORDER_KEY);
+        mMethodOrder =getArguments().getInt(METHOD_ORDER_KEY);
+    }
+
+    protected void initializeMembers() {
         mUmlClass=mCallback.getProject().findClassByOrder(mClassOrder);
         mUmlClassMethod=mUmlClass.findMethodByOrder(mMethodOrder);
 
@@ -194,11 +161,7 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
         }
     }
 
-    private void createCallbackToParentActivity() {
-        mCallback=(FragmentObserver)getActivity();
-    }
-
-    private void configureViews() {
+    protected void configureViews() {
         mEditParameterText=getActivity().findViewById(R.id.edit_parameter_text);
 
         mDeleteParameterButton=getActivity().findViewById(R.id.delete_parameter_button);
@@ -231,13 +194,24 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
         mOKButton.setOnClickListener(this);
     }
 
-    private void initializeFields() {
+    protected void initializeFields() {
         if (mParameterOrder != -1) {
             mParameterNameEdit.setText(mMethodParameter.getName());
-            if (mMethodParameter.getTypeMultiplicity()== TypeMultiplicity.SINGLE) mSingleRadio.setChecked(true);
-            if (mMethodParameter.getTypeMultiplicity()==TypeMultiplicity.COLLECTION) mCollectionRadio.setChecked(true);
-            if (mMethodParameter.getTypeMultiplicity()==TypeMultiplicity.ARRAY) mArrayRadio.setChecked(true);
+            if (mMethodParameter.getTypeMultiplicity() == TypeMultiplicity.SINGLE)
+                mSingleRadio.setChecked(true);
+            if (mMethodParameter.getTypeMultiplicity() == TypeMultiplicity.COLLECTION)
+                mCollectionRadio.setChecked(true);
+            if (mMethodParameter.getTypeMultiplicity() == TypeMultiplicity.ARRAY)
+                mArrayRadio.setChecked(true);
             mDimEdit.setText(Integer.toString(mMethodParameter.getArrayDimension()));
+            if (mMethodParameter.getTypeMultiplicity() == TypeMultiplicity.ARRAY)
+                setOnArrayDisplay();
+            else setOnSingleDisplay();
+        } else {
+            mParameterNameEdit.setText("");
+            mSingleRadio.setChecked(true);
+            mDimEdit.setText("");
+            setOnSingleDisplay();
         }
         populateTypeSpinner();
     }
@@ -274,19 +248,6 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
         mDimEdit.setVisibility(View.VISIBLE);
     }
 
-    private void createOnBackPressedCallback() {
-        mOnBackPressedCallback=new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                onCancelButtonClicked();
-            }
-        };
-    }
-
-    private void setOnBackPressedCallback() {
-        requireActivity().getOnBackPressedDispatcher().addCallback(this,mOnBackPressedCallback);
-    }
-
     public void updateParameterEditorFragment(int parameterOrder,int methodOrder,int classOrder) {
         mParameterOrder=parameterOrder;
         mMethodOrder=methodOrder;
@@ -301,10 +262,25 @@ public class ParameterEditorFragment extends Fragment implements View.OnClickLis
         setOnBackPressedCallback();
     }
 
+    @Override
+    protected void closeFragment() {
+        mCallback.closeParameterEditorFragment(this);
+    }
 
 //    **********************************************************************************************
 //    Edition methods
 //    **********************************************************************************************
+
+    @Override
+    protected void clearDraftObject() {
+        if (mParameterOrder==-1)
+            mUmlClassMethod.removeParameter(mMethodParameter);
+    }
+
+    @Override
+    protected boolean createOrUpdateObject() {
+        return createOrUpdateParameter();
+    }
 
     private boolean createOrUpdateParameter() {
         if (getParameterName().equals("")) {
