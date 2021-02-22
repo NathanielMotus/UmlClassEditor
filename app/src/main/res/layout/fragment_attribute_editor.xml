@@ -22,16 +22,6 @@
         android:textSize="20sp"
         android:text="Edit attribute" />
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/delete_attribute_button"
-        android:textSize="18sp"
-        android:drawableLeft="@drawable/baseline_delete_forever_black_18dp"
-        android:text="DELETE"
-        android:layout_alignParentEnd="true"
-        android:layout_alignTop="@id/edit_attribute_text"/>
-
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -46,7 +36,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/attribute_name_input"
-        android:layout_below="@id/delete_attribute_button"
+        android:layout_below="@id/edit_attribute_text"
         android:layout_toEndOf="@id/attribute_name_text"
         android:gravity="start"
         android:textSize="18sp"
@@ -58,14 +48,14 @@
         android:id="@+id/attribute_visibility_radio_group"
         android:layout_alignStart="@id/attribute_name_text"
         android:layout_below="@id/attribute_name_input"
-        android:layout_marginBottom="20sp"
+        android:layout_marginBottom="10sp"
         android:orientation="horizontal">
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/attribute_public_radio"
             android:textSize="18sp"
-            android:layout_marginEnd="20sp"
+            android:layout_marginEnd="5sp"
             android:checked="true"
             android:text="Public"/>
         <RadioButton
@@ -73,14 +63,14 @@
             android:layout_height="wrap_content"
             android:id="@+id/attribute_protected_radio"
             android:textSize="18sp"
-            android:layout_marginEnd="20sp"
+            android:layout_marginEnd="5sp"
             android:text="Protected"/>
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/attribute_private_radio"
             android:textSize="18sp"
-            android:layout_marginEnd="20sp"
+            android:layout_marginEnd="5sp"
             android:text="Private"/>
     </RadioGroup>
 
@@ -120,7 +110,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/attribute_type_spinner"
-        android:layout_marginBottom="20sp"
+        android:layout_marginBottom="10sp"
         android:layout_toRightOf="@id/attribute_type_text"
         android:layout_alignTop="@id/attribute_type_text"/>
 
@@ -128,7 +118,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/attribute_multiplicity_radio_group"
-        android:layout_marginBottom="20sp"
+        android:layout_marginBottom="10sp"
         android:layout_alignStart="@id/attribute_type_text"
         android:layout_below="@id/attribute_type_text"
         android:orientation="vertical">
@@ -136,7 +126,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/attribute_simple_radio"
-            android:layout_marginBottom="20sp"
+            android:layout_marginBottom="10sp"
             android:textSize="18sp"
             android:checked="true"
             android:text="Single"/>
@@ -144,14 +134,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/attribute_collection_radio"
-            android:layout_marginBottom="20sp"
+            android:layout_marginBottom="10sp"
             android:textSize="18sp"
             android:text="Collection"/>
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/attribute_array_radio"
-            android:layout_marginBottom="20sp"
+            android:layout_marginBottom="10sp"
             android:textSize="18sp"
             android:text="Array"/>
     </RadioGroup>
@@ -195,6 +185,14 @@
             android:textSize="18sp"
             android:drawableLeft="@drawable/baseline_check_black_18dp"
             android:text="OK"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/delete_attribute_button"
+            android:textSize="18sp"
+            android:drawableLeft="@drawable/baseline_delete_forever_black_18dp"
+            android:text="DEL"/>
+
     </LinearLayout>
 
 </RelativeLayout>

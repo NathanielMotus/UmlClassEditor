@@ -4,31 +4,30 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Adapter;
 import android.widget.AdapterView;
+import android.widget.BaseExpandableListAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.OnBackPressedCallback;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.controller.CustomExpandableListViewAdapter;
-import com.nathaniel.motus.umlclasseditor.controller.FragmentObserver;
 import com.nathaniel.motus.umlclasseditor.model.AdapterItem;
 import com.nathaniel.motus.umlclasseditor.model.AdapterItemComparator;
 import com.nathaniel.motus.umlclasseditor.model.AddItemString;
-import com.nathaniel.motus.umlclasseditor.model.EditorFragment;
 import com.nathaniel.motus.umlclasseditor.model.UmlClass;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassAttribute;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassMethod;
@@ -43,7 +42,8 @@ import java.util.List;
 public class ClassEditorFragment extends EditorFragment implements View.OnClickListener
         , AdapterView.OnItemLongClickListener,
         RadioGroup.OnCheckedChangeListener,
-        ExpandableListView.OnChildClickListener{
+        ExpandableListView.OnChildClickListener,
+        ExpandableListView.OnGroupClickListener{
 
     private TextView mEditClassText;
     private EditText mClassNameEdit;
@@ -56,6 +56,7 @@ public class ClassEditorFragment extends EditorFragment implements View.OnClickL
     private ExpandableListView mMemberListView;
     private Button mOKButton;
     private Button mCancelButton;
+    private LinearLayout mOKCancelLinearLayout;
 
     private static boolean sIsJavaClass=true;
 
@@ -146,6 +147,7 @@ public class ClassEditorFragment extends EditorFragment implements View.OnClickL
         mMemberListView.setTag(MEMBER_LIST_TAG);
         mMemberListView.setOnChildClickListener(this);
         mMemberListView.setOnItemLongClickListener(this);
+        mMemberListView.setOnGroupClickListener(this);
 
         mOKButton=getActivity().findViewById(R.id.class_ok_button);
         mOKButton.setTag(OK_BUTTON_TAG);
@@ -154,6 +156,8 @@ public class ClassEditorFragment extends EditorFragment implements View.OnClickL
         mCancelButton=getActivity().findViewById(R.id.class_cancel_button);
         mCancelButton.setTag(CANCEL_BUTTON_TAG);
         mCancelButton.setOnClickListener(this);
+
+        mOKCancelLinearLayout=getActivity().findViewById(R.id.class_ok_cancel_linear);
     }
 
     @Override
@@ -281,6 +285,33 @@ public class ClassEditorFragment extends EditorFragment implements View.OnClickL
         mCallback.closeClassEditorFragment(this);
     }
 
+    private void resizeExpandableListView() {
+        int viewCount=((ViewGroup)mMemberListView).getChildCount();
+        Log.i("TEST",Integer.toString(viewCount));
+        int currentHeight=0;
+        for (int i=0;i<viewCount;i++)
+            currentHeight=currentHeight+mMemberListView.getChildAt(i).getMeasuredHeight();
+        currentHeight=currentHeight+100;
+        mMemberListView.getLayoutParams().height=currentHeight;
+    }
+
+    private void expandOrCollapseGroup(int groupPosition) {
+        mMemberListView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                mMemberListView.removeOnLayoutChangeListener(this);
+                resizeExpandableListView();
+            }
+        });
+        if (mMemberListView.isGroupExpanded(groupPosition)) {
+            mMemberListView.collapseGroup(groupPosition);
+        }else {
+            mMemberListView.expandGroup(groupPosition);
+        }
+    }
+
+
+
 //    **********************************************************************************************
 //    UI events
 //    **********************************************************************************************
@@ -309,8 +340,6 @@ public class ClassEditorFragment extends EditorFragment implements View.OnClickL
         }
     }
 
-
-
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
         ExpandableListView expandableListView=(ExpandableListView)view.getParent();
@@ -330,6 +359,12 @@ public class ClassEditorFragment extends EditorFragment implements View.OnClickL
             else if ((expandableListView.getExpandableListAdapter().getGroup(groupPos)).equals(getString(R.string.methods_string)) && childPos!=0)
                 startDeleteMethodDialog(((UmlClassMethod)item).getMethodOrder());
         }
+        return true;
+    }
+
+    @Override
+    public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+        expandOrCollapseGroup(groupPosition);
         return true;
     }
 

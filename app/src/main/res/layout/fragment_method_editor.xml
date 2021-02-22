@@ -20,16 +20,6 @@
         android:textSize="20sp"
         android:text="Edit method" />
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentTop="true"
-        android:id="@+id/delete_method_button"
-        android:textSize="18sp"
-        android:drawableLeft="@drawable/baseline_delete_forever_black_18dp"
-        android:text="DELETE"/>
-
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -44,7 +34,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/method_name_input"
-        android:layout_below="@id/delete_method_button"
+        android:layout_below="@id/edit_method_text"
         android:layout_toEndOf="@id/method_name_text"
         android:gravity="start"
         android:textSize="18sp"
@@ -56,14 +46,14 @@
         android:id="@+id/method_visibility_radio_group"
         android:layout_alignStart="@id/method_name_text"
         android:layout_below="@id/method_name_input"
-        android:layout_marginBottom="20sp"
+        android:layout_marginBottom="10sp"
         android:orientation="horizontal">
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/method_public_radio"
             android:textSize="18sp"
-            android:layout_marginEnd="20sp"
+            android:layout_marginEnd="5sp"
             android:checked="true"
             android:text="Public"/>
         <RadioButton
@@ -71,14 +61,14 @@
             android:layout_height="wrap_content"
             android:id="@+id/method_protected_radio"
             android:textSize="18sp"
-            android:layout_marginEnd="20sp"
+            android:layout_marginEnd="5sp"
             android:text="Protected"/>
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/method_private_radio"
             android:textSize="18sp"
-            android:layout_marginEnd="20sp"
+            android:layout_marginEnd="5sp"
             android:text="Private"/>
     </RadioGroup>
 
@@ -107,7 +97,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/method_type_spinner"
-        android:layout_marginBottom="20sp"
+        android:layout_marginBottom="10sp"
         android:layout_toRightOf="@id/method_type_text"
         android:layout_alignTop="@id/method_type_text"/>
 
@@ -115,7 +105,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/method_multiplicity_radio_group"
-        android:layout_marginBottom="20sp"
+        android:layout_marginBottom="10sp"
         android:layout_alignStart="@id/method_type_text"
         android:layout_below="@id/method_type_text"
         android:orientation="vertical">
@@ -123,7 +113,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/method_simple_radio"
-            android:layout_marginBottom="20sp"
+            android:layout_marginBottom="10sp"
             android:textSize="18sp"
             android:checked="true"
             android:text="Single"/>
@@ -131,14 +121,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/method_collection_radio"
-            android:layout_marginBottom="20sp"
+            android:layout_marginBottom="10sp"
             android:textSize="18sp"
             android:text="Collection"/>
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/method_array_radio"
-            android:layout_marginBottom="20sp"
+            android:layout_marginBottom="10sp"
             android:textSize="18sp"
             android:text="Array"/>
     </RadioGroup>
@@ -167,12 +157,13 @@
         android:id="@+id/method_parameters_list"
         android:layout_width="match_parent"
         android:layout_height="150dp"
-        android:layout_below="@id/method_dimension_text"/>
+        android:layout_below="@id/method_ok_cancel_linear"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/method_parameters_list"
+        android:id="@+id/method_ok_cancel_linear"
+        android:layout_below="@id/method_multiplicity_radio_group"
         android:gravity="center_horizontal">
         <Button
             android:layout_width="wrap_content"
@@ -188,6 +179,15 @@
             android:textSize="18sp"
             android:drawableLeft="@drawable/baseline_check_black_18dp"
             android:text="OK"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:id="@+id/delete_method_button"
+            android:textSize="18sp"
+            android:drawableLeft="@drawable/baseline_delete_forever_black_18dp"
+            android:text="DEL"/>
+
     </LinearLayout>
 
 </RelativeLayout>

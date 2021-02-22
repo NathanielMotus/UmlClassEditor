@@ -16,16 +16,6 @@
         android:textSize="20sp"
         android:text="Edit parameter" />
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/delete_parameter_button"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:textSize="18sp"
-        android:drawableLeft="@drawable/baseline_delete_forever_black_18dp"
-        android:text="DELETE"/>
-
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -40,7 +30,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/parameter_name_input"
-        android:layout_below="@id/delete_parameter_button"
+        android:layout_below="@id/edit_parameter_text"
         android:layout_toEndOf="@id/parameter_name_text"
         android:gravity="start"
         android:textSize="18sp"
@@ -51,7 +41,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/parameter_type_text"
         android:textSize="18sp"
-        android:layout_marginBottom="20sp"
+        android:layout_marginBottom="10sp"
         android:layout_alignStart="@id/parameter_name_text"
         android:layout_below="@id/parameter_name_input"
         android:text="Type :"/>
@@ -68,7 +58,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/parameter_multiplicity_radio_group"
-        android:layout_marginBottom="20sp"
+        android:layout_marginBottom="10sp"
         android:layout_alignStart="@id/parameter_type_text"
         android:layout_below="@id/parameter_type_text"
         android:orientation="vertical">
@@ -135,6 +125,15 @@
             android:textSize="18sp"
             android:drawableLeft="@drawable/baseline_check_black_18dp"
             android:text="OK"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/delete_parameter_button"
+            android:layout_alignParentTop="true"
+            android:textSize="18sp"
+            android:drawableLeft="@drawable/baseline_delete_forever_black_18dp"
+            android:text="DEL"/>
+
     </LinearLayout>
 
 </RelativeLayout>

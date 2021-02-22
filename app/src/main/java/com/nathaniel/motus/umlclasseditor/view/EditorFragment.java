@@ -1,4 +1,4 @@
-package com.nathaniel.motus.umlclasseditor.model;
+package com.nathaniel.motus.umlclasseditor.view;
 
 import android.os.Bundle;
 import android.util.Log;
