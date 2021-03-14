@@ -56,6 +56,9 @@ public class GraphView extends View implements View.OnTouchListener{
     private long mFirstClickTime=0;
     private static final long CLICK_DELAY=200;
     private static final long DOUBLE_CLICK_DELAY=500;
+    private static final float DOUBLE_CLICK_DISTANCE_MAX=10;
+    private float mFirstClickX=0;
+    private float mFirstClickY=0;
 
 //    **********************************************************************************************
 //    Standard drawing dimensions (in dp)
@@ -592,8 +595,11 @@ public class GraphView extends View implements View.OnTouchListener{
             case (MotionEvent.ACTION_UP):
 
                 //double click
-                if (event.getEventTime() - mActionDownEventTime <= CLICK_DELAY && event.getEventTime() - mFirstClickTime <= DOUBLE_CLICK_DELAY) {
-                    if (getTouchedClass(mLastTouchX, mLastTouchY) != null) mCallback.editClass(getTouchedClass(mLastTouchX,mLastTouchY));
+                if (event.getEventTime() - mActionDownEventTime <= CLICK_DELAY &&
+                        event.getEventTime() - mFirstClickTime <= DOUBLE_CLICK_DELAY &&
+                        distance(mLastTouchX,mLastTouchY,mFirstClickX,mFirstClickY)<=DOUBLE_CLICK_DISTANCE_MAX) {
+                    if (getTouchedClass(mLastTouchX, mLastTouchY) != null)
+                        mCallback.editClass(getTouchedClass(mLastTouchX,mLastTouchY));
                     else if (getTouchedRelation(mLastTouchX,mLastTouchY)!=null) {
                         promptDeleteRelation(getTouchedRelation(mLastTouchX,mLastTouchY),this);
                     }
@@ -603,6 +609,8 @@ public class GraphView extends View implements View.OnTouchListener{
                 //simple click
                 if (event.getEventTime()-mActionDownEventTime<=CLICK_DELAY) {
                     mFirstClickTime = event.getEventTime();
+                    mFirstClickX=event.getX();
+                    mFirstClickY=event.getY();
 
                     //locate new class
                     if (mGraphFragment.isExpectingTouchLocation()) {
@@ -885,6 +893,11 @@ public class GraphView extends View implements View.OnTouchListener{
         }
 
         return Math.abs((dotX-originX)*uX+(dotY-originY)*uY);
+    }
+
+    private float distance(float X1, float Y1, float X2, float Y2) {
+        //calculate the distance between two points M1(X1,Y1) and M2(X2,Y2)
+        return (float) Math.sqrt((X1-X2)*(X1-X2)+(Y1-Y2)*(Y1-Y2));
     }
 
     private void updateProjectGeometricalParameters() {
