@@ -33,5 +33,13 @@
             app:showAsAction="never"
             android:title="Import custom types"/>
     </group>
+    <group
+        android:id="@+id/help_group"
+        android:checkableBehavior="none">
+        <item
+            android:id="@+id/toolbar_menu_help"
+            app:showAsAction="never"
+            android:title="Help"/>
+    </group>
 
 </menu>

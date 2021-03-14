@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
@@ -96,6 +97,23 @@ public class IOUtils {
 
         Collections.sort(fileList);
         return fileList;
+    }
+
+    public static String readRawHtmlFile(Context context,int rawId) {
+        InputStream inputStream=context.getResources().openRawResource(rawId);
+        ByteArrayOutputStream byteArrayOutputStream=new ByteArrayOutputStream();
+        int i;
+        try {
+            i = inputStream.read();
+            while (i != -1) {
+                byteArrayOutputStream.write(i);
+                i = inputStream.read();
+            }
+            inputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return byteArrayOutputStream.toString();
     }
 
 //    **********************************************************************************************

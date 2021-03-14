@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -55,9 +56,6 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements FragmentObserver,
         GraphView.GraphViewObserver,
         NavigationView.OnNavigationItemSelectedListener{
-
-    //todo : user manual
-    //todo : programmatically modify expandablelistviews height when collapsed or expanded
 
     private UmlProject mProject;
     private boolean mExpectingTouchLocation=false;
@@ -572,6 +570,8 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         } else if (itemId == R.id.toolbar_menu_import_custom_types) {
             if (sReadExternalStoragePermission)
                 menuImportCustomTypes();
+        } else if (itemId == R.id.toolbar_menu_help) {
+            menuHelp();
         }
         return true;
     }
@@ -674,6 +674,20 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.setType("*/*");
         startActivityForResult(intent,INTENT_OPEN_DOCUMENT_IMPORT_CUSTOM_TYPES);
+    }
+
+    private void menuHelp() {
+        AlertDialog.Builder adb=new AlertDialog.Builder(this);
+        adb.setTitle("Help")
+                .setMessage(Html.fromHtml(IOUtils.readRawHtmlFile(this,R.raw.help_html)))
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                })
+                .create()
+                .show();
     }
 
 //    **********************************************************************************************

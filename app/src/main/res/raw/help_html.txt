@@ -1,0 +1,9 @@
+<p><strong>+CLASS :</strong> create a new class, you are asked to locate the new class by clicking the screen</p>
+<p><strong>ARROWS :</strong> create a relation between two classes, you are asked to select the origin class, then the end class by clicking them</p>
+<p><strong>ESC :</strong> abort current action</p>
+<p><strong>Move a class :</strong> click and drag the class</p>
+<p><strong>Edit a class :</strong> double click it</p>
+<p><strong>Delete a relation :</strong> double click it, you are asked to confirm</p>
+<p><strong>Span the window :</strong> click and drag an empty zone</p>
+<p><strong>Adjust the window :</strong> double click an empty zone</p>
+<p><strong>Zoom/dezoom :</strong> pinch/spread</p>
