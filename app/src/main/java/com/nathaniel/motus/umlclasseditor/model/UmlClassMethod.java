@@ -188,6 +188,13 @@ public class UmlClassMethod implements AdapterItem{
             return null;
     }
 
+    public MethodParameter getParameter(String parameterName) {
+        for (MethodParameter p : mParameters)
+            if (p.getName().equals(parameterName))
+                return p;
+        return null;
+    }
+
 //    **********************************************************************************************
 //    Modifiers
 //    **********************************************************************************************

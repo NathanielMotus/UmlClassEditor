@@ -165,6 +165,7 @@ public class ClassEditorFragment extends EditorFragment implements View.OnClickL
         if (mClassOrder != -1) {
             mUmlClass = mCallback.getProject().findClassByOrder(mClassOrder);
         } else {
+            //class without type
             mUmlClass=new UmlClass(mCallback.getProject().getUmlClassCount());
             mCallback.getProject().addUmlClass(mUmlClass);
         }
@@ -428,6 +429,8 @@ public class ClassEditorFragment extends EditorFragment implements View.OnClickL
             if (mClassOrder == -1) {
                 mUmlClass.setUmlClassNormalXPos(mXPos);
                 mUmlClass.setUmlClassNormalYPos(mYPos);
+                //"finish" to declare type
+                mUmlClass.upgradeToProjectUmlType();
             }
             return true;
         }

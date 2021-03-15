@@ -116,6 +116,12 @@ public class UmlType {
             createUmlType(standardTypes[i],TypeLevel.PRIMITIVE);
     }
 
+    public void upgradeToProjectUmlType() {
+        //upgrade a class created without type to Project UmlType
+        this.mTypeLevel=TypeLevel.PROJECT;
+        sUmlTypes.add(this);
+    }
+
 //    **********************************************************************************************
 //    Test methods
 //    **********************************************************************************************

@@ -236,6 +236,13 @@ public class UmlClass extends UmlType {
             return null;
     }
 
+    public UmlClassAttribute getAttribute(String attributeName) {
+        for (UmlClassAttribute a:mAttributes)
+            if (a.getName().equals(attributeName))
+                return a;
+        return null;
+    }
+
 //    **********************************************************************************************
 //    Modifiers
 //    **********************************************************************************************

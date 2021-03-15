@@ -281,7 +281,8 @@ public class ParameterEditorFragment extends EditorFragment implements View.OnCl
         if (getParameterName().equals("")) {
             Toast.makeText(getContext(), "Parameter cannot be blank", Toast.LENGTH_SHORT).show();
             return false;
-        } else if (mUmlClassMethod.containsParameterNamed(getParameterName())) {
+        } else if (mUmlClassMethod.containsParameterNamed(getParameterName()) &&
+                mUmlClassMethod.getParameter(getParameterName()).getParameterOrder()!=mParameterOrder) {
             Toast.makeText(getContext(),"This named is already used",Toast.LENGTH_SHORT).show();
             return false;
         }else {

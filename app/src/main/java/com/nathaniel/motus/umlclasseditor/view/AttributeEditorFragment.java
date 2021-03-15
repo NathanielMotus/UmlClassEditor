@@ -327,7 +327,8 @@ public class AttributeEditorFragment extends EditorFragment implements View.OnCl
         if (getAttributeName().equals("")) {
             Toast.makeText(getContext(), "Attribute name cannot be blank", Toast.LENGTH_SHORT).show();
             return false;
-        } else if (mUmlClass.containsAttributeNamed(getAttributeName())) {
+        } else if (mUmlClass.containsAttributeNamed(getAttributeName()) &&
+                mUmlClass.getAttribute(getAttributeName()).getAttributeOrder()!=mAttributeOrder) {
             Toast.makeText(getContext(),"This named is already used",Toast.LENGTH_SHORT).show();
             return false;
         } else {
