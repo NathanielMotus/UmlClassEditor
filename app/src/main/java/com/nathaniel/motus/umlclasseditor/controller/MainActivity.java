@@ -109,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         //Instantiate views
         mMainActivityFrame=findViewById(R.id.activity_main_frame);
 
+        UmlType.clearUmlTypes();
         UmlType.initializePrimitiveUmlTypes(this);
         UmlType.initializeCustomUmlTypes(this);
         getPreferences();

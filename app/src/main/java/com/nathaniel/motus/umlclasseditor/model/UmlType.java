@@ -105,6 +105,10 @@ public class UmlType {
             if (sUmlTypes.get(i).isProjectUmlType()) sUmlTypes.remove(i);
     }
 
+    public static void clearUmlTypes() {
+        sUmlTypes.clear();
+    }
+
     public static void removeUmlType(UmlType umlType) {
         sUmlTypes.remove(umlType);
     }
