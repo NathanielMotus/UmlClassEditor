@@ -2,6 +2,7 @@ package com.nathaniel.motus.umlclasseditor.model;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.controller.IOUtils;
@@ -183,6 +184,7 @@ public class UmlType {
     public static void initializeCustomUmlTypes(Context context) {
         try {
             JSONObject jsonObject=new JSONObject(IOUtils.getFileFromInternalStorage(new File(context.getFilesDir(),CUSTOM_TYPES_FILENAME)));
+            Log.i("TEST","Loaded custom types");
             JSONArray jsonCustomTypes=jsonObject.getJSONArray(JSON_CUSTOM_TYPES);
             UmlType.createCustomUmlTypesFromJSONArray(jsonCustomTypes);
         } catch (JSONException e) {

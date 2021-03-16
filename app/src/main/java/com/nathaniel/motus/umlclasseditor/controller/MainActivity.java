@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Html;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,6 +34,7 @@ import androidx.core.view.GravityCompat;
 import androidx.core.view.MenuCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.google.android.material.navigation.NavigationView;
 import com.nathaniel.motus.umlclasseditor.R;
@@ -132,6 +134,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
         mGraphView=findViewById(R.id.graphview);
         mGraphView.setUmlProject(mProject);
+        Log.i("TEST","onStart");
     }
 
     @Override
@@ -139,8 +142,11 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         super.onDestroy();
 
         mProject.save(getApplicationContext());
+        Log.i("TEST","save : project");
         savePreferences();
+        Log.i("TEST", "save : preferences");
         UmlType.saveCustomUmlTypes(this);
+        Log.i("TEST","save : custom types");
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -149,6 +155,8 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         super.onResume();
         checkPermissions();
     }
+
+    //todo : ask for a double backpress to leave app
 
 //    **********************************************************************************************
 //    Configuration methods
@@ -187,6 +195,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     private void getPreferences() {
         SharedPreferences preferences=getPreferences(MODE_PRIVATE);
         String projectName=preferences.getString(SHARED_PREFERENCES_PROJECT_NAME,null);
+        Log.i("TEST","Loaded preferences");
         if (projectName != null) {
             mProject = UmlProject.load(getApplicationContext(), projectName);
         } else {
@@ -200,9 +209,10 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     private void configureAndDisplayGraphFragment(int viewContainerId){
         //handle graph fragment
 
-        mGraphFragment=new GraphFragment();
+//        mGraphFragment=new GraphFragment();
+        mGraphFragment=GraphFragment.newInstance();
         getSupportFragmentManager().beginTransaction()
-                .add(viewContainerId,mGraphFragment,GRAPH_FRAGMENT_TAG)
+                .replace(viewContainerId,mGraphFragment,GRAPH_FRAGMENT_TAG)
                 .commitNow();
     }
 
@@ -511,6 +521,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     }
 
     private void drawerMenuMerge() {
+        //todo : fix infinite loop
         final Spinner spinner=new Spinner(this);
         spinner.setAdapter(projectDirectoryAdapter());
         final Context currentContext=this;

@@ -33,9 +33,8 @@ public class IOUtils {
             fileWriter.append(data);
             fileWriter.flush();
             fileWriter.close();
-            Log.i("TEST","Project saved");
             } catch (IOException e) {
-            Log.i("TEST","Failed saving project");
+            Log.i("TEST","Saving failed");
         }
     }
 
@@ -53,10 +52,9 @@ public class IOUtils {
                     }
                 } finally {
                     bufferedReader.close();
-                    Log.i("TEST", "Project loaded");
                 }
             } catch (IOException e) {
-                Log.i("TEST","Failed loading project");
+                Log.i("TEST","Loading failed");
             }
         }
         return projectString;

@@ -11,6 +11,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -199,11 +200,11 @@ public class GraphView extends View implements View.OnTouchListener{
 
         updateProjectGeometricalParameters();
 
-        for (UmlClass c:mUmlProject.getUmlClasses())
-            drawUmlClass(canvas,c);
+        for (UmlClass c : mUmlProject.getUmlClasses())
+            drawUmlClass(canvas, c);
 
-        for (UmlRelation r:mUmlProject.getUmlRelations())
-            drawRelation(canvas,r);
+        for (UmlRelation r : mUmlProject.getUmlRelations())
+            drawRelation(canvas, r);
     }
 
 //    **********************************************************************************************
