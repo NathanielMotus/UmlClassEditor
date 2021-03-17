@@ -2,6 +2,7 @@ package com.nathaniel.motus.umlclasseditor.model;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 
 import com.nathaniel.motus.umlclasseditor.controller.IOUtils;
 
@@ -340,20 +341,34 @@ public class UmlProject {
     }
 
     public static UmlProject importProject(Context context, Uri fromFileUri) {
+        UmlProject umlProject;
         try {
-            return UmlProject.fromJSONObject(new JSONObject(IOUtils.readFileFromExternalStorage(context,fromFileUri)),context);
+            umlProject=UmlProject.fromJSONObject(new JSONObject(IOUtils.readFileFromExternalStorage(context,fromFileUri)),context);
+            for (UmlClass c : umlProject.getUmlClasses()) {
+                while (UmlType.containsPrimitiveUmlTypeNamed(c.getName()))
+                    c.setName(c.getName()+"(1)");
+
+                while (UmlType.containsCustomUmlTypeNamed(c.getName()))
+                    c.setName(c.getName()+"(1)");
+            }
         } catch (JSONException e) {
             e.printStackTrace();
-            return null;
+            umlProject=null;
         }
+        return umlProject;
     }
 
     public void mergeWith(UmlProject project) {
         for (UmlClass c:project.getUmlClasses()){
 
-            while (UmlType.containsUmlTypeNamed(c.getName())){
+            while (UmlType.containsPrimitiveUmlTypeNamed(c.getName()))
                 c.setName(c.getName()+"(1)");
-            }
+
+            while (UmlType.containsCustomUmlTypeNamed(c.getName()))
+                c.setName(c.getName()+"(1)");
+
+            while (c.alreadyExists(this))
+                c.setName(c.getName()+"(1)");
 
             this.addUmlClass(c);
         }

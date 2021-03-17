@@ -24,6 +24,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -34,7 +35,6 @@ import androidx.core.view.GravityCompat;
 import androidx.core.view.MenuCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 
 import com.google.android.material.navigation.NavigationView;
 import com.nathaniel.motus.umlclasseditor.R;
@@ -52,6 +52,7 @@ import com.nathaniel.motus.umlclasseditor.view.ParameterEditorFragment;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
@@ -71,6 +72,10 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     private static boolean sReadExternalStoragePermission=true;
     private static final int WRITE_EXTERNAL_STORAGE_INDEX=0;
     private static final int READ_EXTERNAL_STORAGE_INDEX=1;
+
+    private long mFirstBackPressedTime =0;
+    private static long DOUBLE_BACK_PRESSED_DELAY=2000;
+    private OnBackPressedCallback mOnBackPressedCallback;
 
 //    **********************************************************************************************
 //    Fragments declaration
@@ -119,6 +124,8 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         configureDrawerLayout();
         configureNavigationView();
         configureAndDisplayGraphFragment(R.id.activity_main_frame);
+        createOnBackPressedCallback();
+        setOnBackPressedCallback();
     }
 
     @Override
@@ -155,8 +162,6 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         super.onResume();
         checkPermissions();
     }
-
-    //todo : ask for a double backpress to leave app
 
 //    **********************************************************************************************
 //    Configuration methods
@@ -201,6 +206,27 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         } else {
             mProject=new UmlProject("NewProject",getApplicationContext());
         }
+    }
+
+    private void createOnBackPressedCallback() {
+        mOnBackPressedCallback=new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                onBackButtonPressed();
+            }
+        };
+    }
+
+    private void setOnBackPressedCallback() {
+        this.getOnBackPressedDispatcher().addCallback(this,mOnBackPressedCallback);
+    }
+
+    private void onBackButtonPressed() {
+        if (Calendar.getInstance().getTimeInMillis() - mFirstBackPressedTime > DOUBLE_BACK_PRESSED_DELAY) {
+            mFirstBackPressedTime=Calendar.getInstance().getTimeInMillis();
+            Toast.makeText(this,"Press back again to leave",Toast.LENGTH_SHORT).show();
+        }else
+            finish();
     }
 
 //    **********************************************************************************************
@@ -521,7 +547,6 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     }
 
     private void drawerMenuMerge() {
-        //todo : fix infinite loop
         final Spinner spinner=new Spinner(this);
         spinner.setAdapter(projectDirectoryAdapter());
         final Context currentContext=this;
