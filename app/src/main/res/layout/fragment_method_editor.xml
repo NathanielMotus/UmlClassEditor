@@ -156,7 +156,7 @@
     <ExpandableListView
         android:id="@+id/method_parameters_list"
         android:layout_width="match_parent"
-        android:layout_height="150dp"
+        android:layout_height="500dp"
         android:layout_below="@id/method_ok_cancel_linear"/>
 
     <LinearLayout

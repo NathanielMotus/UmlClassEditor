@@ -80,7 +80,7 @@
     <ExpandableListView
         android:id="@+id/class_members_list"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="500dp"
         android:layout_below="@id/class_ok_cancel_linear"/>
 
     <LinearLayout

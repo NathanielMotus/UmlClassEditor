@@ -1,0 +1,7 @@
+This app allows you to design an app using UML when you are away from a desktop. Features:<ul>
+<li>Main UML notations for Java classes</li>
+<li>Class/attribute/method editor</li>
+<li>Java class, abstract class, interface, enum</li>
+<li>Built-in primitive types</li>
+<li>Custom types</li>
+<li>Standard functionalities such as export, import, merge</li>

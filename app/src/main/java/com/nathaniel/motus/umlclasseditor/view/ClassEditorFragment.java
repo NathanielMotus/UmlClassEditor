@@ -4,14 +4,10 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Adapter;
 import android.widget.AdapterView;
-import android.widget.BaseExpandableListAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
@@ -42,8 +38,7 @@ import java.util.List;
 public class ClassEditorFragment extends EditorFragment implements View.OnClickListener
         , AdapterView.OnItemLongClickListener,
         RadioGroup.OnCheckedChangeListener,
-        ExpandableListView.OnChildClickListener,
-        ExpandableListView.OnGroupClickListener{
+        ExpandableListView.OnChildClickListener{
 
     private TextView mEditClassText;
     private EditText mClassNameEdit;
@@ -147,7 +142,6 @@ public class ClassEditorFragment extends EditorFragment implements View.OnClickL
         mMemberListView.setTag(MEMBER_LIST_TAG);
         mMemberListView.setOnChildClickListener(this);
         mMemberListView.setOnItemLongClickListener(this);
-        mMemberListView.setOnGroupClickListener(this);
 
         mOKButton=getActivity().findViewById(R.id.class_ok_button);
         mOKButton.setTag(OK_BUTTON_TAG);
@@ -286,32 +280,6 @@ public class ClassEditorFragment extends EditorFragment implements View.OnClickL
         mCallback.closeClassEditorFragment(this);
     }
 
-    private void resizeExpandableListView() {
-        int viewCount=((ViewGroup)mMemberListView).getChildCount();
-        Log.i("TEST",Integer.toString(viewCount));
-        int currentHeight=0;
-        for (int i=0;i<viewCount;i++)
-            currentHeight=currentHeight+mMemberListView.getChildAt(i).getMeasuredHeight();
-        currentHeight=currentHeight+100;
-        mMemberListView.getLayoutParams().height=currentHeight;
-    }
-
-    private void expandOrCollapseGroup(int groupPosition) {
-        mMemberListView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-            @Override
-            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                mMemberListView.removeOnLayoutChangeListener(this);
-                resizeExpandableListView();
-            }
-        });
-        if (mMemberListView.isGroupExpanded(groupPosition)) {
-            mMemberListView.collapseGroup(groupPosition);
-        }else {
-            mMemberListView.expandGroup(groupPosition);
-        }
-    }
-
-
 
 //    **********************************************************************************************
 //    UI events
@@ -360,12 +328,6 @@ public class ClassEditorFragment extends EditorFragment implements View.OnClickL
             else if ((expandableListView.getExpandableListAdapter().getGroup(groupPos)).equals(getString(R.string.methods_string)) && childPos!=0)
                 startDeleteMethodDialog(((UmlClassMethod)item).getMethodOrder());
         }
-        return true;
-    }
-
-    @Override
-    public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
-        expandOrCollapseGroup(groupPosition);
         return true;
     }
 

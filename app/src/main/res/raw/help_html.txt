@@ -4,6 +4,6 @@
 <p><strong>Move a class :</strong> click and drag the class</p>
 <p><strong>Edit a class :</strong> double click it</p>
 <p><strong>Delete a relation :</strong> double click it, you are asked to confirm</p>
-<p><strong>Span the window :</strong> click and drag an empty zone</p>
+<p><strong>Scroll the window :</strong> click and drag an empty zone</p>
 <p><strong>Adjust the window :</strong> double click an empty zone</p>
-<p><strong>Zoom/dezoom :</strong> pinch/spread</p>
+<p><strong>Zoom :</strong> pinch/spread</p>

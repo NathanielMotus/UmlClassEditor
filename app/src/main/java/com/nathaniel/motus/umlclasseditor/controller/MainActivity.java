@@ -625,7 +625,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
     private void menuItemImport() {
         Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.setType("text/*");
+        intent.setType("*/*");
         startActivityForResult(intent, INTENT_OPEN_DOCUMENT_IMPORT_PROJECT);
     }
 
