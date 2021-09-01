@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     tools:context=".view.GraphFragment">
 
@@ -83,6 +84,10 @@
             <Button
                 android:layout_width="0dp"
                 android:layout_height="50dp"
+                app:autoSizeMaxTextSize="14sp"
+                app:autoSizeTextType="uniform"
+                android:maxLines="1"
+                android:ellipsize="marquee"
                 android:layout_weight="25"
                 android:id="@+id/new_class_button"
                 android:text="+ class"/>
