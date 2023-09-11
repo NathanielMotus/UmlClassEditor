@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Editor de Classe UML</string>
+    <string name="navigation_drawer_open">Abrir gaveta de navegação</string>
+    <string name="navigation_drawer_close">Fechar gaveta de navegação</string>
+    <string name="new_attribute_string">Novo atributo...</string>
+    <string name="new_method_string">Novo método...</string>
+    <string name="attributes_string">Atributos</string>
+    <string name="methods_string">Métodos</string>
+    <string name="new_value_string">Novo valor...</string>
+    <string name="values_string">Valores</string>
+    <string name="parameters_string">Parâmetros</string>
+    <string name="new_parameter_string">Novo parâmetro...</string>
+</resources>

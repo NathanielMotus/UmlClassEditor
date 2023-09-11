@@ -1,0 +1,9 @@
+<p><strong>+CLASS :</strong> cria uma nova classe, você será solicitado a localizar a nova classe clicando na tela</p>
+<p><strong>SETAS :</strong> cria uma relação entre duas classes, você será solicitado a selecionar a classe de origem e a classe final clicando nelas</p>
+<p><strong>ESC :</strong> aborta a ação atual</p>
+<p><strong>Mover uma classe :</strong> clique e arraste a classe</p>
+<p><strong>Editar uma classe :</strong> clique duas vezes nela</p>
+<p><strong>Excluir uma relação :</strong> clique duas vezes nele, você será solicitado a confirmar</p>
+<p><strong>Rolar a janela :</strong> clique e arraste uma zona vazia</p>
+<p><strong>Ajustar a janela :</strong> clique duas vezes em uma zona vazia</p>
+<p><strong>Zoom :</strong> beliscar/espalhar</p>
