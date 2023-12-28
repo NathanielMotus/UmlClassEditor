@@ -117,7 +117,7 @@ public class UmlProject {
     public UmlClass findClassByOrder(int classOrder) {
         for (UmlClass c:mUmlClasses)
             if (c.getClassOrder()==classOrder) return c;
-            return null;
+        return null;
     }
 
 //    **********************************************************************************************
@@ -319,6 +319,13 @@ public class UmlProject {
 //    Save and load project methods
 //    **********************************************************************************************
 
+    public void rename(Context context,String oldName){
+        File destination=new File(context.getFilesDir(),PROJECT_DIRECTORY);
+        File source=new File(destination,oldName);
+        if(source.exists()) source.delete();
+
+        save(context);
+    }
     public void save(Context context) {
         File destination=new File(context.getFilesDir(),PROJECT_DIRECTORY);
         if (!destination.exists()) destination.mkdir();

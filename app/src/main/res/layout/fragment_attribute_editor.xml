@@ -1,199 +1,213 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".view.AttributeEditorFragment">
 
-<RelativeLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".view.ClassEditorFragment"
-    android:layout_margin="5dp">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/edit_attribute_text"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginBottom="20sp"
-        android:textSize="20sp"
-        android:text="Edit attribute" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/attribute_name_text"
-        android:layout_alignStart="@id/edit_attribute_text"
-        android:layout_alignBaseline="@id/attribute_name_input"
-        android:layout_marginBottom="20sp"
-        android:textSize="18sp"
-        android:text="Name :"/>
-
-    <EditText
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/attribute_name_input"
-        android:layout_below="@id/edit_attribute_text"
-        android:layout_toEndOf="@id/attribute_name_text"
-        android:gravity="start"
-        android:textSize="18sp"
-        android:hint="Enter a name"/>
+        android:layout_margin="5dp"
+        tools:context=".view.ClassEditorFragment">
 
-    <RadioGroup
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/attribute_visibility_radio_group"
-        android:layout_alignStart="@id/attribute_name_text"
-        android:layout_below="@id/attribute_name_input"
-        android:layout_marginBottom="10sp"
-        android:orientation="horizontal">
-        <RadioButton
+        <TextView
+            android:id="@+id/edit_attribute_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/attribute_public_radio"
-            android:textSize="18sp"
-            android:layout_marginEnd="5sp"
-            android:checked="true"
-            android:text="Public"/>
-        <RadioButton
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginBottom="20sp"
+            android:text="Edit attribute"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/attribute_name_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/attribute_protected_radio"
-            android:textSize="18sp"
-            android:layout_marginEnd="5sp"
-            android:text="Protected"/>
-        <RadioButton
-            android:layout_width="wrap_content"
+            android:layout_alignBaseline="@id/attribute_name_input"
+            android:layout_alignStart="@id/edit_attribute_text"
+            android:layout_marginBottom="20sp"
+            android:text="Name :"
+            android:textSize="18sp" />
+
+        <EditText
+            android:id="@+id/attribute_name_input"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/attribute_private_radio"
-            android:textSize="18sp"
-            android:layout_marginEnd="5sp"
-            android:text="Private"/>
-    </RadioGroup>
+            android:layout_below="@id/edit_attribute_text"
+            android:layout_toEndOf="@id/attribute_name_text"
+            android:gravity="start"
+            android:hint="Enter a name"
+            android:textSize="18sp" />
 
-    <CheckBox
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/attribute_static_check"
-        android:textSize="18sp"
-        android:layout_marginBottom="20sp"
-        android:layout_marginEnd="20sp"
-        android:layout_alignStart="@id/attribute_visibility_radio_group"
-        android:layout_below="@id/attribute_visibility_radio_group"
-        android:text="Static"/>
-
-    <CheckBox
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/attribute_final_check"
-        android:textSize="18sp"
-        android:layout_marginBottom="20sp"
-        android:layout_marginEnd="20sp"
-        android:layout_toRightOf="@id/attribute_static_check"
-        android:layout_alignBaseline="@id/attribute_static_check"
-        android:text="Final"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/attribute_type_text"
-        android:textSize="18sp"
-        android:layout_marginBottom="20sp"
-        android:layout_alignStart="@id/attribute_static_check"
-        android:layout_below="@id/attribute_static_check"
-        android:text="Type :"/>
-
-    <Spinner
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/attribute_type_spinner"
-        android:layout_marginBottom="10sp"
-        android:layout_toRightOf="@id/attribute_type_text"
-        android:layout_alignTop="@id/attribute_type_text"/>
-
-    <RadioGroup
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/attribute_multiplicity_radio_group"
-        android:layout_marginBottom="10sp"
-        android:layout_alignStart="@id/attribute_type_text"
-        android:layout_below="@id/attribute_type_text"
-        android:orientation="vertical">
-        <RadioButton
-            android:layout_width="wrap_content"
+        <RadioGroup
+            android:id="@+id/attribute_visibility_radio_group"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/attribute_simple_radio"
+            android:layout_below="@id/attribute_name_input"
+            android:layout_alignStart="@id/attribute_name_text"
             android:layout_marginBottom="10sp"
-            android:textSize="18sp"
-            android:checked="true"
-            android:text="Single"/>
-        <RadioButton
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/attribute_public_radio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="5sp"
+                android:checked="true"
+                android:text="Public"
+                android:textSize="18sp" />
+
+            <RadioButton
+                android:id="@+id/attribute_protected_radio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="5sp"
+                android:text="Protected"
+                android:textSize="18sp" />
+
+            <RadioButton
+                android:id="@+id/attribute_private_radio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="5sp"
+                android:text="Private"
+                android:textSize="18sp" />
+        </RadioGroup>
+
+        <CheckBox
+            android:id="@+id/attribute_static_check"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/attribute_collection_radio"
+            android:layout_below="@id/attribute_visibility_radio_group"
+            android:layout_alignStart="@id/attribute_visibility_radio_group"
+            android:layout_marginEnd="20sp"
+            android:layout_marginBottom="20sp"
+            android:text="Static"
+            android:textSize="18sp" />
+
+        <CheckBox
+            android:id="@+id/attribute_final_check"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/attribute_static_check"
+            android:layout_marginEnd="20sp"
+            android:layout_marginBottom="20sp"
+            android:layout_toRightOf="@id/attribute_static_check"
+            android:text="Final"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/attribute_type_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/attribute_static_check"
+            android:layout_alignStart="@id/attribute_static_check"
+            android:layout_marginBottom="20sp"
+            android:text="Type :"
+            android:textSize="18sp" />
+
+        <Spinner
+            android:id="@+id/attribute_type_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@id/attribute_type_text"
             android:layout_marginBottom="10sp"
-            android:textSize="18sp"
-            android:text="Collection"/>
-        <RadioButton
+            android:layout_toRightOf="@id/attribute_type_text" />
+
+        <RadioGroup
+            android:id="@+id/attribute_multiplicity_radio_group"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/attribute_array_radio"
+            android:layout_below="@id/attribute_type_text"
+            android:layout_alignStart="@id/attribute_type_text"
             android:layout_marginBottom="10sp"
-            android:textSize="18sp"
-            android:text="Array"/>
-    </RadioGroup>
+            android:orientation="vertical">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/attribute_dimension_text"
-        android:layout_toEndOf="@id/attribute_multiplicity_radio_group"
-        android:layout_alignBottom="@id/attribute_multiplicity_radio_group"
-        android:paddingBottom="24sp"
-        android:textSize="18sp"
-        android:text="dimension :"/>
+            <RadioButton
+                android:id="@+id/attribute_simple_radio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10sp"
+                android:checked="true"
+                android:text="Single"
+                android:textSize="18sp" />
 
-    <EditText
-        android:layout_width="50sp"
-        android:layout_height="wrap_content"
-        android:id="@+id/attribute_dimension_input"
-        android:layout_toEndOf="@id/attribute_dimension_text"
-        android:layout_alignBaseline="@id/attribute_dimension_text"
-        android:textSize="18sp"
-        android:layout_marginBottom="20sp"
-        android:inputType="number"/>
+            <RadioButton
+                android:id="@+id/attribute_collection_radio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10sp"
+                android:text="Collection"
+                android:textSize="18sp" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/attribute_multiplicity_radio_group"
-        android:gravity="center_horizontal">
-        <Button
+            <RadioButton
+                android:id="@+id/attribute_array_radio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10sp"
+                android:text="Array"
+                android:textSize="18sp" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/attribute_dimension_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/attribute_cancel_button"
-            android:textSize="18sp"
-            android:drawableLeft="@drawable/baseline_cancel_black_18dp"
-            android:text="CANCEL"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/attribute_ok_button"
-            android:textSize="18sp"
-            android:drawableLeft="@drawable/baseline_check_black_18dp"
-            android:text="OK"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/delete_attribute_button"
-            android:textSize="18sp"
-            android:drawableLeft="@drawable/baseline_delete_forever_black_18dp"
-            android:text="DEL"/>
+            android:layout_alignBottom="@id/attribute_multiplicity_radio_group"
+            android:layout_toEndOf="@id/attribute_multiplicity_radio_group"
+            android:paddingBottom="24sp"
+            android:text="dimension :"
+            android:textSize="18sp" />
 
-    </LinearLayout>
+        <EditText
+            android:id="@+id/attribute_dimension_input"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
+            android:layout_width="50sp"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/attribute_dimension_text"
+            android:layout_marginBottom="20sp"
+            android:layout_toEndOf="@id/attribute_dimension_text"
+            android:inputType="number"
+            android:textSize="18sp" />
 
-</RelativeLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/attribute_multiplicity_radio_group"
+            android:gravity="center_horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/attribute_cancel_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="3dp"
+                android:backgroundTint="?colorSurfaceInverse"
+                android:text="CANCEL"
+                app:icon="@drawable/ic_cancel" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/attribute_ok_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="3dp"
+                android:backgroundTint="?colorSurfaceInverse"
+                android:text="Ok"
+                app:icon="@drawable/ic_check" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/delete_attribute_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="3dp"
+                android:backgroundTint="?colorSurfaceInverse"
+                android:text="Del"
+                app:icon="@drawable/ic_delete" />
+
+        </LinearLayout>
+
+    </RelativeLayout>
 </ScrollView>

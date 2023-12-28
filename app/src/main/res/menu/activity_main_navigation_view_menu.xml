@@ -1,22 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/projects_items"
+        android:title="Project">
+        <menu>
+            <item
+                android:id="@+id/drawer_menu_new_project"
+                android:icon="@drawable/ic_create_new_folder"
+                android:title="New" />
+            <item
+                android:id="@+id/drawer_menu_load_project"
+                android:title="Load"
+                android:icon="@drawable/ic_folder_copy"/>
+            <item
+                android:id="@+id/drawer_menu_save_as"
+                android:title="Save"
+                android:icon="@drawable/ic_save"/>
+            <item
+                android:id="@+id/drawer_menu_merge_project"
+                android:icon="@drawable/ic_merge"
+                android:title="Merge" />
+            <item
+                android:id="@+id/drawer_menu_delete_project"
+                android:icon="@drawable/ic_delete"
+                android:title="Delete " />
 
-    <group android:checkableBehavior="none">
-        <item
-            android:id="@+id/drawer_menu_new_project"
-            android:title="New project"/>
-        <item
-            android:id="@+id/drawer_menu_load_project"
-            android:title="Load project"/>
-        <item
-            android:id="@+id/drawer_menu_save_as"
-            android:title="Save as"/>
-        <item
-            android:id="@+id/drawer_menu_merge_project"
-            android:title="Merge project"/>
-        <item
-            android:id="@+id/drawer_menu_delete_project"
-            android:title="Delete project"/>
-    </group>
-
+        </menu>
+    </item>
 </menu>

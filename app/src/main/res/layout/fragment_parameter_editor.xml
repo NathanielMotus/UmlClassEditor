@@ -1,138 +1,150 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".view.ParameterEditorFragment"
-    android:layout_margin="5dp">
+    android:layout_margin="5dp"
+    tools:context=".view.ParameterEditorFragment">
 
     <TextView
+        android:id="@+id/edit_parameter_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/edit_parameter_text"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_marginBottom="20sp"
-        android:textSize="20sp"
-        android:text="Edit parameter" />
+        android:text="Edit parameter"
+        android:textSize="20sp" />
 
     <TextView
+        android:id="@+id/parameter_name_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/parameter_name_text"
-        android:layout_alignStart="@id/edit_parameter_text"
         android:layout_alignBaseline="@id/parameter_name_input"
+        android:layout_alignStart="@id/edit_parameter_text"
         android:layout_marginBottom="20sp"
-        android:textSize="18sp"
-        android:text="Name :"/>
+        android:text="Name :"
+        android:textSize="18sp" />
 
     <EditText
+        android:id="@+id/parameter_name_input"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/parameter_name_input"
         android:layout_below="@id/edit_parameter_text"
         android:layout_toEndOf="@id/parameter_name_text"
         android:gravity="start"
-        android:textSize="18sp"
-        android:hint="Enter a name"/>
+        android:hint="Enter a name"
+        android:textSize="18sp" />
 
     <TextView
+        android:id="@+id/parameter_type_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/parameter_type_text"
-        android:textSize="18sp"
-        android:layout_marginBottom="10sp"
-        android:layout_alignStart="@id/parameter_name_text"
         android:layout_below="@id/parameter_name_input"
-        android:text="Type :"/>
+        android:layout_alignStart="@id/parameter_name_text"
+        android:layout_marginBottom="10sp"
+        android:text="Type :"
+        android:textSize="18sp" />
 
     <Spinner
+        android:id="@+id/parameter_type_spinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/parameter_type_spinner"
+        android:layout_alignTop="@id/parameter_type_text"
         android:layout_marginBottom="20sp"
-        android:layout_toRightOf="@id/parameter_type_text"
-        android:layout_alignTop="@id/parameter_type_text"/>
+        android:layout_toEndOf="@id/parameter_type_text" />
 
     <RadioGroup
+        android:id="@+id/parameter_multiplicity_radio_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/parameter_multiplicity_radio_group"
-        android:layout_marginBottom="10sp"
-        android:layout_alignStart="@id/parameter_type_text"
         android:layout_below="@id/parameter_type_text"
+        android:layout_alignStart="@id/parameter_type_text"
+        android:layout_marginBottom="10sp"
         android:orientation="vertical">
+
         <RadioButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:id="@+id/parameter_simple_radio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginBottom="20sp"
-            android:textSize="18sp"
             android:checked="true"
-            android:text="Single"/>
+            android:text="Single"
+            android:textSize="18sp" />
+
         <RadioButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:id="@+id/parameter_collection_radio"
-            android:layout_marginBottom="20sp"
-            android:textSize="18sp"
-            android:text="Collection"/>
-        <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/parameter_array_radio"
             android:layout_marginBottom="20sp"
-            android:textSize="18sp"
-            android:text="Array"/>
+            android:text="Collection"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/parameter_array_radio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20sp"
+            android:text="Array"
+            android:textSize="18sp" />
     </RadioGroup>
 
     <TextView
+        android:id="@+id/parameter_dimension_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/parameter_dimension_text"
-        android:layout_toEndOf="@id/parameter_multiplicity_radio_group"
         android:layout_alignBottom="@id/parameter_multiplicity_radio_group"
+        android:layout_toEndOf="@id/parameter_multiplicity_radio_group"
         android:paddingBottom="24sp"
-        android:textSize="18sp"
-        android:text="dimension :"/>
+        android:text="dimension :"
+        android:textSize="18sp" />
 
     <EditText
+        android:id="@+id/parameter_dimension_input"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
         android:layout_width="50sp"
         android:layout_height="wrap_content"
-        android:id="@+id/parameter_dimension_input"
-        android:layout_toEndOf="@id/parameter_dimension_text"
         android:layout_alignBaseline="@id/parameter_dimension_text"
-        android:textSize="18sp"
         android:layout_marginBottom="20sp"
-        android:inputType="number"/>
+        android:layout_toEndOf="@id/parameter_dimension_text"
+        android:inputType="number"
+        android:textSize="18sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/parameter_multiplicity_radio_group"
         android:gravity="center_horizontal">
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/parameter_cancel_button"
-            android:textSize="18sp"
-            android:drawableLeft="@drawable/baseline_cancel_black_18dp"
-            android:text="CANCEL"/>
-        <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_margin="3dp"
+            android:backgroundTint="?colorSurfaceInverse"
+            android:text="Cancel"
+            app:icon="@drawable/ic_cancel" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/parameter_ok_button"
-            android:textSize="18sp"
-            android:drawableLeft="@drawable/baseline_check_black_18dp"
-            android:text="OK"/>
-        <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_margin="3dp"
+            android:backgroundTint="?colorSurfaceInverse"
+            android:text="OK"
+            app:icon="@drawable/ic_check" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/delete_parameter_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
-            android:textSize="18sp"
-            android:drawableLeft="@drawable/baseline_delete_forever_black_18dp"
-            android:text="DEL"/>
+            android:layout_margin="3dp"
+            android:backgroundTint="?colorSurfaceInverse"
+            android:text="DEL"
+            app:icon="@drawable/ic_delete" />
 
     </LinearLayout>
 
