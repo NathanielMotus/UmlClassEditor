@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -19,12 +20,15 @@ import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -561,7 +565,10 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         if (itemId == R.id.toolbar_menu_export) {
             if (sWriteExternalStoragePermission)
                 menuItemExport();
-        } else if (itemId == R.id.toolbar_menu_import) {
+        } else if (itemId == R.id.toolbar_menu_export_pdf) {
+            if (sWriteExternalStoragePermission)
+                menuExportPdf();
+        }else if (itemId == R.id.toolbar_menu_import) {
             if (sReadExternalStoragePermission)
                 menuItemImport();
         } else if (itemId == R.id.toolbar_menu_create_custom_type) {
@@ -587,13 +594,28 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     private void menuItemExport() {
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.setType("text/*");
-        startActivityForResult(intent, INTENT_CREATE_DOCUMENT_EXPORT_PROJECT);
+        exportProjectLauncher.launch(intent);
+    }
+    private void menuExportPdf(){
+        Bitmap bitmap = IOUtils.getBitmapFromView(this.mGraphView);
+        ImageView prev = new ImageView(this);
+        prev.setImageBitmap(bitmap);
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Preview")
+                .setView(prev)
+                .setNegativeButton("Cancel",(d,i)->d.dismiss())
+                .setPositiveButton("Export",(d,i)->{
+                    Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                    intent.setType("application/pdf");
+                    exportPDFLauncher.launch(intent);
+                })
+                .show();
     }
 
     private void menuItemImport() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.setType("*/*");
-        startActivityForResult(intent, INTENT_OPEN_DOCUMENT_IMPORT_PROJECT);
+        importProjectLauncher.launch(intent);
     }
 
     private void menuCreateCustomType() {
@@ -655,13 +677,13 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     private void menuExportCustomTypes() {
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.setType("text/*");
-        startActivityForResult(intent, INTENT_CREATE_DOCUMENT_EXPORT_CUSTOM_TYPES);
+        exportCustomTypeLauncher.launch(intent);
     }
 
     private void menuImportCustomTypes() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.setType("*/*");
-        startActivityForResult(intent, INTENT_OPEN_DOCUMENT_IMPORT_CUSTOM_TYPES);
+        importCustomTypeLauncher.launch(intent);
     }
 
     private void menuHelp() {
@@ -677,40 +699,70 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 //    **********************************************************************************************
 //    Intents
 //    **********************************************************************************************
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-
-        if (requestCode == INTENT_CREATE_DOCUMENT_EXPORT_PROJECT && resultCode == RESULT_OK) {
-            Uri fileNameUri = data.getData();
-            mProject.exportProject(this, fileNameUri);
-        } else if (requestCode == INTENT_OPEN_DOCUMENT_IMPORT_PROJECT && resultCode == RESULT_OK) {
-            Uri fileNameUri = data.getData();
-            UmlType.clearProjectUmlTypes();
-            mProject = UmlProject.importProject(this, fileNameUri);
-            mGraphView.setUmlProject(mProject);
-        } else if (requestCode == INTENT_CREATE_DOCUMENT_EXPORT_CUSTOM_TYPES && resultCode == RESULT_OK) {
-            Uri fileNameUri = data.getData();
-            UmlType.exportCustomUmlTypes(this, fileNameUri);
-        } else if (requestCode == INTENT_OPEN_DOCUMENT_IMPORT_CUSTOM_TYPES && resultCode == RESULT_OK) {
-            Uri fileNameUri = data.getData();
-            UmlType.importCustomUmlTypes(this, fileNameUri);
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-    }
-
+    ActivityResultLauncher<Intent> exportProjectLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    Intent data = result.getData();
+                    assert data != null;
+                    Uri fileNameUri = data.getData();
+                    mProject.exportProject(this, fileNameUri);
+                }
+            }
+    ),
+        importProjectLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    Intent data = result.getData();
+                    assert data != null;
+                    Uri fileNameUri = data.getData();
+                    UmlType.clearProjectUmlTypes();
+                    mProject = UmlProject.importProject(this, fileNameUri);
+                    mMenuHeaderProjectNameText.setText(mProject.getName());
+                    mGraphView.setUmlProject(mProject);
+                }
+            }
+    ),
+   exportCustomTypeLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    Intent data = result.getData();
+                    assert data != null;
+                    Uri fileNameUri = data.getData();
+                    UmlType.exportCustomUmlTypes(this, fileNameUri);
+                }
+            }
+    ),
+   importCustomTypeLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    Intent data = result.getData();
+                    assert data != null;
+                    Uri fileNameUri = data.getData();
+                    UmlType.importCustomUmlTypes(this, fileNameUri);
+                }
+            }
+    ),
+        exportPDFLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK) {
+                        Intent data = result.getData();
+                        assert data != null;
+                        Uri fileNameUri = data.getData();
+                        mProject.exportProjectPDF(this, this.mGraphView, fileNameUri);
+                        Toast.makeText(getApplicationContext(), "PDF exported!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_PERMISSION && grantResults[WRITE_EXTERNAL_STORAGE_INDEX] == PackageManager.PERMISSION_GRANTED)
-            sWriteExternalStoragePermission = true;
-        else
-            sWriteExternalStoragePermission = false;
-
-        if (requestCode == REQUEST_PERMISSION && grantResults[READ_EXTERNAL_STORAGE_INDEX] == PackageManager.PERMISSION_GRANTED)
-            sReadExternalStoragePermission = true;
-        else
-            sReadExternalStoragePermission = false;
+        sWriteExternalStoragePermission = requestCode == REQUEST_PERMISSION && grantResults[WRITE_EXTERNAL_STORAGE_INDEX] == PackageManager.PERMISSION_GRANTED;
+        sReadExternalStoragePermission = requestCode == REQUEST_PERMISSION && grantResults[READ_EXTERNAL_STORAGE_INDEX] == PackageManager.PERMISSION_GRANTED;
     }
 
 //    **********************************************************************************************

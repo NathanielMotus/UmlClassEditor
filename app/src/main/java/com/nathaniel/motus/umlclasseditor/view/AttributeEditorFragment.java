@@ -19,6 +19,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.model.TypeMultiplicity;
 import com.nathaniel.motus.umlclasseditor.model.TypeNameComparator;
@@ -382,23 +383,14 @@ public class AttributeEditorFragment extends EditorFragment implements View.OnCl
 
     private void startDeleteAttributeDialog() {
         final Fragment fragment=this;
-        AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
-        builder.setTitle("Delete attribute")
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Delete attribute")
                 .setMessage("Are you sure you want to delete this attribute ?")
-                .setNegativeButton("NO", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                    }
-                })
-                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        mUmlClass.getAttributes().remove(mUmlClassAttribute);
-                        mCallback.closeAttributeEditorFragment(fragment);
-                    }
-                });
-        AlertDialog dialog=builder.create();
-        dialog.show();
+                .setNegativeButton("NO", (d, which) -> d.dismiss())
+                .setPositiveButton("YES", (d, which) -> {
+                    mUmlClass.getAttributes().remove(mUmlClassAttribute);
+                    mCallback.closeAttributeEditorFragment(fragment);
+                }).show();
+       
     }
 }

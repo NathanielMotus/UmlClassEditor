@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.controller.CustomExpandableListViewAdapter;
 import com.nathaniel.motus.umlclasseditor.model.AdapterItem;
@@ -270,8 +271,7 @@ public class ClassEditorFragment extends EditorFragment implements View.OnClickL
         initializeFields();
         if (mClassOrder ==-1) setOnCreateDisplay();
         else setOnEditDisplay();
-        if (mClassOrder !=-1 && mUmlClass.getUmlClassType()== UmlClass.UmlClassType.ENUM) sIsJavaClass=false;
-        else sIsJavaClass=true;
+        sIsJavaClass= mClassOrder == -1 || mUmlClass.getUmlClassType() != UmlClass.UmlClassType.ENUM;
         setOnBackPressedCallback();
     }
 
@@ -333,8 +333,7 @@ public class ClassEditorFragment extends EditorFragment implements View.OnClickL
 
     @Override
     public void onCheckedChanged(RadioGroup group, int checkedId) {
-        if (checkedId==R.id.class_enum_radio) sIsJavaClass=false;
-        else sIsJavaClass=true;
+        sIsJavaClass= checkedId != R.id.class_enum_radio;
         updateLists();
     }
 
@@ -414,134 +413,76 @@ public class ClassEditorFragment extends EditorFragment implements View.OnClickL
 //    **********************************************************************************************
 
     private void startNewValueDialog() {
-        AlertDialog.Builder adb=new AlertDialog.Builder(getContext());
-        adb.setTitle("Add a value")
-                .setMessage("Enter value :");
-        final EditText input=new EditText(getContext());
-        adb.setView(input)
-                .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                    }
-                })
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        mUmlClass.addValue(new UmlEnumValue(input.getText().toString(),mUmlClass.getValueCount()));
-                        updateLists();
-                    }
-                });
-        Dialog inputDialog=adb.create();
-        inputDialog.show();
+        final EditText input=new EditText(requireContext());
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Add a value")
+                .setMessage("Enter value :")
+                .setView(input)
+                .setNegativeButton("CANCEL", (d, which) -> d.dismiss())
+                .setPositiveButton("OK", (d, which) -> {
+                    mUmlClass.addValue(new UmlEnumValue(input.getText().toString(),mUmlClass.getValueCount()));
+                    updateLists();
+                }).show();
     }
 
     private void startDeleteClassDialog() {
         final Fragment fragment=this;
-        AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
-        builder.setTitle("Delete class ?")
-                .setMessage("Are you sure you want to delete this class ?");
-        builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-
-            }
-        });
-        builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                mCallback.getProject().removeUmlClass(mUmlClass);
-                mCallback.closeClassEditorFragment(fragment);
-            }
-        });
-        AlertDialog dialog=builder.create();
-        dialog.show();
+       new MaterialAlertDialogBuilder(requireContext())
+        .setTitle("Delete class ?")
+               .setMessage("Are you sure you want to delete this class ?")
+        .setNegativeButton("NO", (d, i) -> d.dismiss())
+        .setPositiveButton("YES", (dialog, i) -> {
+            mCallback.getProject().removeUmlClass(mUmlClass);
+            mCallback.closeClassEditorFragment(fragment);
+        }).show();
     }
 
     private void startRenameValueDialog(final int valueOrder) {
-        AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
         final EditText editText=new EditText(getContext());
-        builder.setView(editText)
+
+        new MaterialAlertDialogBuilder(requireContext())
+                .setView(editText)
                 .setTitle("Rename Enum value")
                 .setMessage("Enter a new name :")
-                .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
+                .setNegativeButton("CANCEL", (d, i) -> d.dismiss())
+                .setPositiveButton("OK", (d, i) -> {
+                    mUmlClass.findValueByOrder(valueOrder).setName(editText.getText().toString());
+                    updateLists();
                 })
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        mUmlClass.findValueByOrder(valueOrder).setName(editText.getText().toString());
-                        updateLists();
-                    }
-                })
-                .create()
                 .show();
     }
 
     private void startDeleteValueDialog(final int valueOrder) {
-        AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
-        builder.setTitle("Delete value ?")
-            .setMessage("Are you sure you want to delete this value ?")
-            .setNegativeButton("NO", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-
-                }
-            })
-            .setPositiveButton("YES", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Delete value ?")
+                .setMessage("Are you sure you want to delete this value ?")
+                .setNegativeButton("NO", (dialog, i) -> dialog.dismiss())
+                .setPositiveButton("YES", (d, i) -> {
                     mUmlClass.removeValue(mUmlClass.findValueByOrder(valueOrder));
                     updateLists();
-                }
-            });
-        AlertDialog dialog=builder.create();
-        dialog.show();
+                }).show();
     }
 
     private void startDeleteAttributeDialog(final int attributeOrder) {
-        AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
-        builder.setTitle("Delete attribute ?")
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Delete attribute ?")
                 .setMessage("Are you sure you want to delete this attribute ?")
-                .setNegativeButton("NO", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                    }
-                })
-                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        mUmlClass.removeAttribute(mUmlClass.findAttributeByOrder(attributeOrder));
-                        updateLists();
-                    }
-                });
-        AlertDialog dialog=builder.create();
-        dialog.show();
+                .setNegativeButton("NO", (d, which) -> d.dismiss())
+                .setPositiveButton("YES", (d, which) -> {
+                    mUmlClass.removeAttribute(mUmlClass.findAttributeByOrder(attributeOrder));
+                    updateLists();
+                }).show();
     }
 
     private void startDeleteMethodDialog(final int methodOrder) {
-        AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
-        builder.setTitle("Delete method ?")
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Delete method ?")
                 .setMessage("Are you sure you want to delete this method ?")
-                .setNegativeButton("NO", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                    }
-                })
-                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        mUmlClass.removeMethod(mUmlClass.findMethodByOrder(methodOrder));
-                        updateLists();
-                    }
-                });
-        AlertDialog dialog=builder.create();
-        dialog.show();
+                .setNegativeButton("NO", (d, which) -> d.dismiss())
+                .setPositiveButton("YES", (d, which) -> {
+                    mUmlClass.removeMethod(mUmlClass.findMethodByOrder(methodOrder));
+                    updateLists();
+                }).show();
     }
 
 

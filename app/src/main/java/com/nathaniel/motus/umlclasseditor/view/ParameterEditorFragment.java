@@ -18,6 +18,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.model.MethodParameter;
 import com.nathaniel.motus.umlclasseditor.model.TypeMultiplicity;
@@ -318,24 +319,14 @@ public class ParameterEditorFragment extends EditorFragment implements View.OnCl
 //    **********************************************************************************************
     private void startDeleteParameterDialog() {
         final Fragment fragment=this;
-        AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
-        builder.setTitle("Delete Parameter")
+        new MaterialAlertDialogBuilder(requireContext())
+        .setTitle("Delete Parameter")
                 .setMessage("Are you sure you to delete this parameter ?")
-                .setNegativeButton("NO", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                    }
-                })
-                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        mUmlClassMethod.removeParameter(mMethodParameter);
-                        mCallback.closeParameterEditorFragment(fragment);
-                    }
-                });
-        AlertDialog dialog=builder.create();
-        dialog.show();
+                .setNegativeButton("NO", (DialogInterface.OnClickListener) (d, which) -> d.dismiss())
+                .setPositiveButton("YES", (DialogInterface.OnClickListener) (d, which) -> {
+                    mUmlClassMethod.removeParameter(mMethodParameter);
+                    mCallback.closeParameterEditorFragment(fragment);
+                }).show();
 
     }
 }

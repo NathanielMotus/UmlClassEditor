@@ -21,6 +21,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.controller.CustomExpandableListViewAdapter;
 import com.nathaniel.motus.umlclasseditor.model.AdapterItem;
@@ -38,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -433,44 +435,25 @@ public class MethodEditorFragment extends EditorFragment implements View.OnClick
 //    **********************************************************************************************
     private void startDeleteMethodDialog() {
         final Fragment fragment=this;
-        AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
-        builder.setTitle("Delete method ?")
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Delete method ?")
                 .setMessage("Are you sure you want to delete this method ?")
-                .setNegativeButton("NO", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                    }
-                })
-                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        mUmlClass.removeMethod(mUmlClassMethod);
-                        mCallback.closeMethodEditorFragment(fragment);
-                    }
-                });
-        AlertDialog dialog=builder.create();
-        dialog.show();
+                .setNegativeButton("NO", (d, which) -> d.dismiss())
+                .setPositiveButton("YES", (d, which) -> {
+                    mUmlClass.removeMethod(mUmlClassMethod);
+                    mCallback.closeMethodEditorFragment(fragment);
+                }).show();
     }
 
     private void startDeleteParameterDialog(final int parameterIndex) {
-        AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
-        builder.setTitle("Delete parameter ?")
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Delete parameter ?")
                 .setMessage("Are you sure you want delete this parameter ?")
-                .setNegativeButton("NO", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
+                .setNegativeButton("NO", (d, i) -> d.dismiss())
+                .setPositiveButton("YES", (d, i) -> {
+                    mUmlClassMethod.removeParameter(mUmlClassMethod.findParameterByOrder(parameterIndex));
+                    updateLists();
                 })
-                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        mUmlClassMethod.removeParameter(mUmlClassMethod.findParameterByOrder(parameterIndex));
-                        updateLists();
-                    }
-                })
-                .create()
                 .show();
     }
 }

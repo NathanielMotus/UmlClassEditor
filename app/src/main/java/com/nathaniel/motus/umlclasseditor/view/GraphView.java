@@ -844,7 +844,7 @@ public class GraphView extends View implements View.OnTouchListener {
         return maxY;
     }
 
-    private void adjustViewToProject() {
+    public void adjustViewToProject() {
         float xZoom = this.getMeasuredWidth() / getAbsoluteProjectWidth();
         float yZoom = this.getMeasuredHeight() / getAbsoluteProjectHeight();
         if (xZoom <= yZoom) {

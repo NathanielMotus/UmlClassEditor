@@ -6,27 +6,27 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-public class UmlClassMethod implements AdapterItem{
+public class UmlClassMethod implements AdapterItem {
 
     private String mName;
     private int mMethodOrder;
-    private Visibility mVisibility=Visibility.PRIVATE;
-    private boolean mStatic =false;
+    private Visibility mVisibility = Visibility.PRIVATE;
+    private boolean mStatic = false;
     private UmlType mUmlType;
-    private TypeMultiplicity mTypeMultiplicity=TypeMultiplicity.SINGLE;
-    private int mArrayDimension =1;
+    private TypeMultiplicity mTypeMultiplicity = TypeMultiplicity.SINGLE;
+    private int mArrayDimension = 1;
     private ArrayList<MethodParameter> mParameters;
     private int mParameterCount;
 
-    public static final String JSON_CLASS_METHOD_NAME="ClassMethodName";
-    public static final String JSON_CLASS_METHOD_VISIBILITY="ClassMethodVisibility";
-    public static final String JSON_CLASS_METHOD_STATIC="ClassMethodStatic";
-    public static final String JSON_CLASS_METHOD_TYPE="ClassMethodType";
-    public static final String JSON_CLASS_METHOD_TYPE_MULTIPLICITY="ClassMethodTypeMultiplicity";
-    public static final String JSON_CLASS_METHOD_ARRAY_DIMENSION="ClassMethodArrayDimension";
-    public static final String JSON_CLASS_METHOD_PARAMETERS="ClassMethodParameters";
-    public static final String JSON_CLASS_METHOD_PARAMETER_COUNT="ClassMethodParameterCount";
-    public static final String JSON_CLASS_METHOD_INDEX="ClassMethodIndex";
+    public static final String JSON_CLASS_METHOD_NAME = "ClassMethodName";
+    public static final String JSON_CLASS_METHOD_VISIBILITY = "ClassMethodVisibility";
+    public static final String JSON_CLASS_METHOD_STATIC = "ClassMethodStatic";
+    public static final String JSON_CLASS_METHOD_TYPE = "ClassMethodType";
+    public static final String JSON_CLASS_METHOD_TYPE_MULTIPLICITY = "ClassMethodTypeMultiplicity";
+    public static final String JSON_CLASS_METHOD_ARRAY_DIMENSION = "ClassMethodArrayDimension";
+    public static final String JSON_CLASS_METHOD_PARAMETERS = "ClassMethodParameters";
+    public static final String JSON_CLASS_METHOD_PARAMETER_COUNT = "ClassMethodParameterCount";
+    public static final String JSON_CLASS_METHOD_INDEX = "ClassMethodIndex";
 
 //    **********************************************************************************************
 //    Constructors
@@ -40,8 +40,8 @@ public class UmlClassMethod implements AdapterItem{
         mUmlType = umlType;
         mTypeMultiplicity = typeMultiplicity;
         mArrayDimension = arrayDimension;
-        mParameters=new ArrayList<>();
-        mParameterCount=0;
+        mParameters = new ArrayList<>();
+        mParameterCount = 0;
     }
 
     public UmlClassMethod(String mName, int methodOrder, Visibility mVisibility, boolean mStatic, UmlType mUmlType, TypeMultiplicity mTypeMultiplicity, int mArrayDimension, ArrayList<MethodParameter> mParameters, int parameterCount) {
@@ -53,13 +53,13 @@ public class UmlClassMethod implements AdapterItem{
         this.mTypeMultiplicity = mTypeMultiplicity;
         this.mArrayDimension = mArrayDimension;
         this.mParameters = mParameters;
-        this.mParameterCount=parameterCount;
+        this.mParameterCount = parameterCount;
     }
 
     public UmlClassMethod(int methodOrder) {
         mMethodOrder = methodOrder;
-        mParameterCount=0;
-        mParameters=new ArrayList<>();
+        mParameterCount = 0;
+        mParameters = new ArrayList<>();
     }
 
 //    **********************************************************************************************
@@ -137,55 +137,55 @@ public class UmlClassMethod implements AdapterItem{
     public String getMethodCompleteString() {
         //return method name with conventional modifiers
 
-        String completeString=new String();
+        StringBuilder completeString = new StringBuilder(new String());
 
         switch (mVisibility) {
             case PUBLIC:
-                completeString="+";
+                completeString = new StringBuilder("+");
                 break;
             case PROTECTED:
-                completeString="~";
+                completeString = new StringBuilder("~");
                 break;
             default:
-                completeString="-";
+                completeString = new StringBuilder("-");
                 break;
         }
 
-        completeString=completeString+mName+"(";
+        completeString.append(mName).append("(");
 
-        for (MethodParameter p:mParameters) {
-            completeString = completeString + p.getName();
-            if (mParameters.indexOf(p)!=mParameters.size()-1)
-                completeString=completeString+", ";
+        for (MethodParameter p : mParameters) {
+            completeString.append(p.getName()).append(": ").append(p.getUmlType().mName);
+            if (mParameters.indexOf(p) != mParameters.size() - 1)
+                completeString.append(", ");
         }
 
-        completeString=completeString+") : ";
+        completeString.append(") : ");
 
         switch (mTypeMultiplicity) {
             case COLLECTION:
-                completeString=completeString+"<"+mUmlType.getName()+">";
+                completeString.append("<").append(mUmlType.getName()).append(">");
                 break;
             case ARRAY:
-                completeString=completeString+"["+mUmlType.getName()+"]^"+mArrayDimension;
+                completeString.append("[").append(mUmlType.getName()).append("]^").append(mArrayDimension);
                 break;
             default:
-                completeString=completeString+mUmlType.getName();
+                completeString.append(mUmlType.getName());
         }
 
-        return completeString;
+        return completeString.toString();
     }
 
     public static int indexOf(String methodName, ArrayList<UmlClassMethod> methods) {
-        for (UmlClassMethod m:methods)
+        for (UmlClassMethod m : methods)
             if (methodName.equals(m.mName)) return methods.indexOf(m);
 
         return -1;
     }
 
     public MethodParameter findParameterByOrder(int parameterOrder) {
-        for (MethodParameter p:mParameters)
-            if (p.getParameterOrder()==parameterOrder) return p;
-            return null;
+        for (MethodParameter p : mParameters)
+            if (p.getParameterOrder() == parameterOrder) return p;
+        return null;
     }
 
     public MethodParameter getParameter(String parameterName) {
@@ -212,24 +212,24 @@ public class UmlClassMethod implements AdapterItem{
         mParameterCount++;
     }
 
-//    **********************************************************************************************
+    //    **********************************************************************************************
 //    Test methods
 //    **********************************************************************************************
     public boolean containsParameterNamed(String parameterName) {
-        for (MethodParameter p:mParameters)
-            if (p.getName()!=null && p.getName().equals(parameterName))
+        for (MethodParameter p : mParameters)
+            if (p.getName() != null && p.getName().equals(parameterName))
                 return true;
         return false;
     }
 
     public boolean isEquivalentTo(UmlClassMethod method) {
-        if (this.mMethodOrder==method.mMethodOrder)
+        if (this.mMethodOrder == method.mMethodOrder)
             return false;
         if (!this.mName.equals(method.mName))
             return false;
-        if (this.mUmlType!=method.mUmlType)
+        if (this.mUmlType != method.mUmlType)
             return false;
-        if (this.mParameters.size()!=method.mParameters.size())
+        if (this.mParameters.size() != method.mParameters.size())
             return false;
         for (int i = 0; i < this.mParameters.size(); i++) {
             if (!this.mParameters.get(i).isEquivalentTo(method.mParameters.get(i)))
@@ -243,7 +243,7 @@ public class UmlClassMethod implements AdapterItem{
 //    **********************************************************************************************
 
     public JSONObject toJSONObject() {
-        JSONObject jsonObject=new JSONObject();
+        JSONObject jsonObject = new JSONObject();
 
         try {
             jsonObject.put(JSON_CLASS_METHOD_NAME, mName);
@@ -254,7 +254,7 @@ public class UmlClassMethod implements AdapterItem{
             jsonObject.put(JSON_CLASS_METHOD_TYPE_MULTIPLICITY, mTypeMultiplicity);
             jsonObject.put(JSON_CLASS_METHOD_ARRAY_DIMENSION, mArrayDimension);
             jsonObject.put(JSON_CLASS_METHOD_PARAMETERS, getParametersToJSONArray());
-            jsonObject.put(JSON_CLASS_METHOD_PARAMETER_COUNT,mParameterCount);
+            jsonObject.put(JSON_CLASS_METHOD_PARAMETER_COUNT, mParameterCount);
             return jsonObject;
         } catch (JSONException jsonException) {
             return null;
@@ -263,7 +263,7 @@ public class UmlClassMethod implements AdapterItem{
 
     public static UmlClassMethod fromJSONObject(JSONObject jsonObject) {
         try {
-            if (UmlType.valueOf(jsonObject.getString(JSON_CLASS_METHOD_TYPE),UmlType.getUmlTypes())==null)
+            if (UmlType.valueOf(jsonObject.getString(JSON_CLASS_METHOD_TYPE), UmlType.getUmlTypes()) == null)
                 UmlType.createUmlType(jsonObject.getString(JSON_CLASS_METHOD_TYPE), UmlType.TypeLevel.CUSTOM);
 
             return new UmlClassMethod(jsonObject.getString(JSON_CLASS_METHOD_NAME),
@@ -281,19 +281,19 @@ public class UmlClassMethod implements AdapterItem{
     }
 
     private JSONArray getParametersToJSONArray() {
-        JSONArray jsonArray =new JSONArray();
+        JSONArray jsonArray = new JSONArray();
 
         for (MethodParameter p : this.mParameters) jsonArray.put(p.toJSONObject());
         return jsonArray;
     }
 
     private static ArrayList<MethodParameter> getParametersFromJSONArray(JSONArray jsonArray) {
-        ArrayList<MethodParameter> methodParameters=new ArrayList<>();
+        ArrayList<MethodParameter> methodParameters = new ArrayList<>();
 
-        JSONObject jsonParameter=(JSONObject)(jsonArray.remove(0));
+        JSONObject jsonParameter = (JSONObject) (jsonArray.remove(0));
         while (jsonParameter != null) {
             methodParameters.add(MethodParameter.fromJSONObject(jsonParameter));
-            jsonParameter=(JSONObject)(jsonArray.remove(0));
+            jsonParameter = (JSONObject) (jsonArray.remove(0));
         }
         return methodParameters;
     }

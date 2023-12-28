@@ -10,5 +10,6 @@
         <item>double</item>
         <item>char</item>
         <item>boolean</item>
+        <item>String</item>
     </array>
 </resources>

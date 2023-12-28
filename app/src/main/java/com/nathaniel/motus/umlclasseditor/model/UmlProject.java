@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.nathaniel.motus.umlclasseditor.controller.IOUtils;
+import com.nathaniel.motus.umlclasseditor.view.GraphView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -345,6 +346,9 @@ public class UmlProject {
 
     public void exportProject(Context context, Uri toDestination) {
         IOUtils.saveFileToExternalStorage(context,this.toJSONObject(context).toString(),toDestination);
+    }
+    public void exportProjectPDF(Context context, GraphView graphView, Uri toDestination) {
+        IOUtils.savePdfToExternalStorage(context,graphView,toDestination);
     }
 
     public static UmlProject importProject(Context context, Uri fromFileUri) {

@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
+    namespace 'com.nathaniel.motus.umlclasseditor'
     compileSdkVersion 33
-
     defaultConfig {
         applicationId "com.nathaniel.motus.umlclasseditor"
         minSdkVersion 21
@@ -26,14 +26,22 @@ android {
     buildFeatures{
         viewBinding true
     }
-    namespace 'com.nathaniel.motus.umlclasseditor'
+
+    allprojects {
+        gradle.projectsEvaluated {
+            tasks.withType(JavaCompile) {
+                options.compilerArgs << "-Xlint:deprecation"
+            }
+        }
+    }
 }
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.google.android.material:material:1.7.0'
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
 
 
 }
