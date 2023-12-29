@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Html;
 import android.util.Log;
 import android.util.SparseBooleanArray;
@@ -22,6 +23,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,11 +40,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.core.view.MenuCompat;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.model.TypeNameComparator;
 import com.nathaniel.motus.umlclasseditor.model.UmlClass;
@@ -67,6 +71,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements FragmentObserver,
         GraphView.GraphViewObserver,
         NavigationView.OnNavigationItemSelectedListener {
+    private static final String TAG = "MainActivity";
 
     private UmlProject mProject;
     private boolean mExpectingTouchLocation = false;
@@ -151,7 +156,6 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
         mGraphView = findViewById(R.id.graphview);
         mGraphView.setUmlProject(mProject);
-        Log.i("TEST", "onStart");
     }
 
     @Override
@@ -159,11 +163,16 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         super.onDestroy();
 
         mProject.save(getApplicationContext());
-        Log.i("TEST", "save : project");
         savePreferences();
-        Log.i("TEST", "save : preferences");
         UmlType.saveCustomUmlTypes(this);
-        Log.i("TEST", "save : custom types");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mProject.save(getApplicationContext());
+        savePreferences();
+        UmlType.saveCustomUmlTypes(this);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -228,7 +237,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     private void getPreferences() {
         SharedPreferences preferences = getPreferences(MODE_PRIVATE);
         String projectName = preferences.getString(SHARED_PREFERENCES_PROJECT_NAME, null);
-        Log.i("TEST", "Loaded preferences");
+        Log.d(TAG, "getPreferences: ");
         if (projectName != null) {
             mProject = UmlProject.load(getApplicationContext(), projectName);
         } else {
@@ -568,7 +577,11 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         } else if (itemId == R.id.toolbar_menu_export_pdf) {
             if (sWriteExternalStoragePermission)
                 menuExportPdf();
-        }else if (itemId == R.id.toolbar_menu_import) {
+        } else if (itemId == R.id.toolbar_menu_export2java) {
+            if (sWriteExternalStoragePermission)
+                menuExport2Java();
+        }
+        else if (itemId == R.id.toolbar_menu_import) {
             if (sReadExternalStoragePermission)
                 menuItemImport();
         } else if (itemId == R.id.toolbar_menu_create_custom_type) {
@@ -616,6 +629,23 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.setType("*/*");
         importProjectLauncher.launch(intent);
+    }
+    /* export2 java */
+
+    private void menuExport2Java() {
+        dialog = new MaterialAlertDialogBuilder(this)
+                .setTitle("Generating..")
+                .setMessage("Please wait code is being generating!")
+                .setView(new ProgressBar(this))
+                .show();
+        dialog.setCancelable(false);
+        dialog.setCanceledOnTouchOutside(false);
+        new Handler().postDelayed(() -> {
+            if(mProject.export2Java(getApplicationContext())) {
+                dialog.dismiss();
+                Toast.makeText(this, "Generated! See the files in the app folder in your storage.", Toast.LENGTH_LONG).show();
+            }
+        },2000);
     }
 
     private void menuCreateCustomType() {

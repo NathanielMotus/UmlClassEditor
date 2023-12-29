@@ -350,6 +350,10 @@ public class UmlProject {
     public void exportProjectPDF(Context context, GraphView graphView, Uri toDestination) {
         IOUtils.savePdfToExternalStorage(context,graphView,toDestination);
     }
+    /* export2java*/
+    public boolean export2Java(Context context){
+        return IOUtils.export2Java(context,this);
+    }
 
     public static UmlProject importProject(Context context, Uri fromFileUri) {
         UmlProject umlProject;

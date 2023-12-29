@@ -124,7 +124,7 @@ public class UmlClassAttribute implements AdapterItem{
 
         switch (mTypeMultiplicity) {
             case COLLECTION:
-                completeString=completeString+mName+" : <"+mUmlType.getName()+">";
+                completeString=completeString+mName+" : List<"+mUmlType.getName()+">";
                 break;
             case ARRAY:
                 completeString=completeString+mName+" : ["+mUmlType.getName()+"]^"+ mArrayDimension;

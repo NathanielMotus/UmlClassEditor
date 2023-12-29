@@ -13,6 +13,11 @@
         android:title="Export as PDF"
         android:icon="@drawable/ic_export"/>
     <item
+        android:id="@+id/toolbar_menu_export2java"
+        app:showAsAction="never"
+        android:title="Export to java"
+        android:icon="@drawable/ic_export"/>
+    <item
         android:id="@+id/toolbar_menu_import"
         app:showAsAction="never"
         android:title="Import project"

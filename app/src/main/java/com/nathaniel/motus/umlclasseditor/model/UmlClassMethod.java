@@ -163,7 +163,7 @@ public class UmlClassMethod implements AdapterItem {
 
         switch (mTypeMultiplicity) {
             case COLLECTION:
-                completeString.append("<").append(mUmlType.getName()).append(">");
+                completeString.append("List<").append(mUmlType.getName()).append(">");
                 break;
             case ARRAY:
                 completeString.append("[").append(mUmlType.getName()).append("]^").append(mArrayDimension);
