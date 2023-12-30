@@ -91,6 +91,7 @@
                     android:layout_height="50dp"
                     android:layout_weight="25"
                     android:backgroundTint="?colorSurfaceInverse"
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
                     android:text="ESC" />
             </LinearLayout>
 
@@ -132,8 +133,8 @@
                     android:ellipsize="marquee"
                     android:singleLine="true"
                     android:text="+ Class"
-                    app:autoSizeMaxTextSize="14sp"
-                    app:autoSizeTextType="uniform" />
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    />
 
             </LinearLayout>
 

@@ -1,8 +1,9 @@
 package com.nathaniel.motus.umlclasseditor.controller;
 
+import static android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION;
+
 import android.Manifest;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -10,6 +11,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.text.Html;
 import android.util.Log;
@@ -32,21 +34,21 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.core.view.MenuCompat;
-import androidx.documentfile.provider.DocumentFile;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.navigation.NavigationView;
-import com.google.android.material.progressindicator.CircularProgressIndicator;
+import com.nathaniel.motus.umlclasseditor.BuildConfig;
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.model.TypeNameComparator;
 import com.nathaniel.motus.umlclasseditor.model.UmlClass;
@@ -59,8 +61,6 @@ import com.nathaniel.motus.umlclasseditor.view.GraphFragment;
 import com.nathaniel.motus.umlclasseditor.view.GraphView;
 import com.nathaniel.motus.umlclasseditor.view.MethodEditorFragment;
 import com.nathaniel.motus.umlclasseditor.view.ParameterEditorFragment;
-
-import org.w3c.dom.Text;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -84,8 +84,10 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
     private static boolean sWriteExternalStoragePermission = true;
     private static boolean sReadExternalStoragePermission = true;
+    private static boolean sManageExternalStoragePermission = true;
     private static final int WRITE_EXTERNAL_STORAGE_INDEX = 0;
     private static final int READ_EXTERNAL_STORAGE_INDEX = 1;
+    private static final int MANAGE_EXTERNAL_STORAGE_INDEX = 0; // tiramisu
 
     private long mFirstBackPressedTime = 0;
     private static long DOUBLE_BACK_PRESSED_DELAY = 2000;
@@ -206,25 +208,25 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         mNavigationView.setNavigationItemSelectedListener(this);
 
         // project name click listener
-       mMenuHeaderProjectNameText.setOnClickListener(v->{
-           final EditText editText = new EditText(this);
-           String oldName = mProject.getName();
-           editText.setText(mProject.getName());
-           dialog = new MaterialAlertDialogBuilder(this)
-                   .setTitle("Rename")
-                   .setMessage("Enter new name :")
-                   .setView(editText)
-                   .setNegativeButton("CANCEL", (d, i) -> dialog.dismiss())
-                   .setPositiveButton("OK", (d, i) -> {
-                       renameProject(oldName,editText.getText().toString());
-                       updateNavigationView();
-                   })
-                   .show();
-       });
+        mMenuHeaderProjectNameText.setOnClickListener(v -> {
+            final EditText editText = new EditText(this);
+            String oldName = mProject.getName();
+            editText.setText(mProject.getName());
+            dialog = new MaterialAlertDialogBuilder(this)
+                    .setTitle("Rename")
+                    .setMessage("Enter new name :")
+                    .setView(editText)
+                    .setNegativeButton("CANCEL", (d, i) -> dialog.dismiss())
+                    .setPositiveButton("OK", (d, i) -> {
+                        renameProject(oldName, editText.getText().toString());
+                        updateNavigationView();
+                    })
+                    .show();
+        });
     }
 
     private void updateNavigationView() {
-        mMenuHeaderProjectNameText.setText(mProject.getName());
+        mMenuHeaderProjectNameText.setText(mProject.getName() + "");
     }
 
     private void savePreferences() {
@@ -490,7 +492,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         spinner.setAdapter(projectDirectoryAdapter());
 
         dialog = new MaterialAlertDialogBuilder(this)
-        .setTitle("Load project")
+                .setTitle("Load project")
                 .setMessage("Choose project to load :")
                 .setView(spinner)
                 .setNegativeButton("CANCEL", (d, i) -> dialog.dismiss())
@@ -511,7 +513,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         final Spinner spinner = new Spinner(this);
         spinner.setAdapter(projectDirectoryAdapter());
         dialog = new MaterialAlertDialogBuilder(this)
-        .setTitle("Delete project")
+                .setTitle("Delete project")
                 .setMessage("Choose project to delete :")
                 .setView(spinner)
                 .setNegativeButton("Cancel", (dialogInterface, i) -> {
@@ -522,12 +524,12 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
                     if (fileName != null) {
                         File pathName = new File(getFilesDir(), UmlProject.PROJECT_DIRECTORY);
                         final File file = new File(pathName, fileName);
-                     dialog = new MaterialAlertDialogBuilder(this)
-                             .setTitle("Delete Project")
+                        dialog = new MaterialAlertDialogBuilder(this)
+                                .setTitle("Delete Project")
                                 .setMessage("Are you sure you want to delete " + fileName + " ?")
                                 .setNegativeButton("NO", (d, i12) -> dialog.dismiss())
                                 .setPositiveButton("YES", (d, i1) -> {
-                                    if(file.delete()) dialog.dismiss();
+                                    if (file.delete()) dialog.dismiss();
                                 })
                                 .show();
                     }
@@ -580,8 +582,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         } else if (itemId == R.id.toolbar_menu_export2java) {
             if (sWriteExternalStoragePermission)
                 menuExport2Java();
-        }
-        else if (itemId == R.id.toolbar_menu_import) {
+        } else if (itemId == R.id.toolbar_menu_import) {
             if (sReadExternalStoragePermission)
                 menuItemImport();
         } else if (itemId == R.id.toolbar_menu_create_custom_type) {
@@ -606,18 +607,20 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
 
     private void menuItemExport() {
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-        intent.setType("text/*");
+        intent.setType("application/json");
+        intent.putExtra(Intent.EXTRA_TITLE, mProject.getName() + ".json");
         exportProjectLauncher.launch(intent);
     }
-    private void menuExportPdf(){
+
+    private void menuExportPdf() {
         Bitmap bitmap = IOUtils.getBitmapFromView(this.mGraphView);
         ImageView prev = new ImageView(this);
         prev.setImageBitmap(bitmap);
         new MaterialAlertDialogBuilder(this)
                 .setTitle("Preview")
                 .setView(prev)
-                .setNegativeButton("Cancel",(d,i)->d.dismiss())
-                .setPositiveButton("Export",(d,i)->{
+                .setNegativeButton("Cancel", (d, i) -> d.dismiss())
+                .setPositiveButton("Export", (d, i) -> {
                     Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
                     intent.setType("application/pdf");
                     exportPDFLauncher.launch(intent);
@@ -628,6 +631,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     private void menuItemImport() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.setType("*/*");
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"application/json"});
         importProjectLauncher.launch(intent);
     }
     /* export2 java */
@@ -641,18 +645,18 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         dialog.setCancelable(false);
         dialog.setCanceledOnTouchOutside(false);
         new Handler().postDelayed(() -> {
-            if(mProject.export2Java(getApplicationContext())) {
+            if (mProject.export2Java(getApplicationContext())) {
                 dialog.dismiss();
                 Toast.makeText(this, "Generated! See the files in the app folder in your storage.", Toast.LENGTH_LONG).show();
-            }
-        },2000);
+            } else dialog.dismiss();
+        }, 2000);
     }
 
     private void menuCreateCustomType() {
         final EditText editText = new EditText(this);
         final Context context = getApplicationContext();
         dialog = new MaterialAlertDialogBuilder(this)
-        .setTitle("Create custom type")
+                .setTitle("Create custom type")
                 .setMessage("Enter custom type name :")
                 .setView(editText)
                 .setNegativeButton("Cancel", (d, i) -> dialog.dismiss())
@@ -682,8 +686,8 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
         listView.setAdapter(adapter);
 
         dialog = new MaterialAlertDialogBuilder(this)
-        .setTitle("Delete custom types")
-                .setMessage("Check custom types to delete\nCustom Types: "+listArray.size()+"\n")
+                .setTitle("Delete custom types")
+                .setMessage("Check custom types to delete\nCustom Types: " + listArray.size() + "\n")
                 .setView(listView)
                 .setNegativeButton("CANCEL", (d, i) -> dialog.dismiss())
                 .setPositiveButton("OK", (d, i) -> {
@@ -717,7 +721,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     }
 
     private void menuHelp() {
-         new MaterialAlertDialogBuilder(this)
+        new MaterialAlertDialogBuilder(this)
                 .setTitle("Help")
                 .setMessage(Html.fromHtml(IOUtils.readRawHtmlFile(this, R.raw.help_html)))
                 .setPositiveButton("OK", (dialog, which) -> {
@@ -726,7 +730,7 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
                 .show();
     }
 
-//    **********************************************************************************************
+    //    **********************************************************************************************
 //    Intents
 //    **********************************************************************************************
     ActivityResultLauncher<Intent> exportProjectLauncher = registerForActivityResult(
@@ -740,68 +744,74 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
                 }
             }
     ),
-        importProjectLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == RESULT_OK) {
-                    Intent data = result.getData();
-                    assert data != null;
-                    Uri fileNameUri = data.getData();
-                    UmlType.clearProjectUmlTypes();
-                    mProject = UmlProject.importProject(this, fileNameUri);
-                    mMenuHeaderProjectNameText.setText(mProject.getName());
-                    mGraphView.setUmlProject(mProject);
-                }
-            }
-    ),
-   exportCustomTypeLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == RESULT_OK) {
-                    Intent data = result.getData();
-                    assert data != null;
-                    Uri fileNameUri = data.getData();
-                    UmlType.exportCustomUmlTypes(this, fileNameUri);
-                }
-            }
-    ),
-   importCustomTypeLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == RESULT_OK) {
-                    Intent data = result.getData();
-                    assert data != null;
-                    Uri fileNameUri = data.getData();
-                    UmlType.importCustomUmlTypes(this, fileNameUri);
-                }
-            }
-    ),
-        exportPDFLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == RESULT_OK) {
-                        Intent data = result.getData();
-                        assert data != null;
-                        Uri fileNameUri = data.getData();
-                        mProject.exportProjectPDF(this, this.mGraphView, fileNameUri);
-                        Toast.makeText(getApplicationContext(), "PDF exported!", Toast.LENGTH_SHORT).show();
+            importProjectLauncher = registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == RESULT_OK) {
+                            Intent data = result.getData();
+                            assert data != null;
+                            Uri fileNameUri = data.getData();
+                            UmlType.clearProjectUmlTypes();
+                            mProject = UmlProject.importProject(this, fileNameUri);
+                            mMenuHeaderProjectNameText.setText(mProject.getName());
+                            mGraphView.setUmlProject(mProject);
+                        }
                     }
-                }
-        );
+            ),
+            exportCustomTypeLauncher = registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == RESULT_OK) {
+                            Intent data = result.getData();
+                            assert data != null;
+                            Uri fileNameUri = data.getData();
+                            UmlType.exportCustomUmlTypes(this, fileNameUri);
+                        }
+                    }
+            ),
+            importCustomTypeLauncher = registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == RESULT_OK) {
+                            Intent data = result.getData();
+                            assert data != null;
+                            Uri fileNameUri = data.getData();
+                            UmlType.importCustomUmlTypes(this, fileNameUri);
+                        }
+                    }
+            ),
+            exportPDFLauncher = registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == RESULT_OK) {
+                            Intent data = result.getData();
+                            assert data != null;
+                            Uri fileNameUri = data.getData();
+                            mProject.exportProjectPDF(this, this.mGraphView, fileNameUri);
+                            Toast.makeText(getApplicationContext(), "PDF exported!", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+            ),storagePermissionLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult()
+            ,result ->{
+            }) ;
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        sWriteExternalStoragePermission = requestCode == REQUEST_PERMISSION && grantResults[WRITE_EXTERNAL_STORAGE_INDEX] == PackageManager.PERMISSION_GRANTED;
-        sReadExternalStoragePermission = requestCode == REQUEST_PERMISSION && grantResults[READ_EXTERNAL_STORAGE_INDEX] == PackageManager.PERMISSION_GRANTED;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
+            sWriteExternalStoragePermission = requestCode == REQUEST_PERMISSION && grantResults[WRITE_EXTERNAL_STORAGE_INDEX] == PackageManager.PERMISSION_GRANTED;
+            sReadExternalStoragePermission = requestCode == REQUEST_PERMISSION && grantResults[READ_EXTERNAL_STORAGE_INDEX] == PackageManager.PERMISSION_GRANTED;
+        } else
+            sManageExternalStoragePermission = requestCode == REQUEST_PERMISSION && grantResults[MANAGE_EXTERNAL_STORAGE_INDEX] == PackageManager.PERMISSION_GRANTED;
     }
 
 //    **********************************************************************************************
 //    Project management methods
 //    **********************************************************************************************
 
-    private void renameProject(String oldName,String newName){
+    private void renameProject(String oldName, String newName) {
         mProject.setName(newName);
-        mProject.rename(getApplicationContext(),oldName);
+        mProject.rename(getApplicationContext(), oldName);
     }
 
     private void saveAs() {
@@ -817,18 +827,25 @@ public class MainActivity extends AppCompatActivity implements FragmentObserver,
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void checkPermissions() {
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
 
             String[] permissionString = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
 
             if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
                     || checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
                 requestPermissions(permissionString, REQUEST_PERMISSION);
+        } else {
+            if (!Environment.isExternalStorageManager()){
+                Intent intent = new Intent(ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.parse("package:" + BuildConfig.APPLICATION_ID));
+                storagePermissionLauncher.launch(intent);
+            }
+
+
         }
     }
 
-    public static void hideToolBar(boolean is_locate){
-        staticToolbar.setVisibility(is_locate?View.GONE:View.VISIBLE);
+    public static void hideToolBar(boolean is_locate) {
+        staticToolbar.setVisibility(is_locate ? View.GONE : View.VISIBLE);
     }
 
 

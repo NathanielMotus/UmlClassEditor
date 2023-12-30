@@ -335,7 +335,7 @@ public class IOUtils {
             if (Environment.MEDIA_MOUNTED.equals(state)) {
                 File dir = Environment.getExternalStorageDirectory();
 
-                File base = new File(dir, "UmlClassEditor");
+                File base = new File(dir, "UML Class Editor");
                 if (!base.exists()) {
                     if (!base.mkdirs()) {
                         Log.e("TEST", "Failed to create directory");
