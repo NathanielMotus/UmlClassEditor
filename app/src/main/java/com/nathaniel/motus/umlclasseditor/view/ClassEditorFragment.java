@@ -17,11 +17,13 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.controller.CustomExpandableListViewAdapter;
+import com.nathaniel.motus.umlclasseditor.databinding.FragmentClassEditorBinding;
 import com.nathaniel.motus.umlclasseditor.model.AdapterItem;
 import com.nathaniel.motus.umlclasseditor.model.AdapterItemComparator;
 import com.nathaniel.motus.umlclasseditor.model.AddItemString;
@@ -35,24 +37,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 public class ClassEditorFragment extends EditorFragment implements View.OnClickListener
         , AdapterView.OnItemLongClickListener,
         RadioGroup.OnCheckedChangeListener,
         ExpandableListView.OnChildClickListener{
-
-    private TextView mEditClassText;
-    private EditText mClassNameEdit;
-    private Button mDeleteClassButton;
-    private RadioGroup mClassTypeRadioGroup;
-    private RadioButton mJavaRadio;
-    private RadioButton mAbstractRadio;
-    private RadioButton mInterfaceRadio;
-    private RadioButton mEnumRadio;
-    private ExpandableListView mMemberListView;
-    private Button mOKButton;
-    private Button mCancelButton;
-    private LinearLayout mOKCancelLinearLayout;
+    private FragmentClassEditorBinding binding;
 
     private static boolean sIsJavaClass=true;
 
@@ -99,10 +90,11 @@ public class ClassEditorFragment extends EditorFragment implements View.OnClickL
 //    **********************************************************************************************
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_class_editor, container, false);
+        binding = FragmentClassEditorBinding.inflate(inflater,container,false);
+        return binding.getRoot();
     }
 
 //    **********************************************************************************************
@@ -123,36 +115,25 @@ public class ClassEditorFragment extends EditorFragment implements View.OnClickL
 
     @Override
     protected void configureViews() {
-        mEditClassText =getActivity().findViewById(R.id.edit_class_text);
+        // delete btn
+        binding.deleteClassButton.setTag(DELETE_CLASS_BUTTON_TAG);
+        binding.deleteClassButton.setOnClickListener(this);
 
-        mClassNameEdit=getActivity().findViewById(R.id.class_name_input);
+        // class type radio group
+        binding.classTypeRadioGroup.setOnCheckedChangeListener(this);
 
-        mDeleteClassButton=getActivity().findViewById(R.id.delete_class_button);
-        mDeleteClassButton.setTag(DELETE_CLASS_BUTTON_TAG);
-        mDeleteClassButton.setOnClickListener(this);
+        // class members - methods & attributes
+        binding.classMembersList.setTag(MEMBER_LIST_TAG);
+        binding.classMembersList.setOnChildClickListener(this);
+        binding.classMembersList.setOnItemLongClickListener(this);
 
-        mClassTypeRadioGroup=getActivity().findViewById(R.id.class_type_radio_group);
-        mClassTypeRadioGroup.setOnCheckedChangeListener(this);
+        // ok btn
+        binding.classOkButton.setTag(OK_BUTTON_TAG);
+        binding.classOkButton.setOnClickListener(this);
 
-        mJavaRadio=getActivity().findViewById(R.id.class_java_radio);
-        mAbstractRadio=getActivity().findViewById(R.id.class_abstract_radio);
-        mInterfaceRadio=getActivity().findViewById(R.id.class_interface_radio);
-        mEnumRadio=getActivity().findViewById(R.id.class_enum_radio);
-
-        mMemberListView =getActivity().findViewById(R.id.class_members_list);
-        mMemberListView.setTag(MEMBER_LIST_TAG);
-        mMemberListView.setOnChildClickListener(this);
-        mMemberListView.setOnItemLongClickListener(this);
-
-        mOKButton=getActivity().findViewById(R.id.class_ok_button);
-        mOKButton.setTag(OK_BUTTON_TAG);
-        mOKButton.setOnClickListener(this);
-
-        mCancelButton=getActivity().findViewById(R.id.class_cancel_button);
-        mCancelButton.setTag(CANCEL_BUTTON_TAG);
-        mCancelButton.setOnClickListener(this);
-
-        mOKCancelLinearLayout=getActivity().findViewById(R.id.class_ok_cancel_linear);
+        // cancel btn
+        binding.classCancelButton.setTag(CANCEL_BUTTON_TAG);
+        binding.classCancelButton.setOnClickListener(this);
     }
 
     @Override
@@ -172,25 +153,25 @@ public class ClassEditorFragment extends EditorFragment implements View.OnClickL
     protected void initializeFields() {
         if (mClassOrder != -1) {
 
-            mClassNameEdit.setText(mUmlClass.getName());
+            binding.classNameInput.setText(mUmlClass.getName());
 
             switch (mUmlClass.getUmlClassType()) {
                 case JAVA_CLASS:
-                    mJavaRadio.setChecked(true);
+                    binding.classJavaRadio.setChecked(true);
                     break;
                 case ABSTRACT_CLASS:
-                    mAbstractRadio.setChecked(true);
+                    binding.classAbstractRadio.setChecked(true);
                     break;
                 case INTERFACE:
-                    mInterfaceRadio.setChecked(true);
+                    binding.classInterfaceRadio.setChecked(true);
                     break;
                 default:
-                    mEnumRadio.setChecked(true);
+                    binding.classEnumRadio.setChecked(true);
                     break;
             }
         } else {
-            mClassNameEdit.setText("");
-            mJavaRadio.setChecked(true);
+            binding.classNameInput.setText("");
+            binding.classJavaRadio.setChecked(true);
         }
         updateLists();
     }
@@ -198,10 +179,11 @@ public class ClassEditorFragment extends EditorFragment implements View.OnClickL
     private void populateMemberListViewForJavaClass() {
         boolean attributeGroupIsExpanded=false;
         boolean methodGroupIsExpanded=false;
-        if (mMemberListView.getExpandableListAdapter() != null) {
-            if (mMemberListView.isGroupExpanded(0))
+        ExpandableListView membersListView = binding.classMembersList;
+        if (membersListView.getExpandableListAdapter() != null) {
+            if (membersListView.isGroupExpanded(0))
                 attributeGroupIsExpanded = true;
-            if (mMemberListView.isGroupExpanded(1))
+            if (membersListView.isGroupExpanded(1))
                 methodGroupIsExpanded=true;
         }
 
@@ -225,12 +207,12 @@ public class ClassEditorFragment extends EditorFragment implements View.OnClickL
         hashMap.put(getString(R.string.attributes_string),attributeList);
         hashMap.put(getString(R.string.methods_string),methodList);
         CustomExpandableListViewAdapter adapter=new CustomExpandableListViewAdapter(getContext(),title,hashMap);
-        mMemberListView.setAdapter(adapter);
+        membersListView.setAdapter(adapter);
 
         if (attributeGroupIsExpanded)
-            mMemberListView.expandGroup(0);
+            membersListView.expandGroup(0);
         if (methodGroupIsExpanded)
-            mMemberListView.expandGroup(1);
+            membersListView.expandGroup(1);
     }
 
     private void populateMemberListViewForEnum() {
@@ -245,7 +227,7 @@ public class ClassEditorFragment extends EditorFragment implements View.OnClickL
         HashMap<String,List<AdapterItem>> hashMap=new HashMap<>();
         hashMap.put(getString(R.string.values_string),valueList);
         CustomExpandableListViewAdapter adapter=new CustomExpandableListViewAdapter(getContext(),title,hashMap);
-        mMemberListView.setAdapter(adapter);
+        binding.classMembersList.setAdapter(adapter);
     }
 
     public void updateLists() {
@@ -254,13 +236,13 @@ public class ClassEditorFragment extends EditorFragment implements View.OnClickL
     }
 
     private void setOnEditDisplay() {
-        mEditClassText.setText("Edit class");
-        mDeleteClassButton.setVisibility(View.VISIBLE);
+        binding.editClassText.setText("Edit class");
+        binding.deleteClassButton.setVisibility(View.VISIBLE);
     }
 
     private void setOnCreateDisplay() {
-        mEditClassText.setText("Create class");
-        mDeleteClassButton.setVisibility(View.INVISIBLE);
+        binding.editClassText.setText("Create class");
+        binding.deleteClassButton.setVisibility(View.GONE);
     }
 
     public void updateClassEditorFragment(float xPos, float yPos, int classOrder) {
@@ -398,13 +380,13 @@ public class ClassEditorFragment extends EditorFragment implements View.OnClickL
     }
 
     private String getClassName() {
-        return mClassNameEdit.getText().toString();
+        return Objects.requireNonNull(binding.classNameInput.getText()).toString();
     }
 
     private UmlClass.UmlClassType getClassType() {
-        if (mJavaRadio.isChecked()) return UmlClass.UmlClassType.JAVA_CLASS;
-        if (mAbstractRadio.isChecked()) return UmlClass.UmlClassType.ABSTRACT_CLASS;
-        if (mInterfaceRadio.isChecked()) return UmlClass.UmlClassType.INTERFACE;
+        if (binding.classJavaRadio.isChecked()) return UmlClass.UmlClassType.JAVA_CLASS;
+        if (binding.classAbstractRadio.isChecked()) return UmlClass.UmlClassType.ABSTRACT_CLASS;
+        if (binding.classInterfaceRadio.isChecked()) return UmlClass.UmlClassType.INTERFACE;
         return UmlClass.UmlClassType.ENUM;
     }
 

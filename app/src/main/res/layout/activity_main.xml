@@ -13,9 +13,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/main_activity_toolbar"
-            android:background="?colorPrimary"
-            app:title="@string/app_name"
-            app:titleTextColor="?colorSurface"/>
+            android:background="?colorTertiaryContainer"
+            app:title="@string/app_name" />
 
     </com.google.android.material.appbar.AppBarLayout>
 

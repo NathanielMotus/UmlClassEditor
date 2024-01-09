@@ -23,33 +23,32 @@
             android:text="Edit class"
             android:textSize="20sp" />
 
-        <TextView
-            android:id="@+id/class_name_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignBaseline="@id/class_name_input"
-            android:layout_alignStart="@id/edit_class_text"
-            android:layout_marginBottom="20sp"
-            android:text="Name :"
-            android:textSize="18sp" />
-
-        <EditText
-            android:id="@+id/class_name_input"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/class_name_input_layout"
+            android:layout_margin="5dp"
+            style="@style/ThemeOverlay.Material3.TextInputEditText.OutlinedBox.Dense"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:layout_below="@id/edit_class_text"
-            android:layout_toEndOf="@id/class_name_text"
-            android:gravity="start"
-            android:hint="Enter a name"
-            android:textSize="18sp" />
+            android:layout_height="wrap_content"
+            android:hint="Name"
+            app:placeholderText="Enter class name"
+            app:endIconMode="clear_text">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/class_name_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:imeOptions="actionNext"
+                android:textSize="18sp"
+                android:inputType="text" />
+
+        </com.google.android.material.textfield.TextInputLayout>
 
         <RadioGroup
             android:id="@+id/class_type_radio_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/class_name_input"
-            android:layout_alignStart="@id/class_name_text"
+            android:layout_below="@id/class_name_input_layout"
             android:layout_marginBottom="10sp"
             android:orientation="vertical">
 

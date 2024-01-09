@@ -1,9 +1,11 @@
 package com.nathaniel.motus.umlclasseditor.view;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
@@ -21,6 +23,7 @@ import android.widget.Toast;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.nathaniel.motus.umlclasseditor.R;
+import com.nathaniel.motus.umlclasseditor.databinding.FragmentAttributeEditorBinding;
 import com.nathaniel.motus.umlclasseditor.model.TypeMultiplicity;
 import com.nathaniel.motus.umlclasseditor.model.TypeNameComparator;
 import com.nathaniel.motus.umlclasseditor.model.UmlClass;
@@ -38,7 +41,7 @@ import java.util.List;
  * create an instance of this fragment.
  */
 public class AttributeEditorFragment extends EditorFragment implements View.OnClickListener, RadioGroup.OnCheckedChangeListener {
-
+    private FragmentAttributeEditorBinding binding;
     private static final String ATTRIBUTE_ORDER_KEY = "attributeOrder";
     private static final String CLASS_ORDER_KEY ="classOrder";
     private static final String CLASS_EDITOR_FRAGMENT_TAG_KEY="classEditorFragmentTag";
@@ -47,25 +50,6 @@ public class AttributeEditorFragment extends EditorFragment implements View.OnCl
     private UmlClassAttribute mUmlClassAttribute;
     private String mClassEditorFragmentTag;
     private UmlClass mUmlClass;
-
-    private TextView mEditAttributeText;
-    private Button mDeleteAttributeButton;
-    private EditText mAttributeNameEdit;
-    private RadioButton mPublicRadio;
-    private RadioButton mProtectedRadio;
-    private RadioButton mPrivateRadio;
-    private CheckBox mStaticCheck;
-    private CheckBox mFinalCheck;
-    private Spinner mTypeSpinner;
-    private RadioGroup mMultiplicityRadioGroup;
-    private RadioButton mSimpleRadio;
-    private RadioButton mCollectionRadio;
-    private RadioButton mArrayRadio;
-    private TextView mDimText;
-    private EditText mDimEdit;
-    private Button mOKButton;
-    private Button mCancelButton;
-
     private static final int TYPE_SPINNER_TAG=310;
     private static final int OK_BUTTON_TAG=320;
     private static final int CANCEL_BUTTON_TAG=330;
@@ -94,10 +78,11 @@ public class AttributeEditorFragment extends EditorFragment implements View.OnCl
 //    **********************************************************************************************
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_attribute_editor, container, false);
+        binding = FragmentAttributeEditorBinding.inflate(inflater,container,false);
+        return binding.getRoot();
     }
 
 //    **********************************************************************************************
@@ -119,47 +104,19 @@ public class AttributeEditorFragment extends EditorFragment implements View.OnCl
 
     @Override
     protected void configureViews() {
-        mEditAttributeText=getActivity().findViewById(R.id.edit_attribute_text);
-
-        mDeleteAttributeButton=getActivity().findViewById(R.id.delete_attribute_button);
-        mDeleteAttributeButton.setTag(DELETE_ATTRIBUTE_BUTTON_TAG);
-        mDeleteAttributeButton.setOnClickListener(this);
-
-        mAttributeNameEdit=getActivity().findViewById(R.id.attribute_name_input);
-
-        mMultiplicityRadioGroup=getActivity().findViewById(R.id.attribute_multiplicity_radio_group);
-        mMultiplicityRadioGroup.setOnCheckedChangeListener(this);
-
-        mPublicRadio=getActivity().findViewById(R.id.attribute_public_radio);
-
-        mProtectedRadio=getActivity().findViewById(R.id.attribute_protected_radio);
-
-        mPrivateRadio=getActivity().findViewById(R.id.attribute_private_radio);
-
-        mStaticCheck=getActivity().findViewById(R.id.attribute_static_check);
-
-        mFinalCheck=getActivity().findViewById(R.id.attribute_final_check);
-
-        mTypeSpinner=getActivity().findViewById(R.id.attribute_type_spinner);
-        mTypeSpinner.setTag(TYPE_SPINNER_TAG);
-
-        mSimpleRadio =getActivity().findViewById(R.id.attribute_simple_radio);
-
-        mCollectionRadio=getActivity().findViewById(R.id.attribute_collection_radio);
-
-        mArrayRadio =getActivity().findViewById(R.id.attribute_array_radio);
-
-        mDimText=getActivity().findViewById(R.id.attribute_dimension_text);
-
-        mDimEdit=getActivity().findViewById(R.id.attribute_dimension_input);
-
-        mOKButton=getActivity().findViewById(R.id.attribute_ok_button);
-        mOKButton.setTag(OK_BUTTON_TAG);
-        mOKButton.setOnClickListener(this);
-
-        mCancelButton=getActivity().findViewById(R.id.attribute_cancel_button);
-        mCancelButton.setTag(CANCEL_BUTTON_TAG);
-        mCancelButton.setOnClickListener(this);
+        // delete btn
+        binding.deleteAttributeButton.setTag(DELETE_ATTRIBUTE_BUTTON_TAG);
+        binding.deleteAttributeButton.setOnClickListener(this);
+        // attrib type radio grp
+        binding.attributeMultiplicityRadioGroup.setOnCheckedChangeListener(this);
+        // spinner
+        binding.attributeTypeSpinner.setTag(TYPE_SPINNER_TAG);
+        // ok btn
+        binding.attributeOkButton.setTag(OK_BUTTON_TAG);
+        binding.attributeOkButton.setOnClickListener(this);
+        // cancel btn
+        binding.attributeCancelButton.setTag(CANCEL_BUTTON_TAG);
+        binding.attributeCancelButton.setOnClickListener(this);
 
     }
 
@@ -176,50 +133,51 @@ public class AttributeEditorFragment extends EditorFragment implements View.OnCl
 
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected void initializeFields() {
         if (mAttributeOrder != -1) {
-            mAttributeNameEdit.setText(mUmlClassAttribute.getName());
+            binding.attributeNameInput.setText(mUmlClassAttribute.getName());
 
             switch (mUmlClassAttribute.getVisibility()) {
                 case PUBLIC:
-                    mPublicRadio.setChecked(true);
+                    binding.attributePublicRadio.setChecked(true);
                     break;
                 case PROTECTED:
-                    mProtectedRadio.setChecked(true);
+                    binding.attributeProtectedRadio.setChecked(true);
                     break;
                 default:
-                    mPrivateRadio.setChecked(true);
+                    binding.attributePrivateRadio.setChecked(true);
                     break;
             }
 
-            mStaticCheck.setChecked(mUmlClassAttribute.isStatic());
-            mFinalCheck.setChecked(mUmlClassAttribute.isFinal());
+            binding.attributeStaticCheck.setChecked(mUmlClassAttribute.isStatic());
+            binding.attributeFinalCheck.setChecked(mUmlClassAttribute.isFinal());
 
             switch (mUmlClassAttribute.getTypeMultiplicity()) {
                 case SINGLE:
-                    mSimpleRadio.setChecked(true);
+                    binding.attributeSimpleRadio.setChecked(true);
                     break;
                 case COLLECTION:
-                    mCollectionRadio.setChecked(true);
+                    binding.attributeCollectionRadio.setChecked(true);
                     break;
                 default:
-                    mArrayRadio.setChecked(true);
+                    binding.attributeArrayRadio.setChecked(true);
                     break;
             }
-            mDimEdit.setText(Integer.toString(mUmlClassAttribute.getArrayDimension()));
+            binding.attributeDimensionInput.setText(Integer.toString(mUmlClassAttribute.getArrayDimension()));
             if (mUmlClassAttribute.getTypeMultiplicity() == TypeMultiplicity.ARRAY)
                 setOnArrayDisplay();
             else
                 setOnSingleDisplay();
 
         } else {
-            mAttributeNameEdit.setText("");
-            mPublicRadio.setChecked(true);
-            mStaticCheck.setChecked(false);
-            mFinalCheck.setChecked(false);
-            mSimpleRadio.setChecked(true);
-            mDimEdit.setText("");
+            binding.attributeNameInput.setText("");
+            binding.attributePublicRadio.setChecked(true);
+            binding.attributeStaticCheck.setChecked(false);
+            binding.attributeFinalCheck.setChecked(false);
+            binding.attributeSimpleRadio.setChecked(true);
+            binding.attributeDimensionInput.setText("");
             setOnSingleDisplay();
         }
         populateTypeSpinner();
@@ -232,29 +190,29 @@ public class AttributeEditorFragment extends EditorFragment implements View.OnCl
         Collections.sort(spinnerArray,new TypeNameComparator());
         ArrayAdapter<String> adapter=new ArrayAdapter<>(getContext(),android.R.layout.simple_spinner_item,spinnerArray);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        mTypeSpinner.setAdapter(adapter);
+        binding.attributeTypeSpinner.setAdapter(adapter);
         if (mAttributeOrder !=-1)
-            mTypeSpinner.setSelection(spinnerArray.indexOf(mUmlClassAttribute.getUmlType().getName()));
+            binding.attributeTypeSpinner.setSelection(spinnerArray.indexOf(mUmlClassAttribute.getUmlType().getName()));
     }
 
     private void setOnEditDisplay() {
-        mDeleteAttributeButton.setVisibility(View.VISIBLE);
-        mEditAttributeText.setText("Edit attribute");
+        binding.deleteAttributeButton.setVisibility(View.VISIBLE);
+        binding.editAttributeText.setText("Edit attribute");
     }
 
     private void setOnCreateDisplay() {
-        mDeleteAttributeButton.setVisibility(View.INVISIBLE);
-        mEditAttributeText.setText("Create attribute");
+        binding.deleteAttributeButton.setVisibility(View.INVISIBLE);
+        binding.editAttributeText.setText("Create attribute");
     }
 
     private void setOnArrayDisplay() {
-        mDimText.setVisibility(View.VISIBLE);
-        mDimEdit.setVisibility(View.VISIBLE);
+        binding.attributeDimensionText.setVisibility(View.VISIBLE);
+        binding.attributeDimensionInput.setVisibility(View.VISIBLE);
     }
 
     private void setOnSingleDisplay() {
-        mDimText.setVisibility(View.INVISIBLE);
-        mDimEdit.setVisibility(View.INVISIBLE);
+        binding.attributeDimensionText.setVisibility(View.INVISIBLE);
+        binding.attributeDimensionInput.setVisibility(View.INVISIBLE);
     }
 
     public void updateAttributeEditorFragment(int attributeOrder, int classOrder) {
@@ -345,36 +303,36 @@ public class AttributeEditorFragment extends EditorFragment implements View.OnCl
     }
 
     private String getAttributeName() {
-        return mAttributeNameEdit.getText().toString();
+        return binding.attributeNameInput.getText().toString();
     }
 
     private Visibility getVisibility() {
-        if (mPublicRadio.isChecked()) return Visibility.PUBLIC;
-        if (mProtectedRadio.isChecked()) return Visibility.PROTECTED;
+        if (binding.attributePublicRadio.isChecked()) return Visibility.PUBLIC;
+        if (binding.attributeProtectedRadio.isChecked()) return Visibility.PROTECTED;
         return Visibility.PRIVATE;
     }
 
     private boolean isStatic() {
-        return mStaticCheck.isChecked();
+        return binding.attributeStaticCheck.isChecked();
     }
 
     private boolean isFinal() {
-        return mFinalCheck.isChecked();
+        return binding.attributeFinalCheck.isChecked();
     }
 
     private UmlType getType() {
-        return UmlType.valueOf(mTypeSpinner.getSelectedItem().toString(),UmlType.getUmlTypes());
+        return UmlType.valueOf(binding.attributeTypeSpinner.getSelectedItem().toString(),UmlType.getUmlTypes());
     }
 
     private TypeMultiplicity getMultiplicity() {
-        if (mSimpleRadio.isChecked()) return TypeMultiplicity.SINGLE;
-        if (mCollectionRadio.isChecked()) return TypeMultiplicity.COLLECTION;
+        if (binding.attributeSimpleRadio.isChecked()) return TypeMultiplicity.SINGLE;
+        if (binding.attributeCollectionRadio.isChecked()) return TypeMultiplicity.COLLECTION;
         return TypeMultiplicity.ARRAY;
     }
 
     private int getArrayDimension() {
-        if (mDimEdit.getText().toString().equals("")) return 0;
-        return Integer.parseInt(mDimEdit.getText().toString());
+        if (binding.attributeDimensionInput.getText().toString().equals("")) return 0;
+        return Integer.parseInt(binding.attributeDimensionInput.getText().toString());
     }
 
 //    **********************************************************************************************
