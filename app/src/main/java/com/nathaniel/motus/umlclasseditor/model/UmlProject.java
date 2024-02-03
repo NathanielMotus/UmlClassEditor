@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.nathaniel.motus.umlclasseditor.controller.IOUtils;
+import com.nathaniel.motus.umlclasseditor.view.GraphView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -117,7 +118,7 @@ public class UmlProject {
     public UmlClass findClassByOrder(int classOrder) {
         for (UmlClass c:mUmlClasses)
             if (c.getClassOrder()==classOrder) return c;
-            return null;
+        return null;
     }
 
 //    **********************************************************************************************
@@ -319,6 +320,13 @@ public class UmlProject {
 //    Save and load project methods
 //    **********************************************************************************************
 
+    public void rename(Context context,String oldName){
+        File destination=new File(context.getFilesDir(),PROJECT_DIRECTORY);
+        File source=new File(destination,oldName);
+        if(source.exists()) source.delete();
+
+        save(context);
+    }
     public void save(Context context) {
         File destination=new File(context.getFilesDir(),PROJECT_DIRECTORY);
         if (!destination.exists()) destination.mkdir();
@@ -338,6 +346,13 @@ public class UmlProject {
 
     public void exportProject(Context context, Uri toDestination) {
         IOUtils.saveFileToExternalStorage(context,this.toJSONObject(context).toString(),toDestination);
+    }
+    public void exportProjectPDF(Context context, GraphView graphView, Uri toDestination) {
+        IOUtils.savePdfToExternalStorage(context,graphView,toDestination);
+    }
+    /* export2java*/
+    public boolean export2Java(Context context){
+        return IOUtils.export2Java(context,this);
     }
 
     public static UmlProject importProject(Context context, Uri fromFileUri) {

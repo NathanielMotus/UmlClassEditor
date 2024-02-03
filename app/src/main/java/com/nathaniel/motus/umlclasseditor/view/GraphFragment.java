@@ -11,10 +11,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.controller.FragmentObserver;
+import com.nathaniel.motus.umlclasseditor.controller.MainActivity;
 import com.nathaniel.motus.umlclasseditor.model.UmlClass;
 import com.nathaniel.motus.umlclasseditor.model.UmlRelation;
 
@@ -22,6 +24,7 @@ public class GraphFragment extends Fragment implements View.OnClickListener {
 
     private GraphView mGraphView;
     private TextView mGraphText;
+    private TextView mNewClassLayout;
     private ImageButton mInheritanceButton;
     private ImageButton mRealizationButton;
     private ImageButton mAggregationButton;
@@ -30,6 +33,7 @@ public class GraphFragment extends Fragment implements View.OnClickListener {
     private ImageButton mDependancyButton;
     private ImageButton mCompositionButton;
     private Button mNewClassButton;
+    private LinearLayout optionsLayout;
 
     private boolean mExpectingTouchLocation =false;
     private boolean mExpectingStartClass=false;
@@ -188,6 +192,9 @@ public class GraphFragment extends Fragment implements View.OnClickListener {
         mNewClassButton=getActivity().findViewById(R.id.new_class_button);
         mNewClassButton.setTag(NEW_CLASS_BUTTON_TAG);
         mNewClassButton.setOnClickListener(this);
+
+        mNewClassLayout = getActivity().findViewById(R.id.locateNewClassLayout);
+        optionsLayout = getActivity().findViewById(R.id.optionsLayout);
     }
 
     private void createCallbackToParentActivity() {
@@ -204,6 +211,7 @@ public class GraphFragment extends Fragment implements View.OnClickListener {
 
     public void clearPrompt() {
         mGraphText.setText("");
+        toggleLocateClass(false);
     }
 
 //    **********************************************************************************************
@@ -220,6 +228,7 @@ public class GraphFragment extends Fragment implements View.OnClickListener {
             case NEW_CLASS_BUTTON_TAG:
                 this.setExpectingTouchLocation(true);
                 this.setPrompt("Locate the new class");
+                toggleLocateClass(true);
                 break;
 
             case INHERITANCE_BUTTON_TAG:
@@ -268,6 +277,13 @@ public class GraphFragment extends Fragment implements View.OnClickListener {
         setExpectingStartClass(false);
         setExpectingTouchLocation(false);
         clearPrompt();
+    }
+
+    public void toggleLocateClass(boolean is_locate){
+        MainActivity.hideToolBar(is_locate);
+        optionsLayout.setVisibility(is_locate?View.GONE:View.VISIBLE);
+        mNewClassLayout.setVisibility(is_locate?View.VISIBLE:View.GONE);
+        mNewClassLayout.setText(mGraphText.getText());
     }
 
 }

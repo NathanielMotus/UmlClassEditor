@@ -1,99 +1,145 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     tools:context=".view.GraphFragment">
 
     <com.nathaniel.motus.umlclasseditor.view.GraphView
+        android:id="@+id/graphview"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:id="@+id/graphview"
-        android:layout_weight="75"/>
+        app:layout_constraintBottom_toTopOf="@id/optionsLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
+        android:id="@+id/locateNewClassLayout"
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/graph_text"/>
+        android:textColor="?colorSurface"
+        android:textAppearance="?textAppearanceTitleLarge"
+        android:textAlignment="center"
+        android:padding="20dp"
+        android:shadowColor="?colorSurfaceInverse"
+        android:shadowRadius="5"
+        android:shadowDx="3"
+        android:shadowDy="3"
+        android:background="@drawable/new_class_locate_layout"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
 
     <LinearLayout
+        android:id="@+id/optionsLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:id="@+id/graph_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:textAppearance="?textAppearanceLabelLarge" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <ImageButton
-                android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_weight="25"
-                android:id="@+id/inheritance_button"
-                android:src="@drawable/inheritance"
-                android:scaleType="fitCenter"/>
-            <ImageButton
-                android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_weight="25"
-                android:id="@+id/realization_button"
-                android:src="@drawable/realization"
-                android:scaleType="fitCenter"/>
-            <ImageButton
-                android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_weight="25"
-                android:id="@+id/aggregation_button"
-                android:src="@drawable/aggregation"
-                android:scaleType="fitCenter"/>
-            <Button
-                android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_weight="25"
-                android:id="@+id/escape_button"
-                android:text="ESC"/>
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/inheritance_button"
+                    android:layout_width="0dp"
+                    android:layout_height="50dp"
+                    android:layout_weight="25"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/inheritance" />
+
+                <ImageButton
+                    android:id="@+id/realization_button"
+                    android:layout_width="0dp"
+                    android:layout_height="50dp"
+                    android:layout_weight="25"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/realization" />
+
+                <ImageButton
+                    android:id="@+id/aggregation_button"
+                    android:layout_width="0dp"
+                    android:layout_height="50dp"
+                    android:layout_weight="25"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/aggregation" />
+
+                <Button
+                    android:id="@+id/escape_button"
+                    android:layout_width="0dp"
+                    android:layout_height="50dp"
+                    android:layout_weight="25"
+                    android:backgroundTint="?colorSurfaceInverse"
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:text="ESC" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/association_button"
+                    android:layout_width="0dp"
+                    android:layout_height="50dp"
+                    android:layout_weight="25"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/association" />
+
+                <ImageButton
+                    android:id="@+id/dependency_button"
+                    android:layout_width="0dp"
+                    android:layout_height="50dp"
+                    android:layout_weight="25"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/dependency" />
+
+                <ImageButton
+                    android:id="@+id/composition_button"
+                    android:layout_width="0dp"
+                    android:layout_height="50dp"
+                    android:layout_weight="25"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/composition" />
+
+                <Button
+                    android:id="@+id/new_class_button"
+                    android:layout_width="0dp"
+                    android:layout_height="50dp"
+                    android:layout_weight="25"
+                    android:backgroundTint="?colorSurfaceInverse"
+                    android:ellipsize="marquee"
+                    android:singleLine="true"
+                    android:text="+ Class"
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    />
+
+            </LinearLayout>
+
         </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <ImageButton
-                android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_weight="25"
-                android:id="@+id/association_button"
-                android:src="@drawable/association"
-                android:scaleType="fitCenter"/>
-            <ImageButton
-                android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_weight="25"
-                android:id="@+id/dependency_button"
-                android:src="@drawable/dependency"
-                android:scaleType="fitCenter"/>
-            <ImageButton
-                android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_weight="25"
-                android:id="@+id/composition_button"
-                android:src="@drawable/composition"
-                android:scaleType="fitCenter"/>
-            <Button
-                android:layout_width="0dp"
-                android:layout_height="50dp"
-                app:autoSizeMaxTextSize="14sp"
-                app:autoSizeTextType="uniform"
-                android:maxLines="1"
-                android:ellipsize="marquee"
-                android:layout_weight="25"
-                android:id="@+id/new_class_button"
-                android:text="+ class"/>
-
-        </LinearLayout>
-
     </LinearLayout>
 
-</LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

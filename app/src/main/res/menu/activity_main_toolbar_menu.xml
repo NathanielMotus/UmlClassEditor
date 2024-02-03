@@ -1,45 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <group
-        android:id="@+id/project_group"
-        android:checkableBehavior="none">
+
     <item
         android:id="@+id/toolbar_menu_export"
         app:showAsAction="never"
-        android:title="Export project"/>
+        android:title="Export project"
+        android:icon="@drawable/ic_export"/>
+    <item
+        android:id="@+id/toolbar_menu_export_pdf"
+        app:showAsAction="never"
+        android:title="Export as PDF"
+        android:icon="@drawable/ic_export"/>
+    <item
+        android:id="@+id/toolbar_menu_export2java"
+        app:showAsAction="never"
+        android:title="Export to java"
+        android:icon="@drawable/ic_export"/>
     <item
         android:id="@+id/toolbar_menu_import"
         app:showAsAction="never"
-        android:title="Import project"/>
-    </group>
-    <group
-        android:id="@+id/custom_type_group"
-        android:checkableBehavior="none">
-        <item
-            android:id="@+id/toolbar_menu_create_custom_type"
-            app:showAsAction="never"
-            android:title="Create custom type"/>
-        <item
-            android:id="@+id/toolbar_menu_delete_custom_types"
-            app:showAsAction="never"
-            android:title="Delete custom types"/>
-        <item
-            android:id="@+id/toolbar_menu_export_custom_types"
-            app:showAsAction="never"
-            android:title="Export custom types"/>
-        <item
-            android:id="@+id/toolbar_menu_import_custom_types"
-            app:showAsAction="never"
-            android:title="Import custom types"/>
-    </group>
+        android:title="Import project"
+        android:icon="@drawable/ic_import"/>
+    <item
+        android:id="@+id/custom_types"
+        android:title="Custom types">
+        <menu>
+            <item
+                android:id="@+id/toolbar_menu_create_custom_type"
+                app:showAsAction="never"
+                android:icon="@drawable/ic_add"
+                android:title="Create"/>
+            <item
+                android:id="@+id/toolbar_menu_delete_custom_types"
+                app:showAsAction="never"
+                android:icon="@drawable/ic_delete"
+                android:title="Delete"/>
+            <item
+                android:id="@+id/toolbar_menu_export_custom_types"
+                app:showAsAction="never"
+                android:icon="@drawable/ic_export"
+                android:title="Export"/>
+            <item
+                android:id="@+id/toolbar_menu_import_custom_types"
+                app:showAsAction="never"
+                android:icon="@drawable/ic_import"
+                android:title="Import"/>
+        </menu>
+    </item>
+
     <group
         android:id="@+id/help_group"
         android:checkableBehavior="none">
-        <item
-            android:id="@+id/toolbar_menu_help"
-            app:showAsAction="never"
-            android:title="Help"/>
+    <item
+        android:id="@+id/toolbar_menu_help"
+        app:showAsAction="never"
+        android:icon="@drawable/ic_help"
+        android:title="Help"/>
     </group>
-
 </menu>

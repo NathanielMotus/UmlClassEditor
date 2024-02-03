@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
@@ -21,8 +22,10 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.controller.CustomExpandableListViewAdapter;
+import com.nathaniel.motus.umlclasseditor.databinding.FragmentMethodEditorBinding;
 import com.nathaniel.motus.umlclasseditor.model.AdapterItem;
 import com.nathaniel.motus.umlclasseditor.model.AdapterItemComparator;
 import com.nathaniel.motus.umlclasseditor.model.AddItemString;
@@ -38,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -48,7 +52,7 @@ public class MethodEditorFragment extends EditorFragment implements View.OnClick
         RadioGroup.OnCheckedChangeListener,
         AdapterView.OnItemLongClickListener,
         ExpandableListView.OnChildClickListener{
-
+    private FragmentMethodEditorBinding binding;
     private static final String METHOD_ORDER_KEY ="methodOrder";
     private static final String CLASS_ORDER_KEY ="classOrder";
     private static final String CLASS_EDITOR_FRAGMENT_TAG_KEY="classEditorFragmentTag";
@@ -57,22 +61,6 @@ public class MethodEditorFragment extends EditorFragment implements View.OnClick
     private UmlClassMethod mUmlClassMethod;
     private UmlClass mUmlClass;
     private String mClassEditorFragmentTag;
-
-    private TextView mEditMethodText;
-    private Button mDeleteMethodButton;
-    private EditText mMethodNameEdit;
-    private RadioButton mPublicRadio;
-    private RadioButton mProtectedRadio;
-    private RadioButton mPrivateRadio;
-    private CheckBox mStaticCheck;
-    private Spinner mTypeSpinner;
-    private RadioGroup mMethodMultiplicityRadioGroup;
-    private RadioButton mSingleRadio;
-    private RadioButton mCollectionRadio;
-    private RadioButton mArrayRadio;
-    private TextView mDimText;
-    private EditText mDimEdit;
-    private ExpandableListView mParameterList;
     private Button mCancelButton;
     private Button mOKButton;
 
@@ -104,10 +92,11 @@ public class MethodEditorFragment extends EditorFragment implements View.OnClick
 //    **********************************************************************************************
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_method_editor, container, false);
+        binding = FragmentMethodEditorBinding.inflate(inflater,container,false);
+        return binding.getRoot();
     }
 
 //    **********************************************************************************************
@@ -130,48 +119,24 @@ public class MethodEditorFragment extends EditorFragment implements View.OnClick
     }
 
     protected void configureViews() {
-        mEditMethodText=getActivity().findViewById(R.id.edit_method_text);
+        // delete btn
+        binding.deleteMethodButton.setOnClickListener(this);
+        binding.deleteMethodButton.setTag(DELETE_METHOD_BUTTON_TAG);
 
-        mDeleteMethodButton=getActivity().findViewById(R.id.delete_method_button);
-        mDeleteMethodButton.setOnClickListener(this);
-        mDeleteMethodButton.setTag(DELETE_METHOD_BUTTON_TAG);
+        // method type single =void, collection = list, array = array
+        binding.methodMultiplicityRadioGroup.setOnCheckedChangeListener(this);
 
-        mMethodNameEdit=getActivity().findViewById(R.id.method_name_input);
+        // parameters expanded list view
+        binding.methodParametersList.setOnChildClickListener(this);
+        binding.methodParametersList.setOnItemLongClickListener(this);
 
-        mPublicRadio=getActivity().findViewById(R.id.method_public_radio);
+        // cancel btn
+        binding.methodCancelButton.setOnClickListener(this);
+        binding.methodCancelButton.setTag(CANCEL_BUTTON_TAG);
 
-        mProtectedRadio=getActivity().findViewById(R.id.method_protected_radio);
-
-        mPrivateRadio=getActivity().findViewById(R.id.method_private_radio);
-
-        mStaticCheck=getActivity().findViewById(R.id.method_static_check);
-
-        mTypeSpinner=getActivity().findViewById(R.id.method_type_spinner);
-
-        mMethodMultiplicityRadioGroup=getActivity().findViewById(R.id.method_multiplicity_radio_group);
-        mMethodMultiplicityRadioGroup.setOnCheckedChangeListener(this);
-
-        mSingleRadio=getActivity().findViewById(R.id.method_simple_radio);
-
-        mCollectionRadio=getActivity().findViewById(R.id.method_collection_radio);
-
-        mArrayRadio=getActivity().findViewById(R.id.method_array_radio);
-
-        mDimText=getActivity().findViewById(R.id.method_dimension_text);
-
-        mDimEdit=getActivity().findViewById(R.id.method_dimension_input);
-
-        mParameterList=getActivity().findViewById(R.id.method_parameters_list);
-        mParameterList.setOnChildClickListener(this);
-        mParameterList.setOnItemLongClickListener(this);
-
-        mCancelButton=getActivity().findViewById(R.id.method_cancel_button);
-        mCancelButton.setOnClickListener(this);
-        mCancelButton.setTag(CANCEL_BUTTON_TAG);
-
-        mOKButton=getActivity().findViewById(R.id.method_ok_button);
-        mOKButton.setOnClickListener(this);
-        mOKButton.setTag(OK_BUTTON_TAG);
+        // ok btn
+        binding.methodOkButton.setOnClickListener(this);
+        binding.methodOkButton.setTag(OK_BUTTON_TAG);
     }
 
     protected void initializeMembers() {
@@ -187,44 +152,44 @@ public class MethodEditorFragment extends EditorFragment implements View.OnClick
 
     protected void initializeFields() {
         if (mMethodOrder != -1) {
-            mMethodNameEdit.setText(mUmlClassMethod.getName());
+            binding.methodNameInput.setText(mUmlClassMethod.getName());
 
             switch (mUmlClassMethod.getVisibility()) {
                 case PUBLIC:
-                    mPublicRadio.setChecked(true);
+                    binding.methodPublicRadio.setChecked(true);
                     break;
                 case PROTECTED:
-                    mProtectedRadio.setChecked(true);
+                    binding.methodProtectedRadio.setChecked(true);
                     break;
                 default:
-                    mPrivateRadio.setChecked(true);
+                    binding.methodPrivateRadio.setChecked(true);
                     break;
             }
 
-            mStaticCheck.setChecked(mUmlClassMethod.isStatic());
+            binding.methodStaticCheck.setChecked(mUmlClassMethod.isStatic());
 
             switch (mUmlClassMethod.getTypeMultiplicity()) {
                 case SINGLE:
-                    mSingleRadio.setChecked(true);
+                    binding.methodSimpleRadio.setChecked(true);
                     break;
                 case COLLECTION:
-                    mCollectionRadio.setChecked(true);
+                    binding.methodCollectionRadio.setChecked(true);
                     break;
                 default:
-                    mArrayRadio.setChecked(true);
+                    binding.methodArrayRadio.setChecked(true);
                     break;
             }
 
-            mDimEdit.setText(Integer.toString(mUmlClassMethod.getArrayDimension()));
+            binding.methodDimensionInput.setText(Integer.toString(mUmlClassMethod.getArrayDimension()));
             if (mUmlClassMethod.getTypeMultiplicity() == TypeMultiplicity.ARRAY)
                 setOnArrayDisplay();
             else setOnSingleDisplay();
         } else {
-            mMethodNameEdit.setText("");
-            mPublicRadio.setChecked(true);
-            mStaticCheck.setChecked(false);
-            mSingleRadio.setChecked(true);
-            mDimEdit.setText("");
+            binding.methodNameInput.setText("");
+            binding.methodPublicRadio.setChecked(true);
+            binding.methodStaticCheck.setChecked(false);
+            binding.methodSimpleRadio.setChecked(true);
+            binding.methodDimensionInput.setText("");
             setOnSingleDisplay();
         }
         populateTypeSpinner();
@@ -238,15 +203,16 @@ public class MethodEditorFragment extends EditorFragment implements View.OnClick
         Collections.sort(spinnerArray,new TypeNameComparator());
         ArrayAdapter<String> adapter=new ArrayAdapter<>(getContext(),android.R.layout.simple_spinner_item,spinnerArray);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        mTypeSpinner.setAdapter(adapter);
+        binding.methodTypeSpinner.setAdapter(adapter);
         if (mMethodOrder !=-1)
-            mTypeSpinner.setSelection(spinnerArray.indexOf(mUmlClassMethod.getUmlType().getName()));
-        else mTypeSpinner.setSelection(spinnerArray.indexOf("void"));
+            binding.methodTypeSpinner.setSelection(spinnerArray.indexOf(mUmlClassMethod.getUmlType().getName()));
+        else binding.methodTypeSpinner.setSelection(spinnerArray.indexOf("void"));
     }
 
     private void populateParameterListView() {
         boolean parameterGroupIsExpanded=false;
-        if (mParameterList.getExpandableListAdapter()!=null && mParameterList.isGroupExpanded(0))
+        ExpandableListView paramList = binding.methodParametersList;
+        if (paramList.getExpandableListAdapter()!=null && paramList.isGroupExpanded(0))
             parameterGroupIsExpanded=true;
 
         List<AdapterItem> parameterList=new ArrayList<>();
@@ -262,29 +228,29 @@ public class MethodEditorFragment extends EditorFragment implements View.OnClick
         title.add(getString(R.string.parameters_string));
 
         CustomExpandableListViewAdapter adapter=new CustomExpandableListViewAdapter(getContext(),title,hashMap);
-        mParameterList.setAdapter(adapter);
+        paramList.setAdapter(adapter);
         if (parameterGroupIsExpanded)
-            mParameterList.expandGroup(0);
+            paramList.expandGroup(0);
     }
 
     private void setOnEditDisplay() {
-        mEditMethodText.setText("Edit method");
-        mDeleteMethodButton.setVisibility(View.VISIBLE);
+        binding.editMethodText.setText("Edit Method");
+        binding.deleteMethodButton.setVisibility(View.VISIBLE);
     }
 
     private void setOnCreateDisplay() {
-        mEditMethodText.setText("Create method");
-        mDeleteMethodButton.setVisibility(View.INVISIBLE);
+        binding.editMethodText.setText("Create method");
+        binding.deleteMethodButton.setVisibility(View.INVISIBLE);
     }
 
     private void setOnArrayDisplay() {
-        mDimText.setVisibility(View.VISIBLE);
-        mDimEdit.setVisibility(View.VISIBLE);
+        binding.methodDimensionText.setVisibility(View.VISIBLE);
+        binding.methodDimensionInput.setVisibility(View.VISIBLE);
     }
 
     private void setOnSingleDisplay() {
-        mDimText.setVisibility(View.INVISIBLE);
-        mDimEdit.setVisibility(View.INVISIBLE);
+        binding.methodDimensionText.setVisibility(View.INVISIBLE);
+        binding.methodDimensionInput.setVisibility(View.INVISIBLE);
     }
 
     public void updateMethodEditorFragment(int methodOrder,int classOrder) {
@@ -396,32 +362,32 @@ public class MethodEditorFragment extends EditorFragment implements View.OnClick
     }
 
     private String getMethodName() {
-        return mMethodNameEdit.getText().toString();
+        return Objects.requireNonNull(binding.methodNameInput.getText()).toString();
     }
 
     private Visibility getMethodVisibility() {
-        if (mPublicRadio.isChecked()) return Visibility.PUBLIC;
-        if (mPrivateRadio.isChecked()) return Visibility.PROTECTED;
+        if (binding.methodPublicRadio.isChecked()) return Visibility.PUBLIC;
+        if (binding.methodPrivateRadio.isChecked()) return Visibility.PROTECTED;
         return Visibility.PRIVATE;
     }
 
     private boolean isStatic() {
-        return mStaticCheck.isChecked();
+        return binding.methodStaticCheck.isChecked();
     }
 
     private UmlType getMethodType() {
-        return UmlType.valueOf(mTypeSpinner.getSelectedItem().toString(),UmlType.getUmlTypes());
+        return UmlType.valueOf(binding.methodTypeSpinner.getSelectedItem().toString(),UmlType.getUmlTypes());
     }
 
     private TypeMultiplicity getMethodMultiplicity() {
-        if (mSingleRadio.isChecked()) return TypeMultiplicity.SINGLE;
-        if (mCollectionRadio.isChecked()) return TypeMultiplicity.COLLECTION;
+        if (binding.methodSimpleRadio.isChecked()) return TypeMultiplicity.SINGLE;
+        if (binding.methodCollectionRadio.isChecked()) return TypeMultiplicity.COLLECTION;
         return TypeMultiplicity.ARRAY;
     }
 
     private int getArrayDimension() {
-        if (mDimEdit.getText().toString().equals("")) return 0;
-        return Integer.parseInt(mDimEdit.getText().toString());
+        if (binding.methodDimensionInput.getText().toString().equals("")) return 0;
+        return Integer.parseInt(binding.methodDimensionInput.getText().toString());
     }
 
     public void updateLists() {
@@ -433,44 +399,25 @@ public class MethodEditorFragment extends EditorFragment implements View.OnClick
 //    **********************************************************************************************
     private void startDeleteMethodDialog() {
         final Fragment fragment=this;
-        AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
-        builder.setTitle("Delete method ?")
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Delete method ?")
                 .setMessage("Are you sure you want to delete this method ?")
-                .setNegativeButton("NO", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                    }
-                })
-                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        mUmlClass.removeMethod(mUmlClassMethod);
-                        mCallback.closeMethodEditorFragment(fragment);
-                    }
-                });
-        AlertDialog dialog=builder.create();
-        dialog.show();
+                .setNegativeButton("NO", (d, which) -> d.dismiss())
+                .setPositiveButton("YES", (d, which) -> {
+                    mUmlClass.removeMethod(mUmlClassMethod);
+                    mCallback.closeMethodEditorFragment(fragment);
+                }).show();
     }
 
     private void startDeleteParameterDialog(final int parameterIndex) {
-        AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
-        builder.setTitle("Delete parameter ?")
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Delete parameter ?")
                 .setMessage("Are you sure you want delete this parameter ?")
-                .setNegativeButton("NO", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
+                .setNegativeButton("NO", (d, i) -> d.dismiss())
+                .setPositiveButton("YES", (d, i) -> {
+                    mUmlClassMethod.removeParameter(mUmlClassMethod.findParameterByOrder(parameterIndex));
+                    updateLists();
                 })
-                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        mUmlClassMethod.removeParameter(mUmlClassMethod.findParameterByOrder(parameterIndex));
-                        updateLists();
-                    }
-                })
-                .create()
                 .show();
     }
 }

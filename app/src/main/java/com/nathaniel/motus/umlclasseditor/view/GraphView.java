@@ -11,12 +11,12 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.annotation.Nullable;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.nathaniel.motus.umlclasseditor.R;
 import com.nathaniel.motus.umlclasseditor.model.UmlClass;
 import com.nathaniel.motus.umlclasseditor.model.UmlClassAttribute;
@@ -25,9 +25,11 @@ import com.nathaniel.motus.umlclasseditor.model.UmlEnumValue;
 import com.nathaniel.motus.umlclasseditor.model.UmlProject;
 import com.nathaniel.motus.umlclasseditor.model.UmlRelation;
 
-public class GraphView extends View implements View.OnTouchListener{
+import java.util.Random;
 
-    enum TouchMode{DRAG,ZOOM}
+public class GraphView extends View implements View.OnTouchListener {
+
+    enum TouchMode {DRAG, ZOOM}
 
     private GraphFragment mGraphFragment;
     private float mZoom;
@@ -38,7 +40,7 @@ public class GraphView extends View implements View.OnTouchListener{
     private float mLastTouchY;
     private float mOldDist;
     private float mNewDist;
-    private TouchMode mTouchMode=TouchMode.DRAG;
+    private TouchMode mTouchMode = TouchMode.DRAG;
     private int mPrimaryPointerIndex;
     private float mXMidPoint;
     private float mYMidpoint;
@@ -51,23 +53,28 @@ public class GraphView extends View implements View.OnTouchListener{
     private Paint dashPaint;
     private Paint solidBlackPaint;
     private Paint solidWhitePaint;
+
+    private Paint headerTextPaint;
+
+    private boolean isBoxSelected = false;
+
     private UmlClass mMovingClass;
     private GraphViewObserver mCallback;
     private long mActionDownEventTime;
-    private long mFirstClickTime=0;
-    private static final long CLICK_DELAY=200;
-    private static final long DOUBLE_CLICK_DELAY=500;
-    private static final float DOUBLE_CLICK_DISTANCE_MAX=10;
-    private float mFirstClickX=0;
-    private float mFirstClickY=0;
+    private long mFirstClickTime = 0;
+    private static final long CLICK_DELAY = 200;
+    private static final long DOUBLE_CLICK_DELAY = 500;
+    private static final float DOUBLE_CLICK_DISTANCE_MAX = 10;
+    private float mFirstClickX = 0;
+    private float mFirstClickY = 0;
 
 //    **********************************************************************************************
 //    Standard drawing dimensions (in dp)
 //    **********************************************************************************************
 
-    private static final float FONT_SIZE=20;
-    private static final float INTERLINE=10;
-    private static final float ARROW_SIZE=10;
+    private static final float FONT_SIZE = 20;
+    private static final float INTERLINE = 10;
+    private static final float ARROW_SIZE = 10;
 
 
 //    **********************************************************************************************
@@ -76,12 +83,12 @@ public class GraphView extends View implements View.OnTouchListener{
 
     public GraphView(Context context) {
         super(context);
-        init(-1,-1,-1);
+        init(-1, -1, -1);
     }
 
     public GraphView(Context context, float zoom, int xOffset, int yOffset) {
         super(context);
-        init(zoom,xOffset,yOffset);
+        init(zoom, xOffset, yOffset);
     }
 
     public GraphView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
@@ -95,70 +102,76 @@ public class GraphView extends View implements View.OnTouchListener{
     }
 
     private void init(float zoom, int xOffset, int yOffset) {
-        if (zoom!=-1)
-            mZoom=zoom;
+        if (zoom != -1)
+            mZoom = zoom;
         else
-            mZoom=1;
+            mZoom = 1;
 
-        if (xOffset!=-1)
-            mXOffset=xOffset;
+        if (xOffset != -1)
+            mXOffset = xOffset;
         else
-            mXOffset=0;
+            mXOffset = 0;
 
-        if (yOffset!=-1)
-            mYOffset=yOffset;
+        if (yOffset != -1)
+            mYOffset = yOffset;
         else
-            mYOffset=0;
+            mYOffset = 0;
 
-        plainTextPaint =new Paint();
+        plainTextPaint = new Paint();
         plainTextPaint.setColor(Color.DKGRAY);
 
-        italicTextPaint=new Paint();
+        italicTextPaint = new Paint();
         italicTextPaint.setColor(Color.DKGRAY);
         italicTextPaint.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
 
-        underlinedTextPaint=new Paint();
+        underlinedTextPaint = new Paint();
         underlinedTextPaint.setColor(Color.DKGRAY);
         underlinedTextPaint.setFlags(Paint.UNDERLINE_TEXT_FLAG);
 
-        linePaint =new Paint();
+        linePaint = new Paint();
         linePaint.setColor(Color.DKGRAY);
         linePaint.setStyle(Paint.Style.STROKE);
 
-        dashPaint=new Paint();
+        dashPaint = new Paint();
         dashPaint.setColor(Color.DKGRAY);
         dashPaint.setStyle(Paint.Style.STROKE);
-        dashPaint.setPathEffect(new DashPathEffect(new float[]{10f,10f},0));
+        dashPaint.setPathEffect(new DashPathEffect(new float[]{10f, 10f}, 0));
 
-        solidBlackPaint=new Paint();
+        solidBlackPaint = new Paint();
         solidBlackPaint.setColor(Color.DKGRAY);
         solidBlackPaint.setStyle(Paint.Style.FILL_AND_STROKE);
 
-        solidWhitePaint=new Paint();
+        solidWhitePaint = new Paint();
         solidWhitePaint.setColor(Color.WHITE);
         solidWhitePaint.setStyle(Paint.Style.FILL);
+
+        headerTextPaint = new Paint();
+        headerTextPaint.setColor(Color.WHITE);
 
         setOnTouchListener(this);
         createCallbackToParentActivity();
     }
 
     private void init(AttributeSet attrs) {
-        TypedArray attr=getContext().obtainStyledAttributes(attrs, R.styleable.GraphView);
-        float zoom=attr.getFloat(R.styleable.GraphView_zoom,-1);
-        int xOffset=attr.getInt(R.styleable.GraphView_xOffset,-1);
-        int yOffset=attr.getInt(R.styleable.GraphView_yOffset,-1);
+        TypedArray attr = getContext().obtainStyledAttributes(attrs, R.styleable.GraphView);
+        float zoom = attr.getFloat(R.styleable.GraphView_zoom, -1);
+        int xOffset = attr.getInt(R.styleable.GraphView_xOffset, -1);
+        int yOffset = attr.getInt(R.styleable.GraphView_yOffset, -1);
 
-        init(zoom,xOffset,yOffset);
+        init(zoom, xOffset, yOffset);
     }
 
 //    **********************************************************************************************
 //    Callback interface
 //    **********************************************************************************************
 
-    public interface GraphViewObserver{
+    public interface GraphViewObserver {
         public boolean isExpectingTouchLocation();
+
         public void createClass(float xLocation, float yLocation);
+
         public void editClass(UmlClass umlClass);
+
         public void createRelation(UmlClass startClass, UmlClass endClass, UmlRelation.UmlRelationType relationType);
     }
 
@@ -168,9 +181,9 @@ public class GraphView extends View implements View.OnTouchListener{
 
     public void setUmlProject(UmlProject umlProject) {
         mUmlProject = umlProject;
-        mZoom=mUmlProject.getZoom();
-        mXOffset=mUmlProject.getXOffset();
-        mYOffset=mUmlProject.getYOffset();
+        mZoom = mUmlProject.getZoom();
+        mXOffset = mUmlProject.getXOffset();
+        mYOffset = mUmlProject.getYOffset();
         this.invalidate();
     }
 
@@ -211,18 +224,21 @@ public class GraphView extends View implements View.OnTouchListener{
 //    Drawing methods
 //    **********************************************************************************************
 
-    public void drawUmlClass(Canvas canvas,UmlClass umlClass) {
+    public void drawUmlClass(Canvas canvas, UmlClass umlClass) {
 
-        plainTextPaint.setTextSize(FONT_SIZE*mZoom);
-        italicTextPaint.setTextSize(FONT_SIZE*mZoom);
-        underlinedTextPaint.setTextSize(FONT_SIZE*mZoom);
+        plainTextPaint.setTextSize(FONT_SIZE * mZoom);
+        italicTextPaint.setTextSize(FONT_SIZE * mZoom);
+        underlinedTextPaint.setTextSize(FONT_SIZE * mZoom);
+
+        // for header text
+        headerTextPaint.setTextSize(FONT_SIZE * mZoom);
 
         //Update class dimensions
         updateUmlClassNormalDimensions(umlClass);
 
-        drawUmlClassHeader(canvas,umlClass);
-        if (umlClass.getUmlClassType()== UmlClass.UmlClassType.ENUM)
-            drawValueBox(canvas,umlClass);
+        drawUmlClassHeader(canvas, umlClass);
+        if (umlClass.getUmlClassType() == UmlClass.UmlClassType.ENUM)
+            drawValueBox(canvas, umlClass);
         else {
             drawAttributeBox(canvas, umlClass);
             drawMethodBox(canvas, umlClass);
@@ -230,180 +246,191 @@ public class GraphView extends View implements View.OnTouchListener{
     }
 
     private void drawUmlClassHeader(Canvas canvas, UmlClass umlClass) {
+        if (umlClass.getmUmlClassHeaderPaint() == null) {
+            int randColor = Color.rgb(new Random().nextInt(128), new Random().nextInt(128), new Random().nextInt(128));
+            Paint paint = new Paint();
+            paint.setColor(randColor);
+            paint.setStyle(Paint.Style.FILL);
+
+            umlClass.setmUmlClassHeaderPaint(paint);
+            umlClass.setColorPaint(paint.getColor());
+        }
+
         canvas.drawRect(visibleX(umlClass.getUmlClassNormalXPos()),
                 visibleY(umlClass.getUmlClassNormalYPos()),
-                visibleX(umlClass.getUmlClassNormalXPos()+umlClass.getUmlClassNormalWidth()),
-                visibleY(umlClass.getUmlClassNormalYPos()+getClassHeaderNormalHeight(umlClass)),
-                linePaint);
+                visibleX(umlClass.getUmlClassNormalXPos() + umlClass.getUmlClassNormalWidth()),
+                visibleY(umlClass.getUmlClassNormalYPos() + getClassHeaderNormalHeight(umlClass)),
+                umlClass.getmUmlClassHeaderPaint());
 
         switch (umlClass.getUmlClassType()) {
             case INTERFACE:
                 canvas.drawText("<< Interface >>",
-                        visibleX(umlClass.getUmlClassNormalXPos()+(umlClass.getUmlClassNormalWidth()-getTextNormalWidth("<< Interface >>"))/2),
-                        visibleY(umlClass.getUmlClassNormalYPos()+FONT_SIZE+INTERLINE),
-                        plainTextPaint);
+                        visibleX(umlClass.getUmlClassNormalXPos() + (umlClass.getUmlClassNormalWidth() - getTextNormalWidth("<< Interface >>")) / 2),
+                        visibleY(umlClass.getUmlClassNormalYPos() + FONT_SIZE + INTERLINE),
+                        headerTextPaint);
                 canvas.drawText(umlClass.getName(),
-                        visibleX(umlClass.getUmlClassNormalXPos()+(umlClass.getUmlClassNormalWidth()-getTextNormalWidth(umlClass.getName()))/2),
-                        visibleY(umlClass.getUmlClassNormalYPos()+FONT_SIZE*2+INTERLINE*2),
-                        plainTextPaint);
+                        visibleX(umlClass.getUmlClassNormalXPos() + (umlClass.getUmlClassNormalWidth() - getTextNormalWidth(umlClass.getName())) / 2),
+                        visibleY(umlClass.getUmlClassNormalYPos() + FONT_SIZE * 2 + INTERLINE * 2),
+                        headerTextPaint);
                 break;
             case ABSTRACT_CLASS:
+                headerTextPaint.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
                 canvas.drawText(umlClass.getName(),
-                        visibleX(umlClass.getUmlClassNormalXPos()+(umlClass.getUmlClassNormalWidth()-getTextNormalWidth(umlClass.getName()))/2),
-                        visibleY(umlClass.getUmlClassNormalYPos()+FONT_SIZE+INTERLINE),
-                        italicTextPaint);
+                        visibleX(umlClass.getUmlClassNormalXPos() + (umlClass.getUmlClassNormalWidth() - getTextNormalWidth(umlClass.getName())) / 2),
+                        visibleY(umlClass.getUmlClassNormalYPos() + FONT_SIZE + INTERLINE),
+                        headerTextPaint);
                 break;
             default:
                 canvas.drawText(umlClass.getName(),
-                        visibleX(umlClass.getUmlClassNormalXPos()+(umlClass.getUmlClassNormalWidth()-getTextNormalWidth(umlClass.getName()))/2),
-                        visibleY(umlClass.getUmlClassNormalYPos()+FONT_SIZE+INTERLINE),
-                        plainTextPaint);
+                        visibleX(umlClass.getUmlClassNormalXPos() + (umlClass.getUmlClassNormalWidth() - getTextNormalWidth(umlClass.getName())) / 2),
+                        visibleY(umlClass.getUmlClassNormalYPos() + FONT_SIZE + INTERLINE),
+                        headerTextPaint);
         }
     }
 
     private void drawAttributeBox(Canvas canvas, UmlClass umlClass) {
         canvas.drawRect(visibleX(umlClass.getUmlClassNormalXPos()),
-                visibleY(umlClass.getUmlClassNormalYPos()+getClassHeaderNormalHeight(umlClass)),
-                visibleX(umlClass.getUmlClassNormalXPos()+umlClass.getUmlClassNormalWidth()),
-                visibleY(umlClass.getUmlClassNormalYPos()+getClassHeaderNormalHeight(umlClass)+getAttributeBoxNormalHeight(umlClass)),
+                visibleY(umlClass.getUmlClassNormalYPos() + getClassHeaderNormalHeight(umlClass)),
+                visibleX(umlClass.getUmlClassNormalXPos() + umlClass.getUmlClassNormalWidth()),
+                visibleY(umlClass.getUmlClassNormalYPos() + getClassHeaderNormalHeight(umlClass) + getAttributeBoxNormalHeight(umlClass)),
                 linePaint);
 
-        float currentY=umlClass.getUmlClassNormalYPos()+getClassHeaderNormalHeight(umlClass)+INTERLINE+FONT_SIZE;
+        float currentY = umlClass.getUmlClassNormalYPos() + getClassHeaderNormalHeight(umlClass) + INTERLINE + FONT_SIZE;
         for (UmlClassAttribute a : umlClass.getAttributes()) {
             if (a.isStatic()) canvas.drawText(a.getAttributeCompleteString(),
-                    visibleX(umlClass.getUmlClassNormalXPos()+INTERLINE),
+                    visibleX(umlClass.getUmlClassNormalXPos() + INTERLINE),
                     visibleY(currentY),
                     underlinedTextPaint);
             else canvas.drawText(a.getAttributeCompleteString(),
-                    visibleX(umlClass.getUmlClassNormalXPos()+INTERLINE),
+                    visibleX(umlClass.getUmlClassNormalXPos() + INTERLINE),
                     visibleY(currentY),
                     plainTextPaint);
-            currentY=currentY+FONT_SIZE+INTERLINE;
+            currentY = currentY + FONT_SIZE + INTERLINE;
         }
     }
 
     private void drawMethodBox(Canvas canvas, UmlClass umlClass) {
         canvas.drawRect(visibleX(umlClass.getUmlClassNormalXPos()),
-                visibleY(umlClass.getUmlClassNormalYPos()+getClassHeaderNormalHeight(umlClass)+getAttributeBoxNormalHeight(umlClass)),
-                visibleX(umlClass.getUmlClassNormalXPos()+umlClass.getUmlClassNormalWidth()),
-                visibleY(umlClass.getUmlClassNormalYPos()+getClassHeaderNormalHeight(umlClass)+getAttributeBoxNormalHeight(umlClass)+getMethodBoxNormalHeight(umlClass)),
+                visibleY(umlClass.getUmlClassNormalYPos() + getClassHeaderNormalHeight(umlClass) + getAttributeBoxNormalHeight(umlClass)),
+                visibleX(umlClass.getUmlClassNormalXPos() + umlClass.getUmlClassNormalWidth()),
+                visibleY(umlClass.getUmlClassNormalYPos() + getClassHeaderNormalHeight(umlClass) + getAttributeBoxNormalHeight(umlClass) + getMethodBoxNormalHeight(umlClass)),
                 linePaint);
 
-        float currentY=umlClass.getUmlClassNormalYPos()+getClassHeaderNormalHeight(umlClass)+getAttributeBoxNormalHeight(umlClass)+INTERLINE+FONT_SIZE;
+        float currentY = umlClass.getUmlClassNormalYPos() + getClassHeaderNormalHeight(umlClass) + getAttributeBoxNormalHeight(umlClass) + INTERLINE + FONT_SIZE;
         for (UmlClassMethod m : umlClass.getMethods()) {
             if (m.isStatic()) canvas.drawText(m.getMethodCompleteString(),
-                    visibleX(umlClass.getUmlClassNormalXPos()+INTERLINE),
+                    visibleX(umlClass.getUmlClassNormalXPos() + INTERLINE),
                     visibleY(currentY),
                     underlinedTextPaint);
             else canvas.drawText(m.getMethodCompleteString(),
-                    visibleX(umlClass.getUmlClassNormalXPos()+INTERLINE),
+                    visibleX(umlClass.getUmlClassNormalXPos() + INTERLINE),
                     visibleY(currentY),
                     plainTextPaint);
-            currentY=currentY+FONT_SIZE+INTERLINE;
+            currentY = currentY + FONT_SIZE + INTERLINE;
         }
     }
 
     private void drawValueBox(Canvas canvas, UmlClass umlClass) {
         canvas.drawRect(visibleX(umlClass.getUmlClassNormalXPos()),
-                visibleY(umlClass.getUmlClassNormalYPos()+getClassHeaderNormalHeight(umlClass)),
-                visibleX(umlClass.getUmlClassNormalXPos()+umlClass.getUmlClassNormalWidth()),
-                visibleY(umlClass.getUmlClassNormalYPos()+getClassHeaderNormalHeight(umlClass)+getValueBoxNormalHeight(umlClass)),
+                visibleY(umlClass.getUmlClassNormalYPos() + getClassHeaderNormalHeight(umlClass)),
+                visibleX(umlClass.getUmlClassNormalXPos() + umlClass.getUmlClassNormalWidth()),
+                visibleY(umlClass.getUmlClassNormalYPos() + getClassHeaderNormalHeight(umlClass) + getValueBoxNormalHeight(umlClass)),
                 linePaint);
 
-        float currentY=umlClass.getUmlClassNormalYPos()+getClassHeaderNormalHeight(umlClass)+INTERLINE+FONT_SIZE;
+        float currentY = umlClass.getUmlClassNormalYPos() + getClassHeaderNormalHeight(umlClass) + INTERLINE + FONT_SIZE;
         for (UmlEnumValue v : umlClass.getValues()) {
             canvas.drawText(v.getName(),
-                    visibleX(umlClass.getUmlClassNormalXPos()+INTERLINE),
+                    visibleX(umlClass.getUmlClassNormalXPos() + INTERLINE),
                     visibleY(currentY),
                     plainTextPaint);
-            currentY=currentY+FONT_SIZE+INTERLINE;
+            currentY = currentY + FONT_SIZE + INTERLINE;
         }
     }
 
-    private void drawRelation(Canvas canvas,UmlRelation umlRelation) {
+    private void drawRelation(Canvas canvas, UmlRelation umlRelation) {
 
-        float originAbsoluteLeft=umlRelation.getRelationOriginClass().getUmlClassNormalXPos();
-        float originAbsoluteRight=umlRelation.getRelationOriginClass().getNormalRightEnd();
-        float originAbsoluteTop=umlRelation.getRelationOriginClass().getUmlClassNormalYPos();
-        float originAbsoluteBottom=umlRelation.getRelationOriginClass().getNormalBottomEnd();
-        float endAbsoluteLeft=umlRelation.getRelationEndClass().getUmlClassNormalXPos();
-        float endAbsoluteRight=umlRelation.getRelationEndClass().getNormalRightEnd();
-        float endAbsoluteTop=umlRelation.getRelationEndClass().getUmlClassNormalYPos();
-        float endAbsoluteBottom=umlRelation.getRelationEndClass().getNormalBottomEnd();
-        float absoluteXOrigin=0;
-        float absoluteYOrigin=0;
-        float absoluteXEnd=0;
-        float absoluteYEnd=0;
+        float originAbsoluteLeft = umlRelation.getRelationOriginClass().getUmlClassNormalXPos();
+        float originAbsoluteRight = umlRelation.getRelationOriginClass().getNormalRightEnd();
+        float originAbsoluteTop = umlRelation.getRelationOriginClass().getUmlClassNormalYPos();
+        float originAbsoluteBottom = umlRelation.getRelationOriginClass().getNormalBottomEnd();
+        float endAbsoluteLeft = umlRelation.getRelationEndClass().getUmlClassNormalXPos();
+        float endAbsoluteRight = umlRelation.getRelationEndClass().getNormalRightEnd();
+        float endAbsoluteTop = umlRelation.getRelationEndClass().getUmlClassNormalYPos();
+        float endAbsoluteBottom = umlRelation.getRelationEndClass().getNormalBottomEnd();
+        float absoluteXOrigin = 0;
+        float absoluteYOrigin = 0;
+        float absoluteXEnd = 0;
+        float absoluteYEnd = 0;
 
         //End in South quarter of Origin
         if (umlRelation.getRelationEndClass().isSouthOf(umlRelation.getRelationOriginClass())) {
-            float lowerXLimit= originAbsoluteLeft-endAbsoluteTop+originAbsoluteBottom-umlRelation.getRelationEndClass().getUmlClassNormalWidth();
-            float upperXLimit=originAbsoluteRight+endAbsoluteTop-originAbsoluteBottom;
+            float lowerXLimit = originAbsoluteLeft - endAbsoluteTop + originAbsoluteBottom - umlRelation.getRelationEndClass().getUmlClassNormalWidth();
+            float upperXLimit = originAbsoluteRight + endAbsoluteTop - originAbsoluteBottom;
 
-            absoluteXEnd=endAbsoluteRight-
-                   umlRelation.getRelationEndClass().getUmlClassNormalWidth()/(upperXLimit-lowerXLimit)*
-                           (endAbsoluteLeft-lowerXLimit);
-            absoluteYEnd=endAbsoluteTop;
+            absoluteXEnd = endAbsoluteRight -
+                    umlRelation.getRelationEndClass().getUmlClassNormalWidth() / (upperXLimit - lowerXLimit) *
+                            (endAbsoluteLeft - lowerXLimit);
+            absoluteYEnd = endAbsoluteTop;
 
-            absoluteXOrigin=originAbsoluteLeft+
-                   umlRelation.getRelationOriginClass().getUmlClassNormalWidth()/(upperXLimit-lowerXLimit)*
-                           (endAbsoluteLeft-lowerXLimit);
+            absoluteXOrigin = originAbsoluteLeft +
+                    umlRelation.getRelationOriginClass().getUmlClassNormalWidth() / (upperXLimit - lowerXLimit) *
+                            (endAbsoluteLeft - lowerXLimit);
 
-            absoluteYOrigin=originAbsoluteBottom;
+            absoluteYOrigin = originAbsoluteBottom;
         }
 
         //End in North quarter or Origin
         if (umlRelation.getRelationEndClass().isNorthOf(umlRelation.getRelationOriginClass())) {
-            float lowerXLimit=originAbsoluteLeft-originAbsoluteTop+endAbsoluteBottom-umlRelation.getRelationEndClass().getUmlClassNormalWidth();
-            float upperXLimit=originAbsoluteRight+originAbsoluteTop-endAbsoluteBottom;
+            float lowerXLimit = originAbsoluteLeft - originAbsoluteTop + endAbsoluteBottom - umlRelation.getRelationEndClass().getUmlClassNormalWidth();
+            float upperXLimit = originAbsoluteRight + originAbsoluteTop - endAbsoluteBottom;
 
-            absoluteXEnd=endAbsoluteRight-
-                    umlRelation.getRelationEndClass().getUmlClassNormalWidth()/(upperXLimit-lowerXLimit)*
-                            (endAbsoluteLeft-lowerXLimit);
+            absoluteXEnd = endAbsoluteRight -
+                    umlRelation.getRelationEndClass().getUmlClassNormalWidth() / (upperXLimit - lowerXLimit) *
+                            (endAbsoluteLeft - lowerXLimit);
 
-            absoluteYEnd=endAbsoluteBottom;
+            absoluteYEnd = endAbsoluteBottom;
 
-            absoluteXOrigin=originAbsoluteLeft+
-                    umlRelation.getRelationOriginClass().getUmlClassNormalWidth()/(upperXLimit-lowerXLimit)*
-                            (endAbsoluteLeft-lowerXLimit);
+            absoluteXOrigin = originAbsoluteLeft +
+                    umlRelation.getRelationOriginClass().getUmlClassNormalWidth() / (upperXLimit - lowerXLimit) *
+                            (endAbsoluteLeft - lowerXLimit);
 
-            absoluteYOrigin=originAbsoluteTop;
+            absoluteYOrigin = originAbsoluteTop;
         }
 
         //End in West quarter of Origin
         if (umlRelation.getRelationEndClass().isWestOf(umlRelation.getRelationOriginClass())) {
-            float lowerYLimit=originAbsoluteTop-originAbsoluteLeft+endAbsoluteRight-umlRelation.getRelationEndClass().getUmlClassNormalHeight();
-            float upperYLimit=originAbsoluteBottom+originAbsoluteLeft-endAbsoluteRight;
+            float lowerYLimit = originAbsoluteTop - originAbsoluteLeft + endAbsoluteRight - umlRelation.getRelationEndClass().getUmlClassNormalHeight();
+            float upperYLimit = originAbsoluteBottom + originAbsoluteLeft - endAbsoluteRight;
 
-            absoluteXEnd=endAbsoluteRight;
+            absoluteXEnd = endAbsoluteRight;
 
-            absoluteYEnd=endAbsoluteBottom-
-                    umlRelation.getRelationEndClass().getUmlClassNormalHeight()/(upperYLimit-lowerYLimit)*
-                            (endAbsoluteTop-lowerYLimit);
+            absoluteYEnd = endAbsoluteBottom -
+                    umlRelation.getRelationEndClass().getUmlClassNormalHeight() / (upperYLimit - lowerYLimit) *
+                            (endAbsoluteTop - lowerYLimit);
 
-            absoluteXOrigin=originAbsoluteLeft;
+            absoluteXOrigin = originAbsoluteLeft;
 
-            absoluteYOrigin=originAbsoluteTop+
-                    umlRelation.getRelationOriginClass().getUmlClassNormalHeight()/(upperYLimit-lowerYLimit)*
-                            (endAbsoluteTop-lowerYLimit);
+            absoluteYOrigin = originAbsoluteTop +
+                    umlRelation.getRelationOriginClass().getUmlClassNormalHeight() / (upperYLimit - lowerYLimit) *
+                            (endAbsoluteTop - lowerYLimit);
         }
 
         //End in East quarter of Origin
         if (umlRelation.getRelationEndClass().isEastOf(umlRelation.getRelationOriginClass())) {
-            float lowerYLimit=originAbsoluteTop-endAbsoluteLeft+originAbsoluteRight-umlRelation.getRelationEndClass().getUmlClassNormalHeight();
-            float upperYLimit=originAbsoluteBottom+endAbsoluteLeft-originAbsoluteRight;
+            float lowerYLimit = originAbsoluteTop - endAbsoluteLeft + originAbsoluteRight - umlRelation.getRelationEndClass().getUmlClassNormalHeight();
+            float upperYLimit = originAbsoluteBottom + endAbsoluteLeft - originAbsoluteRight;
 
-            absoluteXEnd=endAbsoluteLeft;
+            absoluteXEnd = endAbsoluteLeft;
 
-            absoluteYEnd=endAbsoluteBottom-
-                    umlRelation.getRelationEndClass().getUmlClassNormalHeight()/(upperYLimit-lowerYLimit)*
-                            (endAbsoluteTop-lowerYLimit);
+            absoluteYEnd = endAbsoluteBottom -
+                    umlRelation.getRelationEndClass().getUmlClassNormalHeight() / (upperYLimit - lowerYLimit) *
+                            (endAbsoluteTop - lowerYLimit);
 
-            absoluteXOrigin=originAbsoluteRight;
+            absoluteXOrigin = originAbsoluteRight;
 
-            absoluteYOrigin=originAbsoluteTop+
-                    umlRelation.getRelationOriginClass().getUmlClassNormalHeight()/(upperYLimit-lowerYLimit)*
-                            (endAbsoluteTop-lowerYLimit);
+            absoluteYOrigin = originAbsoluteTop +
+                    umlRelation.getRelationOriginClass().getUmlClassNormalHeight() / (upperYLimit - lowerYLimit) *
+                            (endAbsoluteTop - lowerYLimit);
         }
         //update relation coordinates
         umlRelation.setXOrigin(absoluteXOrigin);
@@ -411,13 +438,13 @@ public class GraphView extends View implements View.OnTouchListener{
         umlRelation.setXEnd(absoluteXEnd);
         umlRelation.setYEnd(absoluteYEnd);
 
-        Path path=new Path();
-        path.moveTo(visibleX(absoluteXOrigin),visibleY(absoluteYOrigin));
-        path.lineTo(visibleX(absoluteXEnd),visibleY(absoluteYEnd));
+        Path path = new Path();
+        path.moveTo(visibleX(absoluteXOrigin), visibleY(absoluteYOrigin));
+        path.lineTo(visibleX(absoluteXEnd), visibleY(absoluteYEnd));
 
         switch (umlRelation.getUmlRelationType()) {
             case INHERITANCE:
-                canvas.drawPath(path,linePaint);
+                canvas.drawPath(path, linePaint);
                 drawSolidWhiteArrow(canvas,
                         visibleX(absoluteXOrigin),
                         visibleY(absoluteYOrigin),
@@ -426,11 +453,11 @@ public class GraphView extends View implements View.OnTouchListener{
                 break;
 
             case ASSOCIATION:
-                canvas.drawPath(path,linePaint);
+                canvas.drawPath(path, linePaint);
                 break;
 
             case AGGREGATION:
-                canvas.drawPath(path,linePaint);
+                canvas.drawPath(path, linePaint);
                 drawSolidWhiteRhombus(canvas,
                         visibleX(absoluteXOrigin),
                         visibleY(absoluteYOrigin),
@@ -439,7 +466,7 @@ public class GraphView extends View implements View.OnTouchListener{
                 break;
 
             case COMPOSITION:
-                canvas.drawPath(path,linePaint);
+                canvas.drawPath(path, linePaint);
                 drawSolidBlackRhombus(canvas,
                         visibleX(absoluteXOrigin),
                         visibleY(absoluteYOrigin),
@@ -448,7 +475,7 @@ public class GraphView extends View implements View.OnTouchListener{
                 break;
 
             case DEPENDENCY:
-                canvas.drawPath(path,dashPaint);
+                canvas.drawPath(path, dashPaint);
                 drawArrow(canvas,
                         visibleX(absoluteXOrigin),
                         visibleY(absoluteYOrigin),
@@ -457,7 +484,7 @@ public class GraphView extends View implements View.OnTouchListener{
                 break;
 
             case REALIZATION:
-                canvas.drawPath(path,dashPaint);
+                canvas.drawPath(path, dashPaint);
                 drawSolidWhiteArrow(canvas,
                         visibleX(absoluteXOrigin),
                         visibleY(absoluteYOrigin),
@@ -470,31 +497,31 @@ public class GraphView extends View implements View.OnTouchListener{
         }
     }
 
-    private void drawArrow(Canvas canvas,float xOrigin, float yOrigin, float xEnd, float yEnd) {
+    private void drawArrow(Canvas canvas, float xOrigin, float yOrigin, float xEnd, float yEnd) {
         //draw an arrow at the end of the segment
 
         canvas.save();
-        canvas.rotate(getAngle(xEnd,yEnd,xOrigin,yOrigin),xEnd,yEnd);
-        Path path=new Path();
-        path.moveTo(xEnd+ARROW_SIZE*mZoom,yEnd-ARROW_SIZE*1.414f/2f*mZoom);
-        path.lineTo(xEnd,yEnd);
-        path.lineTo(xEnd+ARROW_SIZE*mZoom,yEnd+ARROW_SIZE*1.414f/2f*mZoom);
-        canvas.drawPath(path,linePaint);
+        canvas.rotate(getAngle(xEnd, yEnd, xOrigin, yOrigin), xEnd, yEnd);
+        Path path = new Path();
+        path.moveTo(xEnd + ARROW_SIZE * mZoom, yEnd - ARROW_SIZE * 1.414f / 2f * mZoom);
+        path.lineTo(xEnd, yEnd);
+        path.lineTo(xEnd + ARROW_SIZE * mZoom, yEnd + ARROW_SIZE * 1.414f / 2f * mZoom);
+        canvas.drawPath(path, linePaint);
         canvas.restore();
     }
 
-    private void drawSolidWhiteArrow(Canvas canvas,float xOrigin, float yOrigin, float xEnd, float yEnd) {
+    private void drawSolidWhiteArrow(Canvas canvas, float xOrigin, float yOrigin, float xEnd, float yEnd) {
         //draw a solid white arrow at the end of the segment
 
         canvas.save();
-        canvas.rotate(getAngle(xEnd,yEnd,xOrigin,yOrigin),xEnd,yEnd);
-        Path path=new Path();
-        path.moveTo(xEnd,yEnd);
-        path.lineTo(xEnd+ARROW_SIZE*mZoom,yEnd-ARROW_SIZE*1.414f/2f*mZoom);
-        path.lineTo(xEnd+ARROW_SIZE*mZoom,yEnd+ARROW_SIZE*1.414f/2f*mZoom);
+        canvas.rotate(getAngle(xEnd, yEnd, xOrigin, yOrigin), xEnd, yEnd);
+        Path path = new Path();
+        path.moveTo(xEnd, yEnd);
+        path.lineTo(xEnd + ARROW_SIZE * mZoom, yEnd - ARROW_SIZE * 1.414f / 2f * mZoom);
+        path.lineTo(xEnd + ARROW_SIZE * mZoom, yEnd + ARROW_SIZE * 1.414f / 2f * mZoom);
         path.close();
-        canvas.drawPath(path,solidWhitePaint);
-        canvas.drawPath(path,linePaint);
+        canvas.drawPath(path, solidWhitePaint);
+        canvas.drawPath(path, linePaint);
         canvas.restore();
     }
 
@@ -502,15 +529,15 @@ public class GraphView extends View implements View.OnTouchListener{
         //draw a solid white rhombus at the end of the segment
 
         canvas.save();
-        canvas.rotate(getAngle(xEnd,yEnd,xOrigin,yOrigin),xEnd,yEnd);
-        Path path=new Path();
-        path.moveTo(xEnd,yEnd);
-        path.lineTo(xEnd+ARROW_SIZE*mZoom,yEnd-ARROW_SIZE*1.414f/2f*mZoom);
-        path.lineTo(xEnd+ARROW_SIZE*2f*mZoom,yEnd);
-        path.lineTo(xEnd+ARROW_SIZE*mZoom,yEnd+ARROW_SIZE*1.414f/2f*mZoom);
+        canvas.rotate(getAngle(xEnd, yEnd, xOrigin, yOrigin), xEnd, yEnd);
+        Path path = new Path();
+        path.moveTo(xEnd, yEnd);
+        path.lineTo(xEnd + ARROW_SIZE * mZoom, yEnd - ARROW_SIZE * 1.414f / 2f * mZoom);
+        path.lineTo(xEnd + ARROW_SIZE * 2f * mZoom, yEnd);
+        path.lineTo(xEnd + ARROW_SIZE * mZoom, yEnd + ARROW_SIZE * 1.414f / 2f * mZoom);
         path.close();
-        canvas.drawPath(path,solidWhitePaint);
-        canvas.drawPath(path,linePaint);
+        canvas.drawPath(path, solidWhitePaint);
+        canvas.drawPath(path, linePaint);
         canvas.restore();
     }
 
@@ -518,14 +545,14 @@ public class GraphView extends View implements View.OnTouchListener{
         //draw a solid black rhombus at the end of the segment
 
         canvas.save();
-        canvas.rotate(getAngle(xEnd,yEnd,xOrigin,yOrigin),xEnd,yEnd);
-        Path path=new Path();
-        path.moveTo(xEnd,yEnd);
-        path.lineTo(xEnd+ARROW_SIZE*mZoom,yEnd-ARROW_SIZE*1.414f/2f*mZoom);
-        path.lineTo(xEnd+ARROW_SIZE*2f*mZoom,yEnd);
-        path.lineTo(xEnd+ARROW_SIZE*mZoom,yEnd+ARROW_SIZE*1.414f/2f*mZoom);
+        canvas.rotate(getAngle(xEnd, yEnd, xOrigin, yOrigin), xEnd, yEnd);
+        Path path = new Path();
+        path.moveTo(xEnd, yEnd);
+        path.lineTo(xEnd + ARROW_SIZE * mZoom, yEnd - ARROW_SIZE * 1.414f / 2f * mZoom);
+        path.lineTo(xEnd + ARROW_SIZE * 2f * mZoom, yEnd);
+        path.lineTo(xEnd + ARROW_SIZE * mZoom, yEnd + ARROW_SIZE * 1.414f / 2f * mZoom);
         path.close();
-        canvas.drawPath(path,solidBlackPaint);
+        canvas.drawPath(path, solidBlackPaint);
         canvas.restore();
     }
 
@@ -536,61 +563,61 @@ public class GraphView extends View implements View.OnTouchListener{
     @Override
     public boolean onTouch(View v, MotionEvent event) {
 
-        int action=event.getActionMasked();
+        int action = event.getActionMasked();
 
         switch (action) {
             case (MotionEvent.ACTION_DOWN):
-                mActionDownEventTime=event.getEventTime();
-                mLastTouchX=event.getX();
-                mLastTouchY=event.getY();
-                mMovingClass=getTouchedClass(mLastTouchX,mLastTouchY);
-                mTouchMode=TouchMode.DRAG;
-                mPrimaryPointerIndex=0;
+                mActionDownEventTime = event.getEventTime();
+                mLastTouchX = event.getX();
+                mLastTouchY = event.getY();
+                mMovingClass = getTouchedClass(mLastTouchX, mLastTouchY);
+                mTouchMode = TouchMode.DRAG;
+                mPrimaryPointerIndex = 0;
                 break;
 
             case (MotionEvent.ACTION_POINTER_DOWN):
-                mOldDist=spacing(event);
+                mOldDist = spacing(event);
                 calculateMidPoint(event);
-                mOldXMidPoint=mXMidPoint;
-                mOldYMidPoint=mYMidpoint;
-                if (mOldDist>10f) {
+                mOldXMidPoint = mXMidPoint;
+                mOldYMidPoint = mYMidpoint;
+                if (mOldDist > 10f) {
                     mTouchMode = TouchMode.ZOOM;
                     mMovingClass = null;
                 }
                 break;
 
             case (MotionEvent.ACTION_MOVE):
-                if (mTouchMode==TouchMode.DRAG) {
+                if (mTouchMode == TouchMode.DRAG) {
                     if (mMovingClass == null) {
                         mXOffset = mXOffset + event.getX() - mLastTouchX;
                         mYOffset = mYOffset + event.getY() - mLastTouchY;
                     } else {
-                        mMovingClass.setUmlClassNormalXPos(mMovingClass.getUmlClassNormalXPos()+(event.getX()-mLastTouchX)/mZoom);
-                        mMovingClass.setUmlClassNormalYPos(mMovingClass.getUmlClassNormalYPos()+(event.getY()-mLastTouchY)/mZoom);
+                        mMovingClass.setUmlClassNormalXPos(mMovingClass.getUmlClassNormalXPos() + (event.getX() - mLastTouchX) / mZoom);
+                        mMovingClass.setUmlClassNormalYPos(mMovingClass.getUmlClassNormalYPos() + (event.getY() - mLastTouchY) / mZoom);
                     }
-                    mLastTouchX=event.getX();
-                    mLastTouchY=event.getY();
+                    mLastTouchX = event.getX();
+                    mLastTouchY = event.getY();
 
                 } else if (mTouchMode == TouchMode.ZOOM) {
-                    mNewDist=spacing(event);
-                    mZoom=mZoom*mNewDist/mOldDist;
+                    mNewDist = spacing(event);
+                    mZoom = mZoom * mNewDist / mOldDist;
                     calculateMidPoint(event);
-                    mXOffset=mXMidPoint+(mXOffset-mOldXMidPoint)*mNewDist/mOldDist;
-                    mYOffset=mYMidpoint+(mYOffset-mOldYMidPoint)*mNewDist/mOldDist;
-                    mOldDist=mNewDist;
-                    mOldXMidPoint=mXMidPoint;
-                    mOldYMidPoint=mYMidpoint;
+                    mXOffset = mXMidPoint + (mXOffset - mOldXMidPoint) * mNewDist / mOldDist;
+                    mYOffset = mYMidpoint + (mYOffset - mOldYMidPoint) * mNewDist / mOldDist;
+                    mOldDist = mNewDist;
+                    mOldXMidPoint = mXMidPoint;
+                    mOldYMidPoint = mYMidpoint;
                 }
                 break;
 
-            case(MotionEvent.ACTION_POINTER_UP):
-                mTouchMode=TouchMode.DRAG;
+            case (MotionEvent.ACTION_POINTER_UP):
+                mTouchMode = TouchMode.DRAG;
 
                 if (event.getActionIndex() == mPrimaryPointerIndex) {
-                    mPrimaryPointerIndex=(1+mPrimaryPointerIndex)%2;
+                    mPrimaryPointerIndex = (1 + mPrimaryPointerIndex) % 2;
                 }
-                mLastTouchX=event.getX(mPrimaryPointerIndex);
-                mLastTouchY=event.getY(mPrimaryPointerIndex);
+                mLastTouchX = event.getX(mPrimaryPointerIndex);
+                mLastTouchY = event.getY(mPrimaryPointerIndex);
                 break;
 
             case (MotionEvent.ACTION_UP):
@@ -598,20 +625,19 @@ public class GraphView extends View implements View.OnTouchListener{
                 //double click
                 if (event.getEventTime() - mActionDownEventTime <= CLICK_DELAY &&
                         event.getEventTime() - mFirstClickTime <= DOUBLE_CLICK_DELAY &&
-                        distance(mLastTouchX,mLastTouchY,mFirstClickX,mFirstClickY)<=DOUBLE_CLICK_DISTANCE_MAX) {
+                        distance(mLastTouchX, mLastTouchY, mFirstClickX, mFirstClickY) <= DOUBLE_CLICK_DISTANCE_MAX) {
                     if (getTouchedClass(mLastTouchX, mLastTouchY) != null)
-                        mCallback.editClass(getTouchedClass(mLastTouchX,mLastTouchY));
-                    else if (getTouchedRelation(mLastTouchX,mLastTouchY)!=null) {
-                        promptDeleteRelation(getTouchedRelation(mLastTouchX,mLastTouchY),this);
-                    }
-                    else adjustViewToProject();
+                        mCallback.editClass(getTouchedClass(mLastTouchX, mLastTouchY));
+                    else if (getTouchedRelation(mLastTouchX, mLastTouchY) != null) {
+                        promptDeleteRelation(getTouchedRelation(mLastTouchX, mLastTouchY), this);
+                    } else adjustViewToProject();
                 }
 
                 //simple click
-                if (event.getEventTime()-mActionDownEventTime<=CLICK_DELAY) {
+                if (event.getEventTime() - mActionDownEventTime <= CLICK_DELAY) {
                     mFirstClickTime = event.getEventTime();
-                    mFirstClickX=event.getX();
-                    mFirstClickY=event.getY();
+                    mFirstClickX = event.getX();
+                    mFirstClickY = event.getY();
 
                     //locate new class
                     if (mGraphFragment.isExpectingTouchLocation()) {
@@ -621,16 +647,16 @@ public class GraphView extends View implements View.OnTouchListener{
 
                         //touch relation end class
                     } else if (mGraphFragment.isExpectingEndClass()
-                            && getTouchedClass(mLastTouchX,mLastTouchY)!=null
-                            && getTouchedClass(mLastTouchX,mLastTouchY)!=mGraphFragment.getStartClass()) {
-                        mGraphFragment.setEndClass(getTouchedClass(mLastTouchX,mLastTouchY));
+                            && getTouchedClass(mLastTouchX, mLastTouchY) != null
+                            && getTouchedClass(mLastTouchX, mLastTouchY) != mGraphFragment.getStartClass()) {
+                        mGraphFragment.setEndClass(getTouchedClass(mLastTouchX, mLastTouchY));
                         mGraphFragment.setExpectingEndClass(false);
                         mGraphFragment.clearPrompt();
-                        mCallback.createRelation(mGraphFragment.getStartClass(),mGraphFragment.getEndClass(),mGraphFragment.getUmlRelationType());
+                        mCallback.createRelation(mGraphFragment.getStartClass(), mGraphFragment.getEndClass(), mGraphFragment.getUmlRelationType());
 
                         //touch relation origin class
                     } else if (mGraphFragment.isExpectingStartClass() && getTouchedClass(mLastTouchX, mLastTouchY) != null) {
-                        mGraphFragment.setStartClass(getTouchedClass(mLastTouchX,mLastTouchY));
+                        mGraphFragment.setStartClass(getTouchedClass(mLastTouchX, mLastTouchY));
                         mGraphFragment.setExpectingStartClass(false);
                         mGraphFragment.setExpectingEndClass(true);
                         mGraphFragment.setPrompt("Choose end class");
@@ -651,9 +677,8 @@ public class GraphView extends View implements View.OnTouchListener{
 //    **********************************************************************************************
 
     private void createCallbackToParentActivity() {
-        mCallback=(GraphViewObserver)this.getContext();
+        mCallback = (GraphViewObserver) this.getContext();
     }
-
 
 
 //    **********************************************************************************************
@@ -661,14 +686,14 @@ public class GraphView extends View implements View.OnTouchListener{
 //    **********************************************************************************************
 
     private float spacing(MotionEvent event) {
-        float dx=event.getX(0)-event.getX(1);
-        float dy=event.getY(0)-event.getY(1);
-        return (float) Math.sqrt(dx*dx+dy*dy);
+        float dx = event.getX(0) - event.getX(1);
+        float dy = event.getY(0) - event.getY(1);
+        return (float) Math.sqrt(dx * dx + dy * dy);
     }
 
     private void calculateMidPoint(MotionEvent event) {
-        mXMidPoint=(event.getX(0)+event.getX(1))/2;
-        mYMidpoint=(event.getY(0)+event.getY(1))/2;
+        mXMidPoint = (event.getX(0) + event.getX(1)) / 2;
+        mYMidpoint = (event.getY(0) + event.getY(1)) / 2;
     }
 
     private void updateUmlClassNormalDimensions(UmlClass umlClass) {
@@ -679,16 +704,19 @@ public class GraphView extends View implements View.OnTouchListener{
 //        umlClass.setUmlClassNormalHeight(INTERLINE*3f+(FONT_SIZE+INTERLINE)*(1f+umlClass.getAttributeList().size()+umlClass.getMethodList().size()));
         switch (umlClass.getUmlClassType()) {
             case ENUM:
-                umlClass.setUmlClassNormalWidth(Math.max(getClassHeaderNormalWidth(umlClass),getValueBoxNormalWidth(umlClass)));
-                umlClass.setUmlClassNormalHeight(getClassHeaderNormalHeight(umlClass)+getValueBoxNormalHeight(umlClass));
+                umlClass.setUmlClassNormalWidth(Math.max(getClassHeaderNormalWidth(umlClass), getValueBoxNormalWidth(umlClass)));
+                umlClass.setUmlClassNormalHeight(getClassHeaderNormalHeight(umlClass) + getValueBoxNormalHeight(umlClass));
                 break;
             default:
-                float currentWidth=0;
-                if (getClassHeaderNormalWidth(umlClass)>currentWidth) currentWidth=getClassHeaderNormalWidth(umlClass);
-                if (getAttributeBoxNormalWidth(umlClass)>currentWidth) currentWidth=getAttributeBoxNormalWidth(umlClass);
-                if (getMethodBoxNormalWidth(umlClass)>currentWidth) currentWidth=getMethodBoxNormalWidth(umlClass);
+                float currentWidth = 0;
+                if (getClassHeaderNormalWidth(umlClass) > currentWidth)
+                    currentWidth = getClassHeaderNormalWidth(umlClass);
+                if (getAttributeBoxNormalWidth(umlClass) > currentWidth)
+                    currentWidth = getAttributeBoxNormalWidth(umlClass);
+                if (getMethodBoxNormalWidth(umlClass) > currentWidth)
+                    currentWidth = getMethodBoxNormalWidth(umlClass);
                 umlClass.setUmlClassNormalWidth(currentWidth);
-                umlClass.setUmlClassNormalHeight(getClassHeaderNormalHeight(umlClass)+getAttributeBoxNormalHeight(umlClass)+getMethodBoxNormalHeight(umlClass));
+                umlClass.setUmlClassNormalHeight(getClassHeaderNormalHeight(umlClass) + getAttributeBoxNormalHeight(umlClass) + getMethodBoxNormalHeight(umlClass));
                 break;
         }
     }
@@ -699,131 +727,134 @@ public class GraphView extends View implements View.OnTouchListener{
             case INTERFACE:
                 return Math.max(getTextNormalWidth("<< Interface >>"), getTextNormalWidth(umlClass.getName())) + 2 * INTERLINE;
             default:
-                return getTextNormalWidth(umlClass.getName())+2*INTERLINE;
+                return getTextNormalWidth(umlClass.getName()) + 2 * INTERLINE;
         }
     }
 
     private float getClassHeaderNormalHeight(UmlClass umlClass) {
         switch (umlClass.getUmlClassType()) {
             case INTERFACE:
-                return FONT_SIZE*2+3*INTERLINE;
+                return FONT_SIZE * 2 + 3 * INTERLINE;
             default:
-                return FONT_SIZE+2*INTERLINE;
+                return FONT_SIZE + 2 * INTERLINE;
         }
     }
 
     private float getAttributeBoxNormalWidth(UmlClass umlClass) {
-        float currentWidth=0;
-        for (UmlClassAttribute a:umlClass.getAttributes())
-            if (getTextNormalWidth(a.getAttributeCompleteString())>currentWidth)
-                currentWidth=getTextNormalWidth(a.getAttributeCompleteString());
+        float currentWidth = 0;
+        for (UmlClassAttribute a : umlClass.getAttributes())
+            if (getTextNormalWidth(a.getAttributeCompleteString()) > currentWidth)
+                currentWidth = getTextNormalWidth(a.getAttributeCompleteString());
 
-        return currentWidth+2*INTERLINE;
+        return currentWidth + 2 * INTERLINE;
     }
 
     private float getAttributeBoxNormalHeight(UmlClass umlClass) {
 
-        return umlClass.getAttributes().size()*FONT_SIZE+(umlClass.getAttributes().size()+1)*INTERLINE;
+        return umlClass.getAttributes().size() * FONT_SIZE + (umlClass.getAttributes().size() + 1) * INTERLINE;
     }
 
     private float getMethodBoxNormalWidth(UmlClass umlClass) {
-        float currentWidth=0;
-        for (UmlClassMethod m:umlClass.getMethods())
-            if (getTextNormalWidth(m.getMethodCompleteString())>currentWidth)
-                currentWidth=getTextNormalWidth(m.getMethodCompleteString());
+        float currentWidth = 0;
+        for (UmlClassMethod m : umlClass.getMethods())
+            if (getTextNormalWidth(m.getMethodCompleteString()) > currentWidth)
+                currentWidth = getTextNormalWidth(m.getMethodCompleteString());
 
-        return currentWidth+2*INTERLINE;
+        return currentWidth + 2 * INTERLINE;
     }
 
     private float getMethodBoxNormalHeight(UmlClass umlClass) {
 
-        return umlClass.getMethods().size()*FONT_SIZE+(umlClass.getMethods().size()+1)*INTERLINE;
+        return umlClass.getMethods().size() * FONT_SIZE + (umlClass.getMethods().size() + 1) * INTERLINE;
     }
 
     private float getValueBoxNormalWidth(UmlClass umlClass) {
-        float currentWidth=0;
-        for (UmlEnumValue v:umlClass.getValues())
-            if (getTextNormalWidth(v.getName())>currentWidth)
-                currentWidth=getTextNormalWidth(v.getName());
+        float currentWidth = 0;
+        for (UmlEnumValue v : umlClass.getValues())
+            if (getTextNormalWidth(v.getName()) > currentWidth)
+                currentWidth = getTextNormalWidth(v.getName());
 
-        return currentWidth+2*INTERLINE;
+        return currentWidth + 2 * INTERLINE;
     }
 
     private float getValueBoxNormalHeight(UmlClass umlClass) {
 
-        return umlClass.getValues().size()*FONT_SIZE+(umlClass.getValues().size()+1)*INTERLINE;
+        return umlClass.getValues().size() * FONT_SIZE + (umlClass.getValues().size() + 1) * INTERLINE;
     }
 
     private float getTextNormalWidth(String text) {
-        plainTextPaint.setTextSize(FONT_SIZE*mZoom);
-        return plainTextPaint.measureText(text)/mZoom;
+        plainTextPaint.setTextSize(FONT_SIZE * mZoom);
+        return plainTextPaint.measureText(text) / mZoom;
     }
 
     private float getAngle(float xOrigin, float yOrigin, float xEnd, float yEnd) {
         //calculate angle between segment and horizontal
-        return (float)(Math.copySign(Math.abs(Math.acos((xEnd-xOrigin)/Math.sqrt((xEnd-xOrigin)*(xEnd-xOrigin)+(yEnd-yOrigin)*(yEnd-yOrigin)))),yEnd-yOrigin)/
-                Math.PI*180f);
+        return (float) (Math.copySign(Math.abs(Math.acos((xEnd - xOrigin) / Math.sqrt((xEnd - xOrigin) * (xEnd - xOrigin) + (yEnd - yOrigin) * (yEnd - yOrigin)))), yEnd - yOrigin) /
+                Math.PI * 180f);
     }
 
     private float getAbsoluteProjectWidth() {
         //return the length of the rectangle that can contain all the project
 
-        float minX=1000000;
-        float maxX=-1000000;
+        float minX = 1000000;
+        float maxX = -1000000;
         for (UmlClass c : mUmlProject.getUmlClasses()) {
-            minX=Math.min(c.getUmlClassNormalXPos(),minX);
-            maxX=Math.max(c.getNormalRightEnd(),maxX);
+            minX = Math.min(c.getUmlClassNormalXPos(), minX);
+            maxX = Math.max(c.getNormalRightEnd(), maxX);
         }
-        return maxX-minX;
+        return maxX - minX;
     }
 
     private float getAbsoluteProjectHeight() {
         //return the height of the rectangle that can contain all the project
 
-        float minY=1000000;
-        float maxY=-1000000;
+        float minY = 1000000;
+        float maxY = -1000000;
         for (UmlClass c : mUmlProject.getUmlClasses()) {
-            minY=Math.min(c.getUmlClassNormalYPos(),minY);
-            maxY=Math.max(c.getNormalBottomEnd(),maxY);
+            minY = Math.min(c.getUmlClassNormalYPos(), minY);
+            maxY = Math.max(c.getNormalBottomEnd(), maxY);
         }
-        return maxY-minY;
+        return maxY - minY;
     }
 
     private float getAbsoluteProjectLeft() {
-        float minX=1000000;
-        for (UmlClass c : mUmlProject.getUmlClasses()) minX=Math.min(c.getUmlClassNormalXPos(),minX);
+        float minX = 1000000;
+        for (UmlClass c : mUmlProject.getUmlClasses())
+            minX = Math.min(c.getUmlClassNormalXPos(), minX);
         return minX;
     }
 
     private float getAbsoluteProjectRight() {
-        float maxX=-1000000;
-        for (UmlClass c : mUmlProject.getUmlClasses()) maxX=Math.max(c.getNormalRightEnd(),maxX);
+        float maxX = -1000000;
+        for (UmlClass c : mUmlProject.getUmlClasses()) maxX = Math.max(c.getNormalRightEnd(), maxX);
         return maxX;
     }
 
     private float getAbsoluteProjectTop() {
-        float minY=1000000;
-        for (UmlClass c : mUmlProject.getUmlClasses()) minY=Math.min(c.getUmlClassNormalYPos(),minY);
+        float minY = 1000000;
+        for (UmlClass c : mUmlProject.getUmlClasses())
+            minY = Math.min(c.getUmlClassNormalYPos(), minY);
         return minY;
     }
 
     private float getAbsoluteProjectBottom() {
-        float maxY=-1000000;
-        for (UmlClass c : mUmlProject.getUmlClasses()) maxY=Math.max(c.getNormalBottomEnd(),maxY);
+        float maxY = -1000000;
+        for (UmlClass c : mUmlProject.getUmlClasses())
+            maxY = Math.max(c.getNormalBottomEnd(), maxY);
         return maxY;
     }
 
-    private void adjustViewToProject() {
-        float xZoom=this.getMeasuredWidth()/getAbsoluteProjectWidth();
-        float yZoom=this.getMeasuredHeight()/getAbsoluteProjectHeight();
+    public void adjustViewToProject() {
+        float xZoom = this.getMeasuredWidth() / getAbsoluteProjectWidth();
+        float yZoom = this.getMeasuredHeight() / getAbsoluteProjectHeight();
         if (xZoom <= yZoom) {
             mZoom = xZoom;
-            mXOffset=-getAbsoluteProjectLeft()*mZoom;
-            mYOffset =-getAbsoluteProjectTop()*mZoom+(this.getMeasuredHeight()-getAbsoluteProjectHeight()*mZoom)/2f;
+            mXOffset = -getAbsoluteProjectLeft() * mZoom;
+            mYOffset = -getAbsoluteProjectTop() * mZoom + (this.getMeasuredHeight() - getAbsoluteProjectHeight() * mZoom) / 2f;
         } else {
-            mZoom=yZoom;
-            mYOffset=-getAbsoluteProjectTop()*mZoom;
-            mXOffset=-getAbsoluteProjectLeft()*mZoom+(this.getMeasuredWidth()-getAbsoluteProjectWidth()*mZoom)/2f;
+            mZoom = yZoom;
+            mYOffset = -getAbsoluteProjectTop() * mZoom;
+            mXOffset = -getAbsoluteProjectLeft() * mZoom + (this.getMeasuredWidth() - getAbsoluteProjectWidth() * mZoom) / 2f;
         }
         this.invalidate();
     }
@@ -835,19 +866,19 @@ public class GraphView extends View implements View.OnTouchListener{
 //    **********************************************************************************************
 
     private float visibleX(float absoluteX) {
-        return mXOffset+mZoom*absoluteX;
+        return mXOffset + mZoom * absoluteX;
     }
 
     private float visibleY(float absoluteY) {
-        return mYOffset+mZoom*absoluteY;
+        return mYOffset + mZoom * absoluteY;
     }
 
     private float absoluteX(float visibleX) {
-        return (visibleX-mXOffset)/mZoom;
+        return (visibleX - mXOffset) / mZoom;
     }
 
     private float absoluteY(float visibleY) {
-        return (visibleY-mYOffset)/mZoom;
+        return (visibleY - mYOffset) / mZoom;
     }
 
 //    **********************************************************************************************
@@ -856,7 +887,7 @@ public class GraphView extends View implements View.OnTouchListener{
 
     private UmlClass getTouchedClass(float visibleX, float visibleY) {
 
-        for (UmlClass c:mUmlProject.getUmlClasses()) {
+        for (UmlClass c : mUmlProject.getUmlClasses()) {
             if (c.containsPoint(absoluteX(visibleX), absoluteY(visibleY)))
                 return c;
         }
@@ -865,11 +896,11 @@ public class GraphView extends View implements View.OnTouchListener{
 
     public UmlRelation getTouchedRelation(float visibleX, float visibleY) {
         for (UmlRelation r : mUmlProject.getUmlRelations()) {
-            if (distance(absoluteX(visibleX),absoluteY(visibleY),r.getXOrigin(),r.getYOrigin(),r.getXEnd(),r.getYEnd())<=20
-            && absoluteX(visibleX)>=Math.min(r.getXOrigin(),r.getXEnd())-20
-            && absoluteX(visibleX)<=Math.max(r.getXOrigin(),r.getXEnd())+20
-            && absoluteY(visibleY)>=Math.min(r.getYOrigin(),r.getYEnd())-20
-            && absoluteY(visibleY)<=Math.max(r.getYOrigin(),r.getYEnd())+20)
+            if (distance(absoluteX(visibleX), absoluteY(visibleY), r.getXOrigin(), r.getYOrigin(), r.getXEnd(), r.getYEnd()) <= 20
+                    && absoluteX(visibleX) >= Math.min(r.getXOrigin(), r.getXEnd()) - 20
+                    && absoluteX(visibleX) <= Math.max(r.getXOrigin(), r.getXEnd()) + 20
+                    && absoluteY(visibleY) >= Math.min(r.getYOrigin(), r.getYEnd()) - 20
+                    && absoluteY(visibleY) <= Math.max(r.getYOrigin(), r.getYEnd()) + 20)
                 return r;
         }
         return null;
@@ -883,22 +914,22 @@ public class GraphView extends View implements View.OnTouchListener{
         float uY;
 
         if (originX == endX) {
-            uX=0;
-            uY=1;
+            uX = 0;
+            uY = 1;
         } else if (originY == endY) {
             uX = 1;
             uY = 0;
         } else {
             uX = (float) (1f / Math.sqrt(1f + (endX - originX) * (endX - originX) / (endY - originY) / (endY - originY)));
-            uY= (float) ((originX-endX)/(endY-originY)/Math.sqrt(1f + (endX - originX) * (endX - originX) / (endY - originY) / (endY - originY)));
+            uY = (float) ((originX - endX) / (endY - originY) / Math.sqrt(1f + (endX - originX) * (endX - originX) / (endY - originY) / (endY - originY)));
         }
 
-        return Math.abs((dotX-originX)*uX+(dotY-originY)*uY);
+        return Math.abs((dotX - originX) * uX + (dotY - originY) * uY);
     }
 
     private float distance(float X1, float Y1, float X2, float Y2) {
         //calculate the distance between two points M1(X1,Y1) and M2(X2,Y2)
-        return (float) Math.sqrt((X1-X2)*(X1-X2)+(Y1-Y2)*(Y1-Y2));
+        return (float) Math.sqrt((X1 - X2) * (X1 - X2) + (Y1 - Y2) * (Y1 - Y2));
     }
 
     private void updateProjectGeometricalParameters() {
@@ -907,27 +938,17 @@ public class GraphView extends View implements View.OnTouchListener{
         mUmlProject.setYOffset(mYOffset);
     }
 
-//    **********************************************************************************************
+    //    **********************************************************************************************
 //    Interaction methods
 //    **********************************************************************************************
     private void promptDeleteRelation(final UmlRelation umlRelation, final View view) {
-        AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
-        builder.setTitle("Delete relation")
+        new MaterialAlertDialogBuilder(getContext())
+        .setTitle("Delete relation")
                 .setMessage("Are you sure you want to delete this relation ?")
-                .setNegativeButton("NO", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                    }
-                })
-                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        mUmlProject.removeUmlRelation(umlRelation);
-                        view.invalidate();
-                    }
-                });
-        AlertDialog dialog=builder.create();
-        dialog.show();
+                .setNegativeButton("NO", (d, which) -> d.dismiss())
+                .setPositiveButton("YES", (d, which) -> {
+                    mUmlProject.removeUmlRelation(umlRelation);
+                    view.invalidate();
+                }).show();
     }
 }
